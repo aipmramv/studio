@@ -26,10 +26,10 @@ const materialVolumeData = [
 ];
 
 const kpiStats = [
-    { title: "Total Requests Today", value: "125", icon: TrendingUp, color: "text-green-500" },
-    { title: "Scrap Moved (This Week)", value: "2.5 Tons", icon: Package, color: "text-blue-500" },
-    { title: "Pending Approvals", value: "18", icon: Clock, color: "text-yellow-500" },
-    { title: "Delayed Approvals (>48h)", value: "3", icon: AlertTriangle, color: "text-red-500" },
+    { title: "Total Requests Today", value: "125", icon: TrendingUp, color: "text-primary" }, // Was text-green-500
+    { title: "Scrap Moved (This Week)", value: "2.5 Tons", icon: Package, color: "text-primary" }, // Was text-blue-500, mapping to primary as it's a prominent blue
+    { title: "Pending Approvals", value: "18", icon: Clock, color: "text-accent" },  // Was text-yellow-500
+    { title: "Delayed Approvals (>48h)", value: "3", icon: AlertTriangle, color: "text-destructive" }, // Was text-red-500
 ];
 
 

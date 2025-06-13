@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils"; // Added missing import
 
 interface AiComplianceCheckProps {
   formData?: any; // Conceptually, this would take the form data
@@ -76,9 +77,9 @@ export function AiComplianceCheck({ formData }: AiComplianceCheckProps) {
   };
 
   const getComplianceIcon = (isCompliant: boolean | null) => {
-    if (isCompliant === null) return <AlertTriangle className="w-5 h-5 text-yellow-500" />;
-    if (isCompliant) return <CheckCircle className="w-5 h-5 text-green-500" />;
-    return <XCircle className="w-5 h-5 text-red-500" />;
+    if (isCompliant === null) return <AlertTriangle className="w-5 h-5 text-accent" />; // Changed text-yellow-500 to text-accent
+    if (isCompliant) return <CheckCircle className="w-5 h-5 text-primary" />; // Changed text-green-500 to text-primary
+    return <XCircle className="w-5 h-5 text-destructive" />; // Changed text-red-500 to text-destructive
   };
 
   return (
@@ -127,9 +128,9 @@ export function AiComplianceCheck({ formData }: AiComplianceCheckProps) {
               <span
                 className={cn(
                   "font-bold",
-                  aiFeedback.likelihood === "High" && "text-green-600",
-                  aiFeedback.likelihood === "Medium" && "text-yellow-600",
-                  aiFeedback.likelihood === "Low" && "text-red-600"
+                  aiFeedback.likelihood === "High" && "text-primary", // Changed text-green-600
+                  aiFeedback.likelihood === "Medium" && "text-accent", // Changed text-yellow-600
+                  aiFeedback.likelihood === "Low" && "text-destructive" // Changed text-red-600
                 )}
               >
                 {aiFeedback.likelihood}
