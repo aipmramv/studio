@@ -1,3 +1,4 @@
+
 // src/app/(app)/dashboard/page.tsx
 "use client";
 import * as React from "react";
@@ -72,7 +73,7 @@ export default function ApprovalsDashboardPage() {
       {approvals.length === 0 && (
         <Card className="shadow-lg">
           <CardContent className="p-6 text-center">
-            <Check className="w-16 h-16 mx-auto text-green-500 mb-4" />
+            <Check className="w-16 h-16 mx-auto text-primary mb-4" />
             <h3 className="text-xl font-semibold text-foreground">All Caught Up!</h3>
             <p className="text-muted-foreground">There are no pending approvals for you at the moment.</p>
           </CardContent>
@@ -152,7 +153,7 @@ export default function ApprovalsDashboardPage() {
                 </AlertDialogContent>
               </AlertDialog>
 
-              <Button onClick={() => handleApprovalAction(item.id, "approve")} className="w-full bg-green-600 hover:bg-green-700 text-white">
+              <Button onClick={() => handleApprovalAction(item.id, "approve")} className="w-full">
                 <Check className="w-4 h-4 mr-2" /> Approve
               </Button>
             </CardFooter>
