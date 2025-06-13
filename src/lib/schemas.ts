@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { MATERIAL_TYPES, SCRAP_TYPES, BUILDING_TYPES, ACTIVITY_TYPES_WORK_PERMIT } from './constants';
+import { MATERIAL_TYPES, SCRAP_TYPES, BUILDING_TYPES, ACTIVITY_TYPES_WORK_PERMIT, USER_ROLES, DEPARTMENTS } from './constants';
 
 export const LoginSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -11,7 +11,7 @@ export const SignupSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
   password: z.string().min(6, { message: "Password must be at least 6 characters." }),
   confirmPassword: z.string().min(6, { message: "Password must be at least 6 characters." }),
-  role: z.string(), // In a real app, this might be an enum from USER_ROLES
+  role: z.enum(USER_ROLES, { required_error: "Role is required."}),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
@@ -44,6 +44,7 @@ export type ScrapMovementFormData = z.infer<typeof ScrapMovementSchema>;
 export const WorkPermitSchema = z.object({
   building: z.enum(BUILDING_TYPES, { required_error: "Building is required." }),
   activityType: z.enum(ACTIVITY_TYPES_WORK_PERMIT, { required_error: "Activity type is required." }),
+  activityDetails: z.string().min(10, "Please provide more details about the activity (min 10 characters).").max(1000, "Activity details cannot exceed 1000 characters."),
   // attachments: z.instanceof(File).optional(),
 });
 export type WorkPermitFormData = z.infer<typeof WorkPermitSchema>;
