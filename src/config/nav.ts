@@ -16,49 +16,49 @@ export interface NavItem {
 export const mainNavItems: NavItem[] = [
   {
     title: 'Dashboard',
-    href: '/app/dashboard',
+    href: '/dashboard',
     icon: LayoutDashboard,
     description: "Pending approvals and overview.",
   },
   {
     title: 'Material Movement',
-    href: '/app/material-movement',
+    href: '/material-movement',
     icon: Truck,
     description: "Log and track material movements.",
     items: [
-      { title: 'New Request', href: '/app/material-movement/new', icon: FileText },
-      { title: 'View Requests', href: '/app/material-movement/list', icon: ListChecks },
+      { title: 'New Request', href: '/material-movement/new', icon: FileText },
+      { title: 'View Requests', href: '/material-movement/list', icon: ListChecks },
     ]
   },
   {
     title: 'Scrap Movement',
-    href: '/app/scrap-movement',
+    href: '/scrap-movement',
     icon: Recycle,
     description: "Log and track scrap disposals.",
     items: [
-      { title: 'New Request', href: '/app/scrap-movement/new', icon: FileText },
-      { title: 'View Requests', href: '/app/scrap-movement/list', icon: ListChecks },
+      { title: 'New Request', href: '/scrap-movement/new', icon: FileText },
+      { title: 'View Requests', href: '/scrap-movement/list', icon: ListChecks },
     ]
   },
   {
     title: 'Work Permit',
-    href: '/app/work-permit',
+    href: '/work-permit',
     icon: ShieldCheck,
     description: "Request and manage work permits.",
     items: [
-      { title: 'New Request', href: '/app/work-permit/new', icon: FileText },
-      { title: 'View Permits', href: '/app/work-permit/list', icon: ListChecks },
+      { title: 'New Request', href: '/work-permit/new', icon: FileText },
+      { title: 'View Permits', href: '/work-permit/list', icon: ListChecks },
     ]
   },
   {
     title: 'DC Generator',
-    href: '/app/dc-generator',
+    href: '/dc-generator',
     icon: ListChecks,
     description: "Generate Delivery Challans.",
   },
   {
     title: 'KPI Dashboard',
-    href: '/app/kpi-dashboard',
+    href: '/kpi-dashboard',
     icon: BarChart3,
     description: "View key performance indicators.",
     roles: ['admin', 'mm_team'],
@@ -68,13 +68,13 @@ export const mainNavItems: NavItem[] = [
 export const userNavItems: NavItem[] = [
     {
         title: "Profile",
-        href: "/app/profile",
+        href: "/profile",
         icon: UserCircle,
         description: "Manage your profile settings."
     },
     {
         title: "Settings",
-        href: "/app/settings",
+        href: "/settings",
         icon: Settings,
         description: "Application settings."
     },

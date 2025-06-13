@@ -13,7 +13,7 @@ export default function WorkPermitListPage() {
         description="View and manage all work permit requests."
         actions={
           <Button asChild>
-            <Link href="/app/work-permit/new">
+            <Link href="/work-permit/new">
               <PlusCircle className="w-4 h-4 mr-2" /> New Permit
             </Link>
           </Button>

@@ -14,7 +14,7 @@ export default function MaterialMovementListPage() {
         description="View and manage all material movement requests."
         actions={
           <Button asChild>
-            <Link href="/app/material-movement/new">
+            <Link href="/material-movement/new">
               <PlusCircle className="w-4 h-4 mr-2" /> New Request
             </Link>
           </Button>

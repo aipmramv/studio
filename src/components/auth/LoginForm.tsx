@@ -42,7 +42,7 @@ export function LoginForm() {
         title: "Login Successful",
         description: "Welcome back!",
       });
-      router.push("/app/dashboard"); // Redirect to dashboard after successful login
+      router.push("/dashboard"); // Redirect to dashboard after successful login
     } catch (error) {
       toast({
         title: "Login Failed",

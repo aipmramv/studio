@@ -13,7 +13,7 @@ export default function ScrapMovementListPage() {
         description="View and manage all scrap movement requests."
         actions={
           <Button asChild>
-            <Link href="/app/scrap-movement/new">
+            <Link href="/scrap-movement/new">
               <PlusCircle className="w-4 h-4 mr-2" /> New Request
             </Link>
           </Button>

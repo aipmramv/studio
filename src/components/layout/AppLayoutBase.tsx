@@ -39,7 +39,7 @@ export function AppLayoutBase({ children }: AppLayoutBaseProps) {
           <SidebarHeader className="p-4 border-b border-sidebar-border">
             <div className="flex items-center justify-between">
               <Button variant="link" className="p-0 h-auto" asChild>
-                <Link href="/app/dashboard" className="flex items-center gap-2 text-sidebar-foreground hover:text-sidebar-primary transition-colors">
+                <Link href="/dashboard" className="flex items-center gap-2 text-sidebar-foreground hover:text-sidebar-primary transition-colors">
                   <Package className="h-8 w-8 text-sidebar-primary" />
                   <h1 className="text-2xl font-bold font-headline group-data-[collapsible=icon]:hidden">TrackFlow</h1>
                 </Link>
