@@ -1,5 +1,6 @@
+
 import type { LucideIcon } from 'lucide-react';
-import { LayoutDashboard, Truck, Recycle, FileText, ListChecks, BarChart3, UserCircle, LogOut, Settings, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, Truck, Recycle, FileText, ListChecks, BarChart3, UserCircle, LogOut, Settings, ShieldCheck, Database, Package, Building, Briefcase, ClipboardCheck } from 'lucide-react';
 
 export interface NavItem {
   title: string;
@@ -63,6 +64,20 @@ export const mainNavItems: NavItem[] = [
     description: "View key performance indicators.",
     roles: ['admin', 'mm_team'],
   },
+  {
+    title: 'Masters',
+    href: '/masters',
+    icon: Database,
+    description: "Manage application metadata.",
+    roles: ['admin'],
+    items: [
+      { title: 'Material Types', href: '/masters/material-types', icon: Package },
+      { title: 'Scrap Types', href: '/masters/scrap-types', icon: Recycle },
+      { title: 'Building Types', href: '/masters/building-types', icon: Building },
+      { title: 'Departments', href: '/masters/departments', icon: Briefcase },
+      { title: 'Activity Types', href: '/masters/activity-types', icon: ClipboardCheck },
+    ]
+  }
 ];
 
 export const userNavItems: NavItem[] = [
@@ -80,7 +95,7 @@ export const userNavItems: NavItem[] = [
     },
     {
         title: "Logout",
-        href: "/logout", // This would trigger a logout action on client, then redirect to /
+        href: "/logout", 
         icon: LogOut,
         description: "Sign out of your account."
     }
