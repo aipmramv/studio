@@ -12,23 +12,23 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCap
 import { Badge } from "@/components/ui/badge";
 import { CURRENCY_SYMBOLS, type Currency } from "@/lib/constants";
 
-interface SaleOrderItem {
+interface SaleOrderItemDisplay {
   soNumber: string;
   customerName: string;
-  soDate: string;
+  soDate: string; // Keep as string for display
   totalAmount: number;
   currency: Currency;
   status: "Draft" | "Confirmed" | "Shipped" | "Delivered" | "Cancelled";
 }
 
-const mockSaleOrders: SaleOrderItem[] = [
+const mockSaleOrders: SaleOrderItemDisplay[] = [
   { soNumber: "SO2024001", customerName: "Customer X Inc.", soDate: "2024-07-22", totalAmount: 85000, currency: "INR", status: "Confirmed" },
   { soNumber: "SO2024002", customerName: "Client Y Solutions", soDate: "2024-07-25", totalAmount: 1200, currency: "EUR", status: "Draft" },
   { soNumber: "SO2024003", customerName: "Partner Z Ltd.", soDate: "2024-07-28", totalAmount: 300000, currency: "INR", status: "Shipped" },
 ];
 
 export default function SaleOrderListPage() {
-  const [saleOrders, setSaleOrders] = React.useState<SaleOrderItem[]>(mockSaleOrders);
+  const [saleOrders, setSaleOrders] = React.useState<SaleOrderItemDisplay[]>(mockSaleOrders);
 
   return (
     <div className="space-y-8">
@@ -66,7 +66,7 @@ export default function SaleOrderListPage() {
                   <TableRow key={so.soNumber}>
                     <TableCell className="font-medium">{so.soNumber}</TableCell>
                     <TableCell>{so.customerName}</TableCell>
-                    <TableCell>{so.soDate}</TableCell>
+                    <TableCell>{new Date(so.soDate).toLocaleDateString()}</TableCell>
                      <TableCell className="text-right">
                        {CURRENCY_SYMBOLS[so.currency]}{so.totalAmount.toLocaleString()}
                     </TableCell>

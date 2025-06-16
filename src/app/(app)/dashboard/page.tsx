@@ -64,25 +64,25 @@ interface ApprovalItem {
 const mockApprovalsData: ApprovalItem[] = [
   {
     id: "MM001", requestType: "Material Movement", requesterName: "Alice Smith", requesterDepartment: "Production", submissionDate: "2024-07-28T10:00:00Z",
-    currentStepId: "mm_dept_head", currentStepName: "Department Head Approval", currentAssignees: ["department_head"], workflowTemplateId: "material_movement_default",
+    currentStepId: "mm_dept_head", currentStepName: "Department Head Approval", currentAssignees: ["department_head", "admin"], workflowTemplateId: "material_movement_default",
     payload: { materialType: "Raw Material", source: "Warehouse A", destination: "Production Line 1", quantity: 100, currency: "INR", value: 150000, isReturnable: "no", vehicleNumber:"MH12AB1234" } as MaterialMovementFormData,
     history: [{ stepId: "submission", stepName:"Submitted", actor: "Alice Smith", action: "submitted", timestamp: "2024-07-28T10:00:00Z" }]
   },
   {
     id: "SM002", requestType: "Scrap Request", requesterName: "Bob Johnson", requesterDepartment: "Maintenance", submissionDate: "2024-07-27T14:30:00Z",
-    currentStepId: "sm_finance_clearance", currentStepName: "Finance Clearance", currentAssignees: ["finance_team"], workflowTemplateId: "scrap_default", // Assuming a scrap_default template
+    currentStepId: "sm_finance_clearance", currentStepName: "Finance Clearance", currentAssignees: ["finance_team", "admin"], workflowTemplateId: "scrap_default", // Assuming a scrap_default template
     payload: { scrapType: "E-waste", description: "Old monitors and keyboards", quantity: 10, weight: 50 } as ScrapMovementFormData,
     history: [{ stepId: "submission", stepName:"Submitted", actor: "Bob Johnson", action: "submitted", timestamp: "2024-07-27T14:30:00Z" }]
   },
   {
     id: "WP003", requestType: "Work Permit", requesterName: "Carol White", requesterDepartment: "IT", submissionDate: "2024-07-29T09:15:00Z",
-    currentStepId: "wp_safety_review", currentStepName: "Safety Team Review", currentAssignees: ["safety"], workflowTemplateId: "work_permit_default",
+    currentStepId: "wp_safety_review", currentStepName: "Safety Team Review", currentAssignees: ["safety", "admin"], workflowTemplateId: "work_permit_default",
     payload: { building: "KOSMO", activityType: "Server Maintenance", activityDetails: "Routine server maintenance in DC room 3" } as WorkPermitFormData,
     history: [{ stepId: "submission", stepName:"Submitted", actor: "Carol White", action: "submitted", timestamp: "2024-07-29T09:15:00Z" }]
   },
   {
     id: "PO004", requestType: "Purchase Order", requesterName: "David Brown", requesterDepartment: "Logistics", submissionDate: "2024-07-29T11:00:00Z",
-    currentStepId: "po_dept_head", currentStepName: "Dept. Head Approval", currentAssignees: ["department_head"], workflowTemplateId: "po_default",
+    currentStepId: "po_dept_head", currentStepName: "Dept. Head Approval", currentAssignees: ["department_head", "admin"], workflowTemplateId: "po_default",
     payload: { vendorName: "Tech Solutions Inc.", poDate: new Date("2024-07-29"), currency: "EUR", items: [{itemName: "Laptop Model X", quantity: 5, unitPrice: 1200}], deliveryAddress: "Main Office", paymentTerms: "Net 30" } as PurchaseOrderFormData,
     history: [{ stepId: "submission", stepName:"Submitted", actor: "David Brown", action: "submitted", timestamp: "2024-07-29T11:00:00Z"}]
   },
@@ -101,6 +101,8 @@ export default function ApprovalsDashboardPage() {
 
   const userVisibleApprovals = React.useMemo(() => {
     if (!user) return [];
+    // Admins can see all, others see based on role assignment
+    if(user.role === 'admin') return approvals;
     return approvals.filter(item => item.currentAssignees.includes(user.role));
   }, [approvals, user]);
 
@@ -108,16 +110,8 @@ export default function ApprovalsDashboardPage() {
     const item = approvals.find(ap => ap.id === itemId);
     if (!item) return;
 
-    // In a real app, this would interact with a backend service to:
-    // 1. Validate the action against the workflow template.
-    // 2. Determine the next step (if any).
-    // 3. Update the request's currentStepId, currentStepName, currentAssignees.
-    // 4. Add to the history.
-    // 5. Persist changes.
-
     console.log(`Item ${itemId} ${action}ed with comment: ${comment} by ${user?.displayName}`);
     
-    // Mock: Simply remove the item from the list for now
     setApprovals(prev => prev.filter(ap => ap.id !== itemId)); 
     toast({
       title: `Request ${action === "approve" ? "Approved" : "Rejected"}`,
@@ -178,7 +172,7 @@ export default function ApprovalsDashboardPage() {
         details.push({ key: "Scrap Type", value: smPayload.scrapType });
         details.push({ key: "Description", value: smPayload.description });
         details.push({ key: "Quantity", value: smPayload.quantity });
-        details.push({ key: "Weight", value: `${smPayload.weight}` });
+        details.push({ key: "Weight", value: `${smPayload.weight} (units)` });
         break;
       case "Work Permit":
         const wpPayload = payload as WorkPermitFormData;
@@ -188,30 +182,32 @@ export default function ApprovalsDashboardPage() {
         break;
       case "Purchase Order":
         const poPayload = payload as PurchaseOrderFormData;
+        const poCurrencySymbol = CURRENCY_SYMBOLS[poPayload.currency as Currency];
         details.push({ key: "Vendor", value: poPayload.vendorName });
         details.push({ key: "PO Date", value: new Date(poPayload.poDate).toLocaleDateString() });
-        details.push({ key: "Currency", value: poPayload.currency });
+        details.push({ key: "Currency", value: `${poPayload.currency} (${poCurrencySymbol})` });
         details.push({ key: "Delivery Address", value: poPayload.deliveryAddress });
         if(poPayload.paymentTerms) details.push({ key: "Payment Terms", value: poPayload.paymentTerms });
         details.push({ key: "Items", value: (
           <ul className="list-disc pl-5">
             {poPayload.items.map((item, idx) => (
-              <li key={idx}>{item.quantity} x {item.itemName} @ {CURRENCY_SYMBOLS[poPayload.currency as Currency]}{item.unitPrice.toLocaleString()}</li>
+              <li key={idx}>{item.quantity} x {item.itemName} @ {poCurrencySymbol}{item.unitPrice.toLocaleString()}</li>
             ))}
           </ul>
         )});
         break;
       case "Sale Order":
         const soPayload = payload as SaleOrderFormData;
+        const soCurrencySymbol = CURRENCY_SYMBOLS[soPayload.currency as Currency];
         details.push({ key: "Customer", value: soPayload.customerName });
         details.push({ key: "SO Date", value: new Date(soPayload.soDate).toLocaleDateString() });
-        details.push({ key: "Currency", value: soPayload.currency });
+        details.push({ key: "Currency", value: `${soPayload.currency} (${soCurrencySymbol})` });
         details.push({ key: "Shipping Address", value: soPayload.shippingAddress });
         details.push({ key: "Billing Address", value: soPayload.billingAddress });
          details.push({ key: "Items", value: (
           <ul className="list-disc pl-5">
             {soPayload.items.map((item, idx) => (
-              <li key={idx}>{item.quantity} x {item.itemName} @ {CURRENCY_SYMBOLS[soPayload.currency as Currency]}{item.unitPrice.toLocaleString()}</li>
+              <li key={idx}>{item.quantity} x {item.itemName} @ {soCurrencySymbol}{item.unitPrice.toLocaleString()}</li>
             ))}
           </ul>
         )});
@@ -262,7 +258,6 @@ export default function ApprovalsDashboardPage() {
               <LayoutGrid className="w-4 h-4 mr-2" />
               Grid View
             </Button>
-            {/* <Button variant="outline" size="sm"><Filter className="w-4 h-4 mr-2" />Filter Requests</Button> */}
           </div>
         }
       />
@@ -380,5 +375,3 @@ export default function ApprovalsDashboardPage() {
     </div>
   );
 }
-
-    

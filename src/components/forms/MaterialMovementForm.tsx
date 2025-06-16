@@ -47,20 +47,25 @@ export function MaterialMovementForm() {
   });
 
   const materialValue = form.watch("value");
-  const selectedCurrency = form.watch("currency");
+  const selectedCurrency = form.watch("currency") as Currency; // Ensure selectedCurrency is typed as Currency
 
   React.useEffect(() => {
-    if (materialValue > 100000) { // This threshold is implicitly INR based on original label
+    // This threshold logic is simplified. Real-world might need currency conversion for threshold.
+    // For now, we assume the threshold is based on the numeric value regardless of currency.
+    if (materialValue > 100000) { 
       setShowVehicleNumber(true);
-      form.register("vehicleNumber", { required: "Vehicle number is mandatory for value > 1,00,000" });
+      if (!form.formState.dirtyFields.vehicleNumber) { // Register only if not already manually handled by Zod schema
+         form.register("vehicleNumber");
+      }
     } else {
       setShowVehicleNumber(false);
-      form.unregister("vehicleNumber");
+      if (form.formState.isDirty && form.getValues("vehicleNumber") === "") { // Check if field exists before unregistering
+          form.unregister("vehicleNumber");
+      }
     }
   }, [materialValue, form]);
 
   function onSubmit(data: MaterialMovementFormData) {
-    // Here you would handle the form submission, e.g., send to Firebase
     console.log("Material Movement Data:", {...data, eWayBill: eWayBillFile?.name });
     toast({
       title: "Request Submitted",
@@ -182,7 +187,7 @@ export function MaterialMovementForm() {
                             <FormControl>
                               <RadioGroupItem value={currency} />
                             </FormControl>
-                            <FormLabel className="font-normal">{currency} ({CURRENCY_SYMBOLS[currency as Currency]})</FormLabel>
+                            <FormLabel className="font-normal">{currency} ({CURRENCY_SYMBOLS[currency]})</FormLabel>
                           </FormItem>
                         ))}
                       </RadioGroup>
@@ -196,12 +201,12 @@ export function MaterialMovementForm() {
                 name="value"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="flex items-center"><DollarSign className="w-4 h-4 mr-1" />Material Value ({CURRENCY_SYMBOLS[selectedCurrency as Currency]})</FormLabel>
+                    <FormLabel className="flex items-center"><DollarSign className="w-4 h-4 mr-1" />Material Value ({CURRENCY_SYMBOLS[selectedCurrency]})</FormLabel>
                     <FormControl>
                       <Input type="number" placeholder="e.g., 50000" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />
                     </FormControl>
                     <FormDescription>
-                      If value &gt; 1,00,000 (numeric, irrespective of currency for this rule), vehicle number is mandatory.
+                      If value &gt; 1,00,000 (numeric), vehicle number is mandatory.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

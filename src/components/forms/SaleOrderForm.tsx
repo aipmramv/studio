@@ -49,7 +49,7 @@ export function SaleOrderForm() {
     name: "items",
   });
 
-  const selectedCurrency = form.watch("currency");
+  const selectedCurrency = form.watch("currency") as Currency;
 
   function onSubmit(data: SaleOrderFormData) {
     console.log("Sale Order Data:", data);
@@ -142,7 +142,7 @@ export function SaleOrderForm() {
                     <SelectContent>
                       {CURRENCIES.map((currency) => (
                         <SelectItem key={currency} value={currency}>
-                          {currency} ({CURRENCY_SYMBOLS[currency as Currency]})
+                          {currency} ({CURRENCY_SYMBOLS[currency]})
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -187,7 +187,7 @@ export function SaleOrderForm() {
                     name={`items.${index}.unitPrice`}
                     render={({ field }) => (
                       <FormItem className="md:col-span-2">
-                        <FormLabel>Unit Price ({CURRENCY_SYMBOLS[selectedCurrency as Currency]})</FormLabel>
+                        <FormLabel>Unit Price ({CURRENCY_SYMBOLS[selectedCurrency]})</FormLabel>
                         <FormControl>
                           <Input type="number" placeholder="0.00" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />
                         </FormControl>

@@ -12,23 +12,23 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCap
 import { Badge } from "@/components/ui/badge";
 import { CURRENCY_SYMBOLS, type Currency } from "@/lib/constants";
 
-interface PurchaseOrderItem {
+interface PurchaseOrderItemDisplay {
   poNumber: string;
   vendorName: string;
-  poDate: string;
+  poDate: string; // Keep as string for display
   totalAmount: number;
   currency: Currency;
   status: "Pending" | "Approved" | "Rejected" | "Fulfilled";
 }
 
-const mockPurchaseOrders: PurchaseOrderItem[] = [
+const mockPurchaseOrders: PurchaseOrderItemDisplay[] = [
   { poNumber: "PO2024001", vendorName: "Supplier Alpha", poDate: "2024-07-15", totalAmount: 150000, currency: "INR", status: "Approved" },
   { poNumber: "PO2024002", vendorName: "Vendor Beta Gmbh", poDate: "2024-07-18", totalAmount: 2500, currency: "EUR", status: "Pending" },
   { poNumber: "PO2024003", vendorName: "Service Provider Charlie", poDate: "2024-07-20", totalAmount: 75000, currency: "INR", status: "Fulfilled" },
 ];
 
 export default function PurchaseOrderListPage() {
-  const [purchaseOrders, setPurchaseOrders] = React.useState<PurchaseOrderItem[]>(mockPurchaseOrders);
+  const [purchaseOrders, setPurchaseOrders] = React.useState<PurchaseOrderItemDisplay[]>(mockPurchaseOrders);
 
   return (
     <div className="space-y-8">
@@ -66,7 +66,7 @@ export default function PurchaseOrderListPage() {
                   <TableRow key={po.poNumber}>
                     <TableCell className="font-medium">{po.poNumber}</TableCell>
                     <TableCell>{po.vendorName}</TableCell>
-                    <TableCell>{po.poDate}</TableCell>
+                    <TableCell>{new Date(po.poDate).toLocaleDateString()}</TableCell>
                     <TableCell className="text-right">
                        {CURRENCY_SYMBOLS[po.currency]}{po.totalAmount.toLocaleString()}
                     </TableCell>

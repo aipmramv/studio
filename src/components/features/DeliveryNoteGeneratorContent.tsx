@@ -87,8 +87,7 @@ export function DeliveryNoteGeneratorContent() {
       title: "PDF Preview",
       description: "Generating PDF preview... (This is a mock action)",
     });
-    // In a real app, this would trigger a PDF generation library
-    window.print(); // Basic print preview
+    window.print();
   };
 
   return (
@@ -161,7 +160,7 @@ export function DeliveryNoteGeneratorContent() {
                   <TableCell className="font-medium">{item.description}</TableCell>
                   <TableCell className="text-right">{item.quantity}</TableCell>
                   <TableCell>{item.uom}</TableCell>
-                  <TableCell className="text-right">{item.value.toLocaleString('en-IN')}</TableCell>
+                  <TableCell className="text-right">{currencySymbol}{item.value.toLocaleString('en-IN')}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
