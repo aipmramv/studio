@@ -3,8 +3,8 @@ import type { LucideIcon } from 'lucide-react';
 import {
   LayoutDashboard, Truck, Recycle, FileText, ListChecks, BarChart3, UserCircle,
   LogOut, Settings, ShieldCheck, Database, Package, Building, Briefcase,
-  ClipboardCheck, ShoppingCart, Tags, PlusCircle, FileSignature, Warehouse,
-  Store, PackagePlus, PackageMinus, Undo2, SearchCheck, Workflow, SlidersHorizontal, GitFork,
+  ClipboardCheck, ShoppingCart, Tags, PlusCircle, Warehouse,
+  Store, PackagePlus, PackageMinus, Undo2, SearchCheck, SlidersHorizontal, GitFork,
   Users, Mail, UserCog, Layers
 } from 'lucide-react';
 
@@ -92,18 +92,18 @@ export const mainNavItems: NavItem[] = [
     ]
   },
   {
-    title: 'Delivery Note',
-    href: '/delivery-note/generate', // Point to first child for parent click
-    icon: FileSignature,
-    description: "Manage delivery documentation.",
+    title: 'DC Management',
+    href: '/dc-generator',
+    icon: FileText,
+    description: "Manage Delivery Challans.",
     items: [
-      { title: 'Generate Note', href: '/delivery-note/generate', icon: PlusCircle, description: "Generate a new delivery note." },
-      { title: 'View Notes', href: '/delivery-note/list', icon: ListChecks, description: "View all delivery notes." },
+      { title: 'Generate DC', href: '/dc-generator', icon: PlusCircle, description: "Generate a new Delivery Challan." },
+      { title: 'View DCs', href: '/dc-generator/list', icon: ListChecks, description: "View all Delivery Challans." },
     ]
   },
   {
     title: 'Stores',
-    href: '/stores/manage', // Point to first child for parent click
+    href: '/stores/manage',
     icon: Warehouse,
     description: "Manage store operations, inventory, and audits.",
     items: [
@@ -132,7 +132,7 @@ export const mainNavItems: NavItem[] = [
   },
   {
     title: 'Administration',
-    href: '/administration/workflows', // Point to first child for parent click
+    href: '/administration/workflows',
     icon: SlidersHorizontal,
     description: "Manage application settings and metadata.",
     roles: ['admin'],
@@ -160,7 +160,7 @@ export const mainNavItems: NavItem[] = [
       },
       {
         title: 'Masters',
-        href: '/masters/material-types', // Point to first child
+        href: '/masters/material-types',
         icon: Database,
         description: "Manage application metadata.",
         roles: ['admin'],
@@ -196,4 +196,3 @@ export const userNavItems: NavItem[] = [
         description: "Sign out of your account."
     }
 ];
-
