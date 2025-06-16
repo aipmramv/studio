@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCap
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye, Truck, Recycle, ShieldCheck, ShoppingCart, Tags, Package, CalendarDays, User, MessageSquare, Bell, ChevronsUp, Send, Info, History, CheckCircle, CircleDot, Circle, Workflow as WorkflowIcon, Clock, Search, Filter as FilterIcon, ChevronsLeft, ChevronsRight, X } from "lucide-react";
-import { type RequestType, type UserRole, type UserAction, MOCK_WORKFLOW_TEMPLATES, type WorkflowTemplate, type WorkflowStep } from "@/lib/constants";
+import { type RequestType, type UserRole, type UserAction, MOCK_WORKFLOW_TEMPLATES, type WorkflowTemplate, type WorkflowStep, DEPARTMENTS } from "@/lib/constants";
 import { type MaterialMovementFormData, type ScrapMovementFormData, type WorkPermitFormData, type PurchaseOrderFormData, type SaleOrderFormData, type OrderItem } from "@/lib/schemas";
 import {
   Dialog,
@@ -47,7 +47,7 @@ interface ApprovalItem {
   id: string;
   requestType: RequestType;
   requesterName: string;
-  requesterDepartment: string;
+  requesterDepartment: typeof DEPARTMENTS[number] | "External";
   submissionDate: string; // ISO Date string
   currentStepId: string;
   currentStepName: string;
@@ -91,7 +91,7 @@ const mockAllRequestsData: ApprovalItem[] = [
   {
     id: "PO004", requestType: "Purchase Order", requesterName: "David Brown", requesterDepartment: "Logistics", submissionDate: "2024-07-29T11:00:00Z",
     currentStepId: "po_dept_head", currentStepName: "Dept. Head Approval", workflowTemplateId: "po_default",
-    payload: { vendorName: "Tech Solutions Inc.", poDate: new Date("2024-07-29"), items: [{itemName: "Laptop Model X", quantity: 5, unitPrice: 120000, hsnSacCode:"84713010", gstPercentage:18}, {itemName: "Docking Station", quantity: 5, unitPrice: 15000, hsnSacCode:"84718000", gstPercentage:18}], deliveryAddress: "Main Office, R&D Block", poCategory: "IT Equipment", department: "IT", costCenter: "CC_IT_001_Infra", ioNumber: "IO_IT_2024_004" } as PurchaseOrderFormData,
+    payload: { poCategory: "IT Equipment", department: "IT", vendorName: "Tech Solutions Inc.", kmKmgCode: "KM123", costCenter: "CC_IT_001_Infra", ioNumber: "IO_IT_2024_004", poDate: new Date("2024-07-29"), items: [{itemName: "Laptop Model X", quantity: 5, unitPrice: 120000, hsnSacCode:"84713010", gstPercentage:18}, {itemName: "Docking Station", quantity: 5, unitPrice: 15000, hsnSacCode:"84718000", gstPercentage:18}], deliveryAddress: "Main Office, R&D Block", segment: "Hardware Refresh" } as PurchaseOrderFormData,
      history: [
       { stepId: "submission", stepName: "Submitted", actor: "David Brown", action: "submitted", timestamp: "2024-07-29T11:00:00Z" },
       { stepId: "po_dept_head", stepName: "Pending Dept. Head Approval", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-29T11:01:00Z"}
@@ -100,7 +100,7 @@ const mockAllRequestsData: ApprovalItem[] = [
    {
     id: "SO005", requestType: "Sale Order", requesterName: "Eve Green", requesterDepartment: "Sales", submissionDate: "2024-07-30T11:00:00Z",
     currentStepId: "so_manager_approval", currentStepName: "Sales Manager Approval", workflowTemplateId: "so_default",
-    payload: { customerName: "Client ABC Corp", soDate: new Date("2024-07-30"), items: [{itemName: "Software License - Annual", quantity: 10, unitPrice: 50000, hsnSacCode: "997331", gstPercentage: 18}], shippingAddress: "Client HQ, Tower B, Floor 5", billingAddress: "Client HQ, Accounts Dept.", projectOrCrNo:"PROJ123", saleOrderCategory:"Software", purpose:"Annual License Renewal", costCenter:"CC_SALES_001", ioNumber:"IO_SALES_2024_005", budgetAmount:5000000, materialRequiredDate:new Date("2024-08-15"), departmentHeadApproval:"Sales Head", deliveryTo:"IT Dept Contact" } as SaleOrderFormData,
+    payload: { customerName: "Client ABC Corp", soDate: new Date("2024-07-30"), projectOrCrNo:"PROJ123", saleOrderCategory:"Software", purpose:"Annual License Renewal", costCenter:"CC_SALES_001", ioNumber:"IO_SALES_2024_005", budgetAmount:500000, materialRequiredDate:new Date("2024-08-15"), departmentHeadApproval:"Sales Head", deliveryTo:"IT Dept Contact", items: [{itemName: "Software License - Annual", quantity: 10, unitPrice: 50000, hsnSacCode: "997331", gstPercentage: 18}], shippingAddress: "Client HQ, Tower B, Floor 5", billingAddress: "Client HQ, Accounts Dept." } as SaleOrderFormData,
      history: [
       { stepId: "submission", stepName: "Submitted", actor: "Eve Green", action: "submitted", timestamp: "2024-07-30T11:00:00Z" },
       { stepId: "so_manager_approval", stepName: "Pending Sales Manager Approval", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-30T11:01:00Z"}
@@ -198,15 +198,15 @@ const renderRequestPayloadDetailsDialog = (payload: RequestPayload, requestType:
         break;
       case "Purchase Order":
         const poPayload = payload as PurchaseOrderFormData;
+        details.push({ key: "PO Category", value: poPayload.poCategory });
+        details.push({ key: "Department", value: poPayload.department });
         details.push({ key: "Vendor", value: poPayload.vendorName });
+        if(poPayload.kmKmgCode) details.push({ key: "KM/KMG Code", value: poPayload.kmKmgCode });
+        details.push({ key: "Cost Center", value: poPayload.costCenter });
+        details.push({ key: "IO Number", value: poPayload.ioNumber });
         details.push({ key: "PO Date", value: new Date(poPayload.poDate).toLocaleDateString() });
         details.push({ key: "Delivery Address", value: poPayload.deliveryAddress });
         if(poPayload.paymentTerms) details.push({ key: "Payment Terms", value: poPayload.paymentTerms });
-        details.push({ key: "PO Category", value: poPayload.poCategory });
-        details.push({ key: "Department", value: poPayload.department });
-        details.push({ key: "Cost Center", value: poPayload.costCenter });
-        details.push({ key: "IO Number", value: poPayload.ioNumber });
-        if(poPayload.kmKmgCode) details.push({ key: "KM/KMG Code", value: poPayload.kmKmgCode });
         if(poPayload.segment) details.push({ key: "Segment", value: poPayload.segment });
 
         details.push({ key: "Items", value: (
@@ -235,8 +235,6 @@ const renderRequestPayloadDetailsDialog = (payload: RequestPayload, requestType:
         const soPayload = payload as SaleOrderFormData;
         details.push({ key: "Customer", value: soPayload.customerName });
         details.push({ key: "SO Date", value: new Date(soPayload.soDate).toLocaleDateString() });
-        details.push({ key: "Shipping Address", value: soPayload.shippingAddress });
-        details.push({ key: "Billing Address", value: soPayload.billingAddress });
         details.push({ key: "Project/CR No.", value: soPayload.projectOrCrNo });
         details.push({ key: "SO Category", value: soPayload.saleOrderCategory });
         details.push({ key: "Purpose", value: <p className="whitespace-pre-wrap">{soPayload.purpose}</p> });
@@ -445,7 +443,9 @@ export default function AllRequestsPage() {
         {workflow.steps.map((step, index) => {
           const historyForStep = request.history.filter(h => h.stepId === step.id && h.action === "approve");
           const isCompleted = historyForStep.length > 0;
-          const isCurrent = step.id === request.currentStepId && !isCompleted; 
+          // Current step needs to account for whether it's truly the active step or if it's already approved
+          const isCurrent = step.id === request.currentStepId && !isCompleted && 
+                           (request.history.some(h => h.stepId === step.id && (h.action === "system_auto_proceed" || h.action === "submitted")) || currentStepIndex === index );
           
           let icon;
           let textClass = "text-muted-foreground";
@@ -469,7 +469,7 @@ export default function AllRequestsPage() {
           }
           
           const isInitialCurrentStep = isCurrent && index === 0 && request.history.every(h => h.stepId === step.id ? (h.action === "system_auto_proceed" || h.action === "submitted") : true);
-          if(isInitialCurrentStep) {
+          if(isInitialCurrentStep && !isCompleted) { // Only color line if it's truly the current step awaiting action
              lineClass = "bg-accent"; 
           }
 
@@ -549,7 +549,6 @@ export default function AllRequestsPage() {
                       <SelectValue placeholder="All Types" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Types</SelectItem>
                       {distinctRequestTypes.map(type => (
                         <SelectItem key={type} value={type}>{type}</SelectItem>
                       ))}
@@ -563,7 +562,6 @@ export default function AllRequestsPage() {
                       <SelectValue placeholder="All Statuses" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Statuses</SelectItem>
                        {distinctStatuses.map(status => (
                         <SelectItem key={status} value={status}>{status}</SelectItem>
                       ))}
@@ -766,3 +764,5 @@ export default function AllRequestsPage() {
     </div>
   );
 }
+
+    
