@@ -5,7 +5,7 @@ import {
   LogOut, Settings, ShieldCheck, Database, Package, Building, Briefcase, 
   ClipboardCheck, ShoppingCart, Tags, PlusCircle, FileSignature, Warehouse, 
   Store, PackagePlus, PackageMinus, Undo2, SearchCheck, Workflow, SlidersHorizontal, GitFork,
-  Users, Mail, UserCog
+  Users, Mail, UserCog, Layers // Added Layers for All Requests
 } from 'lucide-react';
 
 export interface NavItem {
@@ -26,6 +26,12 @@ export const mainNavItems: NavItem[] = [
     href: '/dashboard',
     icon: LayoutDashboard,
     description: "Pending approvals and overview.",
+  },
+  {
+    title: 'All Requests', // New "All Requests" page
+    href: '/all-requests',
+    icon: Layers,
+    description: "View all requests and their status.",
   },
   {
     title: 'Requests',
@@ -198,3 +204,4 @@ export const userNavItems: NavItem[] = [
         description: "Sign out of your account."
     }
 ];
+
