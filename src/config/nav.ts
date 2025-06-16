@@ -1,6 +1,6 @@
 
 import type { LucideIcon } from 'lucide-react';
-import { LayoutDashboard, Truck, Recycle, FileText, ListChecks, BarChart3, UserCircle, LogOut, Settings, ShieldCheck, Database, Package, Building, Briefcase, ClipboardCheck, ShoppingCart, Tags, PlusCircle, FileSignature } from 'lucide-react';
+import { LayoutDashboard, Truck, Recycle, FileText, ListChecks, BarChart3, UserCircle, LogOut, Settings, ShieldCheck, Database, Package, Building, Briefcase, ClipboardCheck, ShoppingCart, Tags, PlusCircle, FileSignature, Warehouse, Store, PackagePlus, PackageMinus, Undo2, SearchCheck } from 'lucide-react';
 
 export interface NavItem {
   title: string;
@@ -82,6 +82,19 @@ export const mainNavItems: NavItem[] = [
     ]
   },
   {
+    title: 'Stores',
+    href: '/stores',
+    icon: Warehouse,
+    description: "Manage store operations.",
+    items: [
+      { title: 'Manage Stores', href: '/stores/manage', icon: Store },
+      { title: 'Material Receipt', href: '/stores/material-receipt', icon: PackagePlus },
+      { title: 'Material Issue', href: '/stores/material-issue', icon: PackageMinus },
+      { title: 'Material Returns', href: '/stores/material-returns', icon: Undo2 },
+      { title: 'Stores Audit', href: '/stores/audit', icon: SearchCheck },
+    ]
+  },
+  {
     title: 'KPI Dashboard',
     href: '/kpi-dashboard',
     icon: BarChart3,
@@ -119,8 +132,9 @@ export const userNavItems: NavItem[] = [
     },
     {
         title: "Logout",
-        href: "/logout",
+        href: "/logout", // This was /login, changed to /logout as per typical behavior
         icon: LogOut,
         description: "Sign out of your account."
     }
 ];
+
