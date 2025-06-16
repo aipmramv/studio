@@ -6,7 +6,7 @@ import * as React from "react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Edit, Trash2, Workflow as WorkflowIcon, Save } from "lucide-react";
+import { PlusCircle, Edit, Trash2, Workflow as WorkflowIcon, Save, ChevronDown } from "lucide-react";
 import { MOCK_WORKFLOW_TEMPLATES, type WorkflowTemplate, type WorkflowStep, REQUEST_TYPES, USER_ROLES } from "@/lib/constants";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -21,8 +21,9 @@ import {
   Accordion,
   AccordionContent,
   AccordionItem,
-  AccordionTrigger,
+  // AccordionTrigger, // We will use AccordionPrimitive.Trigger directly for the custom part
 } from "@/components/ui/accordion";
+import * as AccordionPrimitive from "@radix-ui/react-accordion";
 import {
   Dialog,
   DialogContent,
@@ -51,6 +52,7 @@ import { WorkflowTemplateSchema, WorkflowStepSchema, type WorkflowTemplateFormDa
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { cn } from "@/lib/utils";
 
 
 export default function WorkflowConfigurationPage() {
@@ -465,23 +467,31 @@ export default function WorkflowConfigurationPage() {
                 {template.steps.length > 0 ? (
                   <Accordion type="single" collapsible className="w-full" defaultValue={template.steps[0]?.id}>
                     {template.steps.map((step, index) => (
-                       <AccordionItem value={step.id} key={step.id} className="mb-2 border rounded-md">
-                        <AccordionTrigger className="px-4 py-3 hover:bg-accent/50 rounded-t-md">
-                          <div className="flex items-center justify-between w-full">
-                            <div className="flex items-center text-base font-medium">
-                                <span className="mr-2 text-primary">{index + 1}.</span> {step.name} {template.initialStepId === step.id && <Badge variant="default" className="ml-2">Initial</Badge>}
-                            </div>
-                            <div className="flex gap-1 mr-2">
-                                <Button variant="ghost" size="icon" className="w-7 h-7" onClick={(e) => { e.stopPropagation(); openEditStepDialog(step, template); }}>
-                                    <Edit className="w-3.5 h-3.5" />
-                                </Button>
-                                <Button variant="ghost" size="icon" className="w-7 h-7 text-destructive hover:text-destructive/80" onClick={(e) => { e.stopPropagation(); handleDeleteConfirmation('step', step.id, template.id); }}>
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                </Button>
-                            </div>
+                       <AccordionItem value={step.id} key={step.id} className="mb-2 border rounded-md overflow-hidden">
+                        <AccordionPrimitive.Header className={cn("flex items-center justify-between px-4 py-2 rounded-t-md hover:bg-accent/50 bg-card", {"border-b border-border": template.steps.find(s => s.id === step.id) } )}>
+                          <AccordionPrimitive.Trigger
+                            className={cn(
+                              "flex flex-1 items-center text-base font-medium text-left focus:outline-none rounded-sm py-1",
+                              "hover:underline",
+                              "[&>svg]:transition-transform [&>svg]:duration-200 [&[data-state=open]>svg]:rotate-180"
+                            )}
+                          >
+                            <span className="flex items-center flex-grow">
+                              <span className="mr-2 text-primary">{index + 1}.</span> {step.name} {template.initialStepId === step.id && <Badge variant="default" className="ml-2">Initial</Badge>}
+                            </span>
+                            <ChevronDown className="h-4 w-4 ml-2 shrink-0" />
+                          </AccordionPrimitive.Trigger>
+                      
+                          <div className="flex gap-1 ml-3 shrink-0">
+                              <Button variant="ghost" size="icon" className="w-7 h-7" onClick={() => { openEditStepDialog(step, template); }}>
+                                  <Edit className="w-3.5 h-3.5" />
+                              </Button>
+                              <Button variant="ghost" size="icon" className="w-7 h-7 text-destructive hover:text-destructive/80" onClick={() => { handleDeleteConfirmation('step', step.id, template.id); }}>
+                                  <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
                           </div>
-                        </AccordionTrigger>
-                        <AccordionContent className="px-4 pt-0 pb-3 border-t">
+                        </AccordionPrimitive.Header>
+                        <AccordionContent className="px-4 pt-2 pb-3 bg-card border-t">
                           {renderStepDetails(step)}
                         </AccordionContent>
                       </AccordionItem>
@@ -502,3 +512,5 @@ export default function WorkflowConfigurationPage() {
   );
 }
 
+
+    
