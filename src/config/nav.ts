@@ -35,13 +35,13 @@ export const mainNavItems: NavItem[] = [
   },
   {
     title: 'Requests',
-    href: '/material-movement/new',
+    href: '/material-movement/new', // Point to first child for parent click
     icon: ClipboardCheck,
     description: "Manage all types of requests.",
     items: [
       {
         title: 'Material Movement',
-        href: '/material-movement/new',
+        href: '/material-movement/new', // Point to first child
         icon: Truck,
         description: "Log and track material movements.",
         items: [
@@ -51,7 +51,7 @@ export const mainNavItems: NavItem[] = [
       },
       {
         title: 'Scrap Request',
-        href: '/scrap-movement/new',
+        href: '/scrap-movement/new', // Point to first child
         icon: Recycle,
         description: "Log and track scrap disposals.",
         items: [
@@ -61,7 +61,7 @@ export const mainNavItems: NavItem[] = [
       },
       {
         title: 'Work Permit',
-        href: '/work-permit/new',
+        href: '/work-permit/new', // Point to first child
         icon: ShieldCheck,
         description: "Request and manage work permits.",
         items: [
@@ -71,7 +71,7 @@ export const mainNavItems: NavItem[] = [
       },
       {
         title: 'Purchase Order',
-        href: '/purchase-order/new',
+        href: '/purchase-order/new', // Point to first child
         icon: ShoppingCart,
         description: "Manage Purchase Orders.",
         items: [
@@ -81,7 +81,7 @@ export const mainNavItems: NavItem[] = [
       },
       {
         title: 'Sale Order',
-        href: '/sale-order/new',
+        href: '/sale-order/new', // Point to first child
         icon: Tags,
         description: "Manage Sale Orders.",
         items: [
@@ -92,26 +92,18 @@ export const mainNavItems: NavItem[] = [
     ]
   },
   {
-    title: 'Logistics',
-    href: '/delivery-note/generate',
-    icon: Package,
+    title: 'Delivery Note',
+    href: '/delivery-note/generate', // Point to first child for parent click
+    icon: FileSignature,
     description: "Manage delivery documentation.",
     items: [
-      {
-        title: 'Delivery Note',
-        href: '/delivery-note/generate',
-        icon: FileSignature,
-        description: "Generate and view Delivery Notes.",
-        items: [
-            { title: 'Generate Note', href: '/delivery-note/generate', icon: PlusCircle, description: "Generate a new delivery note." },
-            { title: 'View Notes', href: '/delivery-note/list', icon: ListChecks, description: "View all delivery notes." },
-        ]
-      },
+      { title: 'Generate Note', href: '/delivery-note/generate', icon: PlusCircle, description: "Generate a new delivery note." },
+      { title: 'View Notes', href: '/delivery-note/list', icon: ListChecks, description: "View all delivery notes." },
     ]
   },
   {
     title: 'Stores',
-    href: '/stores/manage', // Default to Manage Stores
+    href: '/stores/manage', // Point to first child for parent click
     icon: Warehouse,
     description: "Manage store operations, inventory, and audits.",
     items: [
@@ -140,7 +132,7 @@ export const mainNavItems: NavItem[] = [
   },
   {
     title: 'Administration',
-    href: '/administration/workflows',
+    href: '/administration/workflows', // Point to first child for parent click
     icon: SlidersHorizontal,
     description: "Manage application settings and metadata.",
     roles: ['admin'],
@@ -168,7 +160,7 @@ export const mainNavItems: NavItem[] = [
       },
       {
         title: 'Masters',
-        href: '/masters/material-types',
+        href: '/masters/material-types', // Point to first child
         icon: Database,
         description: "Manage application metadata.",
         roles: ['admin'],
@@ -199,8 +191,9 @@ export const userNavItems: NavItem[] = [
     },
     {
         title: "Logout",
-        href: "/logout",
+        href: "/logout", // This is handled by useAuth, not a page
         icon: LogOut,
         description: "Sign out of your account."
     }
 ];
+
