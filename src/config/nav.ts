@@ -1,9 +1,9 @@
 
 import type { LucideIcon } from 'lucide-react';
-import { 
-  LayoutDashboard, Truck, Recycle, FileText, ListChecks, BarChart3, UserCircle, 
-  LogOut, Settings, ShieldCheck, Database, Package, Building, Briefcase, 
-  ClipboardCheck, ShoppingCart, Tags, PlusCircle, FileSignature, Warehouse, 
+import {
+  LayoutDashboard, Truck, Recycle, FileText, ListChecks, BarChart3, UserCircle,
+  LogOut, Settings, ShieldCheck, Database, Package, Building, Briefcase,
+  ClipboardCheck, ShoppingCart, Tags, PlusCircle, FileSignature, Warehouse,
   Store, PackagePlus, PackageMinus, Undo2, SearchCheck, Workflow, SlidersHorizontal, GitFork,
   Users, Mail, UserCog, Layers
 } from 'lucide-react';
@@ -16,8 +16,8 @@ export interface NavItem {
   external?: boolean;
   label?: string;
   description?: string;
-  roles?: string[]; 
-  items?: NavItem[]; 
+  roles?: string[];
+  items?: NavItem[];
 }
 
 export const mainNavItems: NavItem[] = [
@@ -30,18 +30,18 @@ export const mainNavItems: NavItem[] = [
   {
     title: 'All Requests',
     href: '/all-requests',
-    icon: Layers, // Using Layers icon for All Requests
+    icon: Layers,
     description: "View all requests and their status.",
   },
   {
     title: 'Requests',
-    href: '/material-movement/new', // Points to the first child as a default
-    icon: ClipboardCheck, 
+    href: '/material-movement/new',
+    icon: ClipboardCheck,
     description: "Manage all types of requests.",
     items: [
       {
         title: 'Material Movement',
-        href: '/material-movement/new', 
+        href: '/material-movement/new',
         icon: Truck,
         description: "Log and track material movements.",
         items: [
@@ -51,7 +51,7 @@ export const mainNavItems: NavItem[] = [
       },
       {
         title: 'Scrap Request',
-        href: '/scrap-movement/new', 
+        href: '/scrap-movement/new',
         icon: Recycle,
         description: "Log and track scrap disposals.",
         items: [
@@ -61,7 +61,7 @@ export const mainNavItems: NavItem[] = [
       },
       {
         title: 'Work Permit',
-        href: '/work-permit/new', 
+        href: '/work-permit/new',
         icon: ShieldCheck,
         description: "Request and manage work permits.",
         items: [
@@ -71,7 +71,7 @@ export const mainNavItems: NavItem[] = [
       },
       {
         title: 'Purchase Order',
-        href: '/purchase-order/new', 
+        href: '/purchase-order/new',
         icon: ShoppingCart,
         description: "Manage Purchase Orders.",
         items: [
@@ -81,7 +81,7 @@ export const mainNavItems: NavItem[] = [
       },
       {
         title: 'Sale Order',
-        href: '/sale-order/new', 
+        href: '/sale-order/new',
         icon: Tags,
         description: "Manage Sale Orders.",
         items: [
@@ -93,13 +93,13 @@ export const mainNavItems: NavItem[] = [
   },
   {
     title: 'Logistics',
-    href: '/delivery-note/generate', // Points to the first child
-    icon: Package, 
-    description: "Manage delivery and stores operations.",
+    href: '/delivery-note/generate',
+    icon: Package,
+    description: "Manage delivery documentation.",
     items: [
       {
         title: 'Delivery Note',
-        href: '/delivery-note/generate', 
+        href: '/delivery-note/generate',
         icon: FileSignature,
         description: "Generate and view Delivery Notes.",
         items: [
@@ -107,64 +107,50 @@ export const mainNavItems: NavItem[] = [
             { title: 'View Notes', href: '/delivery-note/list', icon: ListChecks, description: "View all delivery notes." },
         ]
       },
-      {
-        title: 'Stores',
-        href: '/stores/manage', // Default to Manage Stores
-        icon: Warehouse,
-        description: "Manage store operations.",
-        items: [
-          { title: 'Manage Stores', href: '/stores/manage', icon: Store, description: "Manage store locations." },
-          { title: 'Material Receipt', href: '/stores/material-receipt', icon: PackagePlus, description: "Record material receipts." },
-          { title: 'Material Issue', href: '/stores/material-issue', icon: PackageMinus, description: "Record material issues." },
-          { title: 'Material Returns', href: '/stores/material-returns', icon: Undo2, description: "Record material returns." },
-          { title: 'Stores Audit', href: '/stores/audit', icon: SearchCheck, description: "Conduct store audits." },
-        ]
-      },
+    ]
+  },
+  {
+    title: 'Stores',
+    href: '/stores/manage', // Default to Manage Stores
+    icon: Warehouse,
+    description: "Manage store operations, inventory, and audits.",
+    items: [
+      { title: 'Manage Stores', href: '/stores/manage', icon: Store, description: "Manage store locations." },
+      { title: 'Material Receipt', href: '/stores/material-receipt', icon: PackagePlus, description: "Record material receipts." },
+      { title: 'Material Issue', href: '/stores/material-issue', icon: PackageMinus, description: "Record material issues." },
+      { title: 'Material Returns', href: '/stores/material-returns', icon: Undo2, description: "Record material returns." },
+      { title: 'Stores Audit', href: '/stores/audit', icon: SearchCheck, description: "Conduct store audits." },
     ]
   },
   {
     title: 'Analytics',
-    href: '/kpi-dashboard', 
+    href: '/kpi-dashboard',
     icon: BarChart3,
     description: "View key performance indicators.",
-    roles: ['admin', 'mm_team'], 
+    roles: ['admin', 'mm_team'],
     items: [
       {
         title: 'KPI Dashboard',
         href: '/kpi-dashboard',
-        icon: BarChart3, 
+        icon: BarChart3,
         description: "View key performance indicators.",
-        roles: ['admin', 'mm_team'], 
+        roles: ['admin', 'mm_team'],
       }
     ]
   },
   {
     title: 'Administration',
-    href: '/administration/workflows', 
-    icon: SlidersHorizontal, 
+    href: '/administration/workflows',
+    icon: SlidersHorizontal,
     description: "Manage application settings and metadata.",
     roles: ['admin'],
     items: [
       {
         title: 'Workflow Config',
         href: '/administration/workflows',
-        icon: GitFork, 
+        icon: GitFork,
         description: "Configure approval workflows.",
         roles: ['admin'],
-      },
-      { 
-        title: 'Masters', 
-        href: '/masters/material-types', 
-        icon: Database, 
-        description: "Manage application metadata.",
-        roles: ['admin'],
-        items: [
-          { title: 'Material Types', href: '/masters/material-types', icon: Package, description: "Manage material types." },
-          { title: 'Scrap Types', href: '/masters/scrap-types', icon: Recycle, description: "Manage scrap types." },
-          { title: 'Building Types', href: '/masters/building-types', icon: Building, description: "Manage building types." },
-          { title: 'Departments', href: '/masters/departments', icon: Briefcase, description: "Manage departments." },
-          { title: 'Activity Types', href: '/masters/activity-types', icon: ClipboardCheck, description: "Manage work permit activity types." },
-        ]
       },
       {
         title: 'User Management',
@@ -180,6 +166,20 @@ export const mainNavItems: NavItem[] = [
         description: "Configure email notifications.",
         roles: ['admin'],
       },
+      {
+        title: 'Masters',
+        href: '/masters/material-types',
+        icon: Database,
+        description: "Manage application metadata.",
+        roles: ['admin'],
+        items: [
+          { title: 'Material Types', href: '/masters/material-types', icon: Package, description: "Manage material types." },
+          { title: 'Scrap Types', href: '/masters/scrap-types', icon: Recycle, description: "Manage scrap types." },
+          { title: 'Building Types', href: '/masters/building-types', icon: Building, description: "Manage building types." },
+          { title: 'Departments', href: '/masters/departments', icon: Briefcase, description: "Manage departments." },
+          { title: 'Activity Types', href: '/masters/activity-types', icon: ClipboardCheck, description: "Manage work permit activity types." },
+        ]
+      },
     ]
   }
 ];
@@ -193,15 +193,14 @@ export const userNavItems: NavItem[] = [
     },
     {
         title: "Settings",
-        href: "/settings", 
+        href: "/settings",
         icon: Settings,
-        description: "Application settings." 
+        description: "Application settings."
     },
     {
         title: "Logout",
-        href: "/logout", 
+        href: "/logout",
         icon: LogOut,
         description: "Sign out of your account."
     }
 ];
-
