@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from "@/components/ui/table";
 import { FileArchive, Search, Filter } from "lucide-react";
 import * as React from "react";
+import { Badge } from "@/components/ui/badge"; // Added missing import
 
 interface AuditLogEntry {
   id: string;
@@ -26,6 +27,8 @@ const mockAuditLogs: AuditLogEntry[] = [
   { id: "log002", timestamp: "2024-07-31T10:05:00Z", user: "approver@example.com", action: "REQUEST_APPROVED", entityType: "Purchase Order", entityId: "PO004", details: "Approved PO004 for IT equipment.", ipAddress: "192.168.1.15" },
   { id: "log003", timestamp: "2024-07-31T10:10:00Z", user: "requester@example.com", action: "REQUEST_SUBMITTED", entityType: "Material Movement", entityId: "MM001", details: "Submitted new material movement request.", ipAddress: "192.168.1.20" },
   { id: "log004", timestamp: "2024-07-31T10:15:00Z", user: "admin@example.com", action: "WORKFLOW_UPDATED", entityType: "WorkflowTemplate", entityId: "po_default", details: "Updated PO approval workflow steps.", ipAddress: "192.168.1.10" },
+  { id: "log005", timestamp: "2024-07-31T10:20:00Z", user: "admin@example.com", action: "LOGIN_FAILED", details: "Failed login attempt for user admin@example.com.", ipAddress: "192.168.1.10" },
+  { id: "log006", timestamp: "2024-07-31T10:25:00Z", user: "requester@example.com", action: "REQUEST_REJECTED", entityType: "Work Permit", entityId: "WP005", details: "Work permit WP005 rejected due to missing safety plan.", ipAddress: "192.168.1.22" },
 ];
 
 export default function AuditLogsPage() {
