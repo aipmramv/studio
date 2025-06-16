@@ -1,12 +1,35 @@
 
 // src/app/(app)/sale-order/list/page.tsx
+"use client";
+
+import * as React from "react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, Eye, Edit, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { CURRENCY_SYMBOLS, type Currency } from "@/lib/constants";
+
+interface SaleOrderItem {
+  soNumber: string;
+  customerName: string;
+  soDate: string;
+  totalAmount: number;
+  currency: Currency;
+  status: "Draft" | "Confirmed" | "Shipped" | "Delivered" | "Cancelled";
+}
+
+const mockSaleOrders: SaleOrderItem[] = [
+  { soNumber: "SO2024001", customerName: "Customer X Inc.", soDate: "2024-07-22", totalAmount: 85000, currency: "INR", status: "Confirmed" },
+  { soNumber: "SO2024002", customerName: "Client Y Solutions", soDate: "2024-07-25", totalAmount: 1200, currency: "EUR", status: "Draft" },
+  { soNumber: "SO2024003", customerName: "Partner Z Ltd.", soDate: "2024-07-28", totalAmount: 300000, currency: "INR", status: "Shipped" },
+];
 
 export default function SaleOrderListPage() {
+  const [saleOrders, setSaleOrders] = React.useState<SaleOrderItem[]>(mockSaleOrders);
+
   return (
     <div className="space-y-8">
       <PageHeader
@@ -23,12 +46,62 @@ export default function SaleOrderListPage() {
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle>Sale Order List</CardTitle>
-          <CardDescription>A table of sale orders would be displayed here.</CardDescription>
+          <CardDescription>A list of all created sale orders.</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">
-            Feature under development. This page will show a sortable and filterable list of all sale orders.
-          </p>
+          {saleOrders.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>SO Number</TableHead>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead className="text-right">Total Amount</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {saleOrders.map((so) => (
+                  <TableRow key={so.soNumber}>
+                    <TableCell className="font-medium">{so.soNumber}</TableCell>
+                    <TableCell>{so.customerName}</TableCell>
+                    <TableCell>{so.soDate}</TableCell>
+                     <TableCell className="text-right">
+                       {CURRENCY_SYMBOLS[so.currency]}{so.totalAmount.toLocaleString()}
+                    </TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant={
+                          so.status === "Confirmed" || so.status === "Shipped" || so.status === "Delivered" ? "default" :
+                          so.status === "Draft" ? "secondary" :
+                          so.status === "Cancelled" ? "destructive" :
+                          "outline"
+                        }
+                        className="capitalize"
+                      >
+                        {so.status.toLowerCase()}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                       <Button variant="ghost" size="icon" title="View Details" className="text-primary hover:text-primary/80">
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" title="Edit SO" disabled={so.status !== "Draft"} className="text-accent hover:text-accent/80">
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                       <Button variant="ghost" size="icon" title="Delete SO" disabled={so.status !== "Draft"} className="text-destructive hover:text-destructive/80">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+              <TableCaption>{saleOrders.length} sale order(s) found.</TableCaption>
+            </Table>
+          ) : (
+             <p className="text-center text-muted-foreground py-4">No sale orders found. <Link href="/sale-order/new" className="text-primary hover:underline">Create one now</Link>.</p>
+          )}
         </CardContent>
       </Card>
     </div>

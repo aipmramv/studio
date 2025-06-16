@@ -28,7 +28,6 @@ export const MaterialMovementSchema = z.object({
   value: z.coerce.number().min(0, "Value cannot be negative."),
   isReturnable: z.enum(['yes', 'no'], { required_error: "Returnable status is required." }),
   vehicleNumber: z.string().optional(),
-  // eWayBill: z.instanceof(File).optional(), // File uploads are harder to validate with Zod client-side for Next.js Server Actions. Usually handled on server.
 });
 export type MaterialMovementFormData = z.infer<typeof MaterialMovementSchema>;
 
@@ -38,7 +37,6 @@ export const ScrapMovementSchema = z.object({
   description: z.string().min(1, "Description is required.").max(500, "Description too long."),
   quantity: z.coerce.number().min(1, "Quantity must be at least 1."),
   weight: z.coerce.number().min(0.1, "Weight must be at least 0.1 KG/Ton/etc."),
-  // photo: z.instanceof(File).optional(),
 });
 export type ScrapMovementFormData = z.infer<typeof ScrapMovementSchema>;
 
@@ -47,7 +45,6 @@ export const WorkPermitSchema = z.object({
   building: z.enum(BUILDING_TYPES, { required_error: "Building is required." }),
   activityType: z.enum(ACTIVITY_TYPES_WORK_PERMIT, { required_error: "Activity type is required." }),
   activityDetails: z.string().min(10, "Please provide more details about the activity (min 10 characters).").max(1000, "Activity details cannot exceed 1000 characters."),
-  // attachments: z.instanceof(File).optional(),
 });
 export type WorkPermitFormData = z.infer<typeof WorkPermitSchema>;
 
@@ -55,3 +52,31 @@ export const ApprovalSchema = z.object({
   comment: z.string().optional(),
 });
 export type ApprovalFormData = z.infer<typeof ApprovalSchema>;
+
+const OrderItemSchema = z.object({
+  itemName: z.string().min(1, "Item name is required."),
+  quantity: z.coerce.number().min(1, "Quantity must be at least 1."),
+  unitPrice: z.coerce.number().min(0, "Unit price cannot be negative."),
+});
+
+export const PurchaseOrderSchema = z.object({
+  vendorName: z.string().min(1, "Vendor name is required."),
+  poDate: z.date({ required_error: "PO date is required." }),
+  currency: z.enum(CURRENCIES, { required_error: "Currency is required." }),
+  items: z.array(OrderItemSchema).min(1, "At least one item is required."),
+  deliveryAddress: z.string().min(1, "Delivery address is required."),
+  paymentTerms: z.string().optional(),
+  notes: z.string().optional(),
+});
+export type PurchaseOrderFormData = z.infer<typeof PurchaseOrderSchema>;
+
+export const SaleOrderSchema = z.object({
+  customerName: z.string().min(1, "Customer name is required."),
+  soDate: z.date({ required_error: "SO date is required." }),
+  currency: z.enum(CURRENCIES, { required_error: "Currency is required." }),
+  items: z.array(OrderItemSchema).min(1, "At least one item is required."),
+  shippingAddress: z.string().min(1, "Shipping address is required."),
+  billingAddress: z.string().min(1, "Billing address is required."),
+  notes: z.string().optional(),
+});
+export type SaleOrderFormData = z.infer<typeof SaleOrderSchema>;
