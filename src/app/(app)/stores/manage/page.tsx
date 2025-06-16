@@ -43,7 +43,7 @@ export default function ManageStoresPage() {
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle>Store Locations</CardTitle>
-          <CardDescription>List of all configured stores.</CardDescription>
+          <CardDescription>List of all configured stores. You can add new stores or manage existing ones.</CardDescription>
         </CardHeader>
         <CardContent>
           {stores.length > 0 ? (
@@ -87,3 +87,4 @@ export default function ManageStoresPage() {
     </div>
   );
 }
+

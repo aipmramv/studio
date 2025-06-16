@@ -36,7 +36,7 @@ export default function MaterialReturnsPage() {
     <div className="space-y-8">
       <PageHeader
         title="Material Returns Log"
-        description="Record and manage materials returned to stores."
+        description="Record and manage materials returned to various store locations."
         actions={
           <Button>
             <Undo2 className="w-4 h-4 mr-2" /> New Material Return
@@ -46,7 +46,7 @@ export default function MaterialReturnsPage() {
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle>Returns List</CardTitle>
-          <CardDescription>Log of all materials returned to various stores.</CardDescription>
+          <CardDescription>Log of all materials returned to stores. You can add new return entries or view details.</CardDescription>
         </CardHeader>
         <CardContent>
           {returns.length > 0 ? (
@@ -101,3 +101,4 @@ export default function MaterialReturnsPage() {
     </div>
   );
 }
+

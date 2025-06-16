@@ -35,7 +35,7 @@ export default function MaterialIssuePage() {
     <div className="space-y-8">
       <PageHeader
         title="Material Issue Log"
-        description="Record and manage materials issued from various stores."
+        description="Record and manage materials issued from various stores to departments or personnel."
         actions={
           <Button>
             <PackageMinus className="w-4 h-4 mr-2" /> New Material Issue
@@ -45,7 +45,7 @@ export default function MaterialIssuePage() {
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle>Issue List</CardTitle>
-          <CardDescription>Log of all materials issued from stores.</CardDescription>
+          <CardDescription>Log of all materials issued from stores. You can add new issues or view details of existing ones.</CardDescription>
         </CardHeader>
         <CardContent>
           {issues.length > 0 ? (
@@ -90,3 +90,4 @@ export default function MaterialIssuePage() {
     </div>
   );
 }
+

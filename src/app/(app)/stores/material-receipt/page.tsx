@@ -35,7 +35,7 @@ export default function MaterialReceiptPage() {
     <div className="space-y-8">
       <PageHeader
         title="Material Receipt Log"
-        description="Record and manage incoming materials into stores."
+        description="Record and manage incoming materials into various store locations."
         actions={
           <Button>
             <PackagePlus className="w-4 h-4 mr-2" /> New Material Receipt
@@ -45,7 +45,7 @@ export default function MaterialReceiptPage() {
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle>Receipts List</CardTitle>
-          <CardDescription>Log of all materials received into various store locations.</CardDescription>
+          <CardDescription>Log of all materials received into various store locations. You can add new receipts or view details of existing ones.</CardDescription>
         </CardHeader>
         <CardContent>
           {receipts.length > 0 ? (
@@ -67,8 +67,8 @@ export default function MaterialReceiptPage() {
                   <TableRow key={receipt.receiptId}>
                     <TableCell className="font-medium">{receipt.receiptId}</TableCell>
                     <TableCell>
-                      {receipt.grnNumber && <p className="text-xs">GRN: {receipt.grnNumber}</p>}
-                      {receipt.poNumber && <p className="text-xs">PO: {receipt.poNumber}</p>}
+                      {receipt.grnNumber && <p className="text-xs flex items-center"><Truck className="w-3 h-3 mr-1 text-muted-foreground" />GRN: {receipt.grnNumber}</p>}
+                      {receipt.poNumber && <p className="text-xs flex items-center"><FileText className="w-3 h-3 mr-1 text-muted-foreground" />PO: {receipt.poNumber}</p>}
                       {!receipt.grnNumber && !receipt.poNumber && "N/A"}
                     </TableCell>
                     <TableCell>{receipt.vendorName}</TableCell>
@@ -96,3 +96,4 @@ export default function MaterialReceiptPage() {
     </div>
   );
 }
+

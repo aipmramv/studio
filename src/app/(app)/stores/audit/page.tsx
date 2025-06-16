@@ -33,7 +33,7 @@ export default function StoresAuditPage() {
     <div className="space-y-8">
       <PageHeader
         title="Stores Audit Log"
-        description="Schedule, conduct, and review store audit records."
+        description="Schedule, conduct, and review store audit records for inventory accuracy and compliance."
         actions={
           <Button>
             <SearchCheck className="w-4 h-4 mr-2" /> Start New Audit
@@ -43,7 +43,7 @@ export default function StoresAuditPage() {
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle>Audit Records</CardTitle>
-          <CardDescription>List of all store audits and their status.</CardDescription>
+          <CardDescription>List of all store audits and their status. You can start a new audit or review existing ones.</CardDescription>
         </CardHeader>
         <CardContent>
           {audits.length > 0 ? (
@@ -97,3 +97,4 @@ export default function StoresAuditPage() {
     </div>
   );
 }
+
