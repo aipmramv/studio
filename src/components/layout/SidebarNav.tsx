@@ -31,18 +31,38 @@ export function SidebarNav({ className, ...props }: SidebarNavProps) {
     return pathname === href;
   };
   
-  const filterNavItemsByRole = (items: NavItem[]): NavItem[] => {
-    if (!user || !user.role) return items.filter(item => !item.roles || item.roles.length === 0);
-    return items.filter(item => {
-      const hasAccess = !item.roles || item.roles.length === 0 || item.roles.includes(user.role);
-      if (hasAccess && item.items) {
-        item.items = filterNavItemsByRole(item.items);
-      }
-      return hasAccess;
-    });
-  };
+  const filterAndCloneNavItemsByRole = React.useCallback((itemsToFilter: NavItem[]): NavItem[] => {
+    if (!user || !user.role) {
+      return itemsToFilter
+        .filter(item => !item.roles || item.roles.length === 0)
+        .map(item => {
+          const clonedItem = { ...item };
+          if (clonedItem.items) {
+            clonedItem.items = filterAndCloneNavItemsByRole(clonedItem.items);
+          }
+          return clonedItem;
+        });
+    }
 
-  const visibleNavItems = filterNavItemsByRole(JSON.parse(JSON.stringify(mainNavItems))); // Deep copy to avoid mutating original config
+    return itemsToFilter
+      .map(item => {
+        const hasAccess = !item.roles || item.roles.length === 0 || item.roles.includes(user.role!);
+        
+        if (!hasAccess) {
+          return null;
+        }
+
+        const clonedItem = { ...item };
+        
+        if (clonedItem.items) {
+          clonedItem.items = filterAndCloneNavItemsByRole(clonedItem.items);
+        }
+        return clonedItem;
+      })
+      .filter(Boolean) as NavItem[];
+  }, [user]);
+
+  const visibleNavItems = React.useMemo(() => filterAndCloneNavItemsByRole(mainNavItems), [filterAndCloneNavItemsByRole]);
 
 
   const renderNavItem = (item: NavItem, isSubItem = false) => (
@@ -58,7 +78,7 @@ export function SidebarNav({ className, ...props }: SidebarNavProps) {
         )}
       >
         <Link href={item.href}>
-          <item.icon className={cn("mr-3 h-5 w-5", isSubItem && "h-4 w-4")} />
+          {typeof item.icon === 'function' && <item.icon className={cn("mr-3 h-5 w-5", isSubItem && "h-4 w-4")} />}
           {item.title}
         </Link>
       </Button>
@@ -84,7 +104,7 @@ export function SidebarNav({ className, ...props }: SidebarNavProps) {
                     )}
                   >
                     <div className="flex items-center">
-                      <item.icon className="mr-3 h-5 w-5" />
+                      {typeof item.icon === 'function' && <item.icon className="mr-3 h-5 w-5" />}
                       {item.title}
                     </div>
                   </AccordionTrigger>
