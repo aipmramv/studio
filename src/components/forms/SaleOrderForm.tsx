@@ -5,7 +5,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useFieldArray } from "react-hook-form";
 import * as React from "react";
-import { CalendarIcon, DollarSign, PlusCircle, Send, Tags, Trash2, User, Home, Loader2 } from "lucide-react";
+import { CalendarIcon, DollarSign, PlusCircle, Send, Tags, Trash2, User, Home, Loader2, FileText, Target, Briefcase, Hash, CalendarClock, UserCheck, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
 
 import { Button } from "@/components/ui/button";
@@ -36,11 +36,20 @@ export function SaleOrderForm() {
     defaultValues: {
       customerName: "",
       soDate: new Date(),
+      projectOrCrNo: "",
+      saleOrderCategory: "",
+      purpose: "",
+      costCenter: "",
+      ioNumber: "",
       currency: "INR",
+      budgetAmount: 0,
+      materialRequiredDate: new Date(),
+      departmentHeadApproval: "",
+      deliveryTo: "",
       items: [{ itemName: "", quantity: 1, unitPrice: 0 }],
       shippingAddress: "",
       billingAddress: "",
-      notes: "",
+      remarks: "",
     },
   });
 
@@ -127,33 +136,189 @@ export function SaleOrderForm() {
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="currency"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Currency</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="projectOrCrNo"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center"><FileText className="w-4 h-4 mr-1"/>Project or CR No.</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select currency" />
-                      </SelectTrigger>
+                      <Input placeholder="Enter Project or CR No." {...field} />
                     </FormControl>
-                    <SelectContent>
-                      {CURRENCIES.map((currency) => (
-                        <SelectItem key={currency} value={currency}>
-                          {currency} ({CURRENCY_SYMBOLS[currency]})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="saleOrderCategory"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center"><Tag className="w-4 h-4 mr-1"/>Sale Order Category</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter Sale Order Category" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+            <FormField
+                control={form.control}
+                name="purpose"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center"><Target className="w-4 h-4 mr-1"/>Purpose</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Describe the purpose of this sale order" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="costCenter"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center"><Briefcase className="w-4 h-4 mr-1"/>Cost Center</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter Cost Center" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="ioNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center"><Hash className="w-4 h-4 mr-1"/>IO Number</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter IO Number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="budgetAmount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center"><DollarSign className="w-4 h-4 mr-1"/>Budget Amount</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="0.00" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="currency"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Currency</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select currency" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {CURRENCIES.map((currency) => (
+                          <SelectItem key={currency} value={currency}>
+                            {currency} ({CURRENCY_SYMBOLS[currency]})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+               <FormField
+                control={form.control}
+                name="materialRequiredDate"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel className="flex items-center"><CalendarClock className="w-4 h-4 mr-1"/>Material Required Date</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-full pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value ? (
+                              format(field.value, "PPP")
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                            <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="departmentHeadApproval"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center"><UserCheck className="w-4 h-4 mr-1"/>Department Head Approval</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter approving Department Head name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+             <FormField
+                control={form.control}
+                name="deliveryTo"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center"><User className="w-4 h-4 mr-1"/>Delivery To (Contact/Dept)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Contact person or department for delivery" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
 
             <div>
-              <h3 className="mb-2 text-lg font-medium">Items</h3>
+              <h3 className="mb-2 text-lg font-medium">Material Purchase List / Items</h3>
               {fields.map((item, index) => (
                 <div key={item.id} className="grid grid-cols-1 gap-4 p-4 mb-4 border rounded-md md:grid-cols-7">
                   <FormField
@@ -242,12 +407,12 @@ export function SaleOrderForm() {
             
             <FormField
               control={form.control}
-              name="notes"
+              name="remarks"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Notes (Optional)</FormLabel>
+                  <FormLabel className="flex items-center"><MessageSquare className="w-4 h-4 mr-1"/>Remarks (Optional)</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Any special instructions or notes for this sale order" {...field} />
+                    <Textarea placeholder="Any special instructions or remarks for this sale order" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -265,3 +430,4 @@ export function SaleOrderForm() {
     </Card>
   );
 }
+

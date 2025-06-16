@@ -74,11 +74,20 @@ export type PurchaseOrderFormData = z.infer<typeof PurchaseOrderSchema>;
 export const SaleOrderSchema = z.object({
   customerName: z.string().min(1, "Customer name is required."),
   soDate: z.date({ required_error: "SO date is required." }),
+  projectOrCrNo: z.string().min(1, "Project or CR No. is required."),
+  saleOrderCategory: z.string().min(1, "Sale Order Category is required."),
+  purpose: z.string().min(1, "Purpose is required.").max(500, "Purpose cannot exceed 500 characters."),
+  costCenter: z.string().min(1, "Cost Center is required."),
+  ioNumber: z.string().min(1, "IO Number is required."),
   currency: z.enum(CURRENCIES, { required_error: "Currency is required." }),
+  budgetAmount: z.coerce.number().min(0, "Budget Amount cannot be negative."),
+  materialRequiredDate: z.date({ required_error: "Material Required Date is required." }),
+  departmentHeadApproval: z.string().min(1, "Department Head Approval is required."),
+  deliveryTo: z.string().min(1, "Delivery To contact/department is required."),
   items: z.array(OrderItemSchema).min(1, "At least one item is required."),
   shippingAddress: z.string().min(1, "Shipping address is required."),
   billingAddress: z.string().min(1, "Billing address is required."),
-  notes: z.string().optional(),
+  remarks: z.string().optional(),
 });
 export type SaleOrderFormData = z.infer<typeof SaleOrderSchema>;
 
@@ -127,3 +136,4 @@ export const EmailTemplateSchema = z.object({
   body: z.string().min(1, "Body is required."),
 });
 export type EmailTemplateFormData = z.infer<typeof EmailTemplateSchema>;
+
