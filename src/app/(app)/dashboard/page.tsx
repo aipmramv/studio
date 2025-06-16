@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Check, X, User, CalendarDays, Filter, LayoutGrid, List, Briefcase, Package, ShieldCheck, ShoppingCart, Tags, Recycle, Edit3, DollarSign, Truck, ChevronsUpDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { type Currency, CURRENCY_SYMBOLS, type RequestType, type UserRole, DEPARTMENTS, MOCK_WORKFLOW_TEMPLATES, USER_ACTIONS, type UserAction } from "@/lib/constants";
+import { type RequestType, type UserRole, DEPARTMENTS, MOCK_WORKFLOW_TEMPLATES, USER_ACTIONS, type UserAction } from "@/lib/constants";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
@@ -65,12 +65,12 @@ const mockApprovalsData: ApprovalItem[] = [
   {
     id: "MM001", requestType: "Material Movement", requesterName: "Alice Smith", requesterDepartment: "Production", submissionDate: "2024-07-28T10:00:00Z",
     currentStepId: "mm_dept_head", currentStepName: "Department Head Approval", currentAssignees: ["department_head", "admin"], workflowTemplateId: "material_movement_default",
-    payload: { materialType: "Raw Material", source: "Warehouse A", destination: "Production Line 1", quantity: 100, currency: "INR", value: 150000, isReturnable: "no", vehicleNumber:"MH12AB1234" } as MaterialMovementFormData,
+    payload: { materialType: "Raw Material", source: "Warehouse A", destination: "Production Line 1", quantity: 100, value: 150000, isReturnable: "no", vehicleNumber:"MH12AB1234" } as MaterialMovementFormData,
     history: [{ stepId: "submission", stepName:"Submitted", actor: "Alice Smith", action: "submitted", timestamp: "2024-07-28T10:00:00Z" }]
   },
   {
     id: "SM002", requestType: "Scrap Request", requesterName: "Bob Johnson", requesterDepartment: "Maintenance", submissionDate: "2024-07-27T14:30:00Z",
-    currentStepId: "sm_finance_clearance", currentStepName: "Finance Clearance", currentAssignees: ["finance_team", "admin"], workflowTemplateId: "scrap_default", // Assuming a scrap_default template
+    currentStepId: "sm_finance_clearance", currentStepName: "Finance Clearance", currentAssignees: ["finance_team", "admin"], workflowTemplateId: "scrap_default", 
     payload: { scrapType: "E-waste", description: "Old monitors and keyboards", quantity: 10, weight: 50 } as ScrapMovementFormData,
     history: [{ stepId: "submission", stepName:"Submitted", actor: "Bob Johnson", action: "submitted", timestamp: "2024-07-27T14:30:00Z" }]
   },
@@ -83,7 +83,7 @@ const mockApprovalsData: ApprovalItem[] = [
   {
     id: "PO004", requestType: "Purchase Order", requesterName: "David Brown", requesterDepartment: "Logistics", submissionDate: "2024-07-29T11:00:00Z",
     currentStepId: "po_dept_head", currentStepName: "Dept. Head Approval", currentAssignees: ["department_head", "admin"], workflowTemplateId: "po_default",
-    payload: { vendorName: "Tech Solutions Inc.", poDate: new Date("2024-07-29"), currency: "EUR", items: [{itemName: "Laptop Model X", quantity: 5, unitPrice: 1200, hsnSacCode:"84713010", gstPercentage:18}], deliveryAddress: "Main Office", paymentTerms: "Net 30", poCategory:"IT Equipment", department:"IT", costCenter:"IT001", ioNumber:"IO_IT004" } as PurchaseOrderFormData,
+    payload: { vendorName: "Tech Solutions Inc.", poDate: new Date("2024-07-29"), items: [{itemName: "Laptop Model X", quantity: 5, unitPrice: 1200, hsnSacCode:"84713010", gstPercentage:18}], deliveryAddress: "Main Office", paymentTerms: "Net 30", poCategory:"IT Equipment", department:"IT", costCenter:"IT001", ioNumber:"IO_IT004" } as PurchaseOrderFormData,
     history: [{ stepId: "submission", stepName:"Submitted", actor: "David Brown", action: "submitted", timestamp: "2024-07-29T11:00:00Z"}]
   },
 ];
@@ -101,7 +101,6 @@ export default function ApprovalsDashboardPage() {
 
   const userVisibleApprovals = React.useMemo(() => {
     if (!user) return [];
-    // Admins can see all, others see based on role assignment
     if(user.role === 'admin') return approvals;
     return approvals.filter(item => item.currentAssignees.includes(user.role));
   }, [approvals, user]);
@@ -155,8 +154,7 @@ export default function ApprovalsDashboardPage() {
 
   const renderRequestPayloadDetails = (payload: RequestPayload, requestType: RequestType) => {
     const details: {key: string, value: string | number | undefined | React.ReactNode }[] = [];
-    const locale = payload.currency === "INR" ? 'en-IN' : undefined;
-    const formattingOptions: Intl.NumberFormatOptions = payload.currency === "INR" ? { minimumFractionDigits: 2, maximumFractionDigits: 2 } : {};
+    const formattingOptions: Intl.NumberFormatOptions = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
 
     switch (requestType) {
       case "Material Movement":
@@ -165,7 +163,7 @@ export default function ApprovalsDashboardPage() {
         details.push({ key: "Source", value: mmPayload.source });
         details.push({ key: "Destination", value: mmPayload.destination });
         details.push({ key: "Quantity", value: mmPayload.quantity });
-        details.push({ key: "Value", value: `${CURRENCY_SYMBOLS[mmPayload.currency as Currency]}${mmPayload.value.toLocaleString(locale, formattingOptions)}` });
+        details.push({ key: "Value", value: mmPayload.value.toLocaleString('en-IN', formattingOptions) });
         details.push({ key: "Returnable", value: mmPayload.isReturnable });
         if (mmPayload.vehicleNumber) details.push({ key: "Vehicle No.", value: mmPayload.vehicleNumber });
         break;
@@ -184,37 +182,28 @@ export default function ApprovalsDashboardPage() {
         break;
       case "Purchase Order":
         const poPayload = payload as PurchaseOrderFormData;
-        const poCurrencySymbol = CURRENCY_SYMBOLS[poPayload.currency as Currency];
-        const poLocale = poPayload.currency === "INR" ? 'en-IN' : undefined;
-        const poFormattingOptions: Intl.NumberFormatOptions = poPayload.currency === "INR" ? { minimumFractionDigits: 2, maximumFractionDigits: 2 } : {};
         details.push({ key: "Vendor", value: poPayload.vendorName });
         details.push({ key: "PO Date", value: new Date(poPayload.poDate).toLocaleDateString() });
-        details.push({ key: "Currency", value: `${poPayload.currency} (${poCurrencySymbol})` });
         details.push({ key: "Delivery Address", value: poPayload.deliveryAddress });
         if(poPayload.paymentTerms) details.push({ key: "Payment Terms", value: poPayload.paymentTerms });
         details.push({ key: "Items", value: (
           <ul className="list-disc pl-5">
             {poPayload.items.map((item, idx) => (
-              <li key={idx}>{item.quantity} x {item.itemName} @ {poCurrencySymbol}{item.unitPrice.toLocaleString(poLocale, poFormattingOptions)}</li>
+              <li key={idx}>{item.quantity} x {item.itemName} @ {item.unitPrice.toLocaleString('en-IN', formattingOptions)}</li>
             ))}
           </ul>
         )});
         break;
       case "Sale Order":
         const soPayload = payload as SaleOrderFormData;
-        const soCurrencySymbol = CURRENCY_SYMBOLS[soPayload.currency as Currency];
-        const soLocale = soPayload.currency === "INR" ? 'en-IN' : undefined;
-        const soFormattingOptions: Intl.NumberFormatOptions = soPayload.currency === "INR" ? { minimumFractionDigits: 2, maximumFractionDigits: 2 } : {};
-
         details.push({ key: "Customer", value: soPayload.customerName });
         details.push({ key: "SO Date", value: new Date(soPayload.soDate).toLocaleDateString() });
-        details.push({ key: "Currency", value: `${soPayload.currency} (${soCurrencySymbol})` });
         details.push({ key: "Shipping Address", value: soPayload.shippingAddress });
         details.push({ key: "Billing Address", value: soPayload.billingAddress });
          details.push({ key: "Items", value: (
           <ul className="list-disc pl-5">
             {soPayload.items.map((item, idx) => (
-              <li key={idx}>{item.quantity} x {item.itemName} @ {soCurrencySymbol}{item.unitPrice.toLocaleString(soLocale, soFormattingOptions)}</li>
+              <li key={idx}>{item.quantity} x {item.itemName} @ {item.unitPrice.toLocaleString('en-IN', formattingOptions)}</li>
             ))}
           </ul>
         )});
@@ -382,4 +371,3 @@ export default function ApprovalsDashboardPage() {
     </div>
   );
 }
-

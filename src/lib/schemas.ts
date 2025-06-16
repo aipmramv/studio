@@ -1,6 +1,6 @@
 
 import { z } from 'zod';
-import { MATERIAL_TYPES, SCRAP_TYPES, BUILDING_TYPES, ACTIVITY_TYPES_WORK_PERMIT, USER_ROLES, DEPARTMENTS, CURRENCIES, REQUEST_TYPES } from './constants';
+import { MATERIAL_TYPES, SCRAP_TYPES, BUILDING_TYPES, ACTIVITY_TYPES_WORK_PERMIT, USER_ROLES, DEPARTMENTS, REQUEST_TYPES } from './constants';
 
 export const LoginSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -24,7 +24,6 @@ export const MaterialMovementSchema = z.object({
   source: z.string().min(1, "Source is required."),
   destination: z.string().min(1, "Destination is required."),
   quantity: z.coerce.number().min(1, "Quantity must be at least 1."),
-  currency: z.enum(CURRENCIES, { required_error: "Currency is required." }),
   value: z.coerce.number().min(0, "Value cannot be negative."),
   isReturnable: z.enum(['yes', 'no'], { required_error: "Returnable status is required." }),
   vehicleNumber: z.string().optional(),
@@ -70,13 +69,11 @@ export const PurchaseOrderSchema = z.object({
   costCenter: z.string().min(1, "Cost Center is required."),
   ioNumber: z.string().min(1, "IO Number is required."),
   poDate: z.date({ required_error: "PO date is required." }),
-  currency: z.enum(CURRENCIES, { required_error: "Currency is required." }),
   items: z.array(OrderItemSchema).min(1, "At least one item is required."),
   deliveryAddress: z.string().min(1, "Delivery address is required."),
   segment: z.string().optional(),
   paymentTerms: z.string().optional(),
-  remarks: z.string().optional(), // Renamed from notes
-  // attachments: z.any().optional(), // Handled by file state, not direct Zod schema for File object
+  remarks: z.string().optional(),
 });
 export type PurchaseOrderFormData = z.infer<typeof PurchaseOrderSchema>;
 
@@ -88,12 +85,11 @@ export const SaleOrderSchema = z.object({
   purpose: z.string().min(1, "Purpose is required.").max(500, "Purpose cannot exceed 500 characters."),
   costCenter: z.string().min(1, "Cost Center is required."),
   ioNumber: z.string().min(1, "IO Number is required."),
-  currency: z.enum(CURRENCIES, { required_error: "Currency is required." }),
   budgetAmount: z.coerce.number().min(0, "Budget Amount cannot be negative."),
   materialRequiredDate: z.date({ required_error: "Material Required Date is required." }),
   departmentHeadApproval: z.string().min(1, "Department Head Approval is required."),
   deliveryTo: z.string().min(1, "Delivery To contact/department is required."),
-  items: z.array(OrderItemSchema).min(1, "At least one item is required."), // Reusing OrderItemSchema
+  items: z.array(OrderItemSchema).min(1, "At least one item is required."),
   shippingAddress: z.string().min(1, "Shipping address is required."),
   billingAddress: z.string().min(1, "Billing address is required."),
   remarks: z.string().optional(),
@@ -110,7 +106,7 @@ export type RequestPayload =
 
 
 export const WorkflowStepSchema = z.object({
-  id: z.string().min(1, "Step ID is required."), // Usually auto-generated or derived
+  id: z.string().min(1, "Step ID is required."), 
   name: z.string().min(1, "Step name is required."),
   assignedRoles: z.array(z.enum(USER_ROLES)).min(1, "At least one role must be assigned."),
   nextStepId: z.string().optional(),
@@ -119,11 +115,10 @@ export const WorkflowStepSchema = z.object({
 export type WorkflowStepFormData = z.infer<typeof WorkflowStepSchema>;
 
 export const WorkflowTemplateSchema = z.object({
-  id: z.string().min(1, "Template ID is required."), // Usually auto-generated or derived
+  id: z.string().min(1, "Template ID is required."), 
   name: z.string().min(1, "Workflow name is required."),
   requestType: z.enum(REQUEST_TYPES, { required_error: "Request type is required." }),
   initialStepId: z.string().min(1, "An initial step must be defined for the workflow."),
-  // Steps are managed separately within the UI but are part of the template data structure
 });
 export type WorkflowTemplateFormData = z.infer<typeof WorkflowTemplateSchema>;
 
@@ -145,4 +140,3 @@ export const EmailTemplateSchema = z.object({
   body: z.string().min(1, "Body is required."),
 });
 export type EmailTemplateFormData = z.infer<typeof EmailTemplateSchema>;
-

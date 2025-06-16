@@ -10,25 +10,24 @@ import { PlusCircle, Eye, Edit, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { CURRENCY_SYMBOLS, type Currency } from "@/lib/constants";
 
 interface PurchaseOrderItemDisplay {
   poNumber: string;
   vendorName: string;
   poDate: string; // Keep as string for display
   totalAmount: number;
-  currency: Currency;
   status: "Pending" | "Approved" | "Rejected" | "Fulfilled";
 }
 
 const mockPurchaseOrders: PurchaseOrderItemDisplay[] = [
-  { poNumber: "PO2024001", vendorName: "Supplier Alpha", poDate: "2024-07-15", totalAmount: 150000, currency: "INR", status: "Approved" },
-  { poNumber: "PO2024002", vendorName: "Vendor Beta Gmbh", poDate: "2024-07-18", totalAmount: 2500, currency: "EUR", status: "Pending" },
-  { poNumber: "PO2024003", vendorName: "Service Provider Charlie", poDate: "2024-07-20", totalAmount: 75000, currency: "INR", status: "Fulfilled" },
+  { poNumber: "PO2024001", vendorName: "Supplier Alpha", poDate: "2024-07-15", totalAmount: 150000, status: "Approved" },
+  { poNumber: "PO2024002", vendorName: "Vendor Beta Gmbh", poDate: "2024-07-18", totalAmount: 2500, status: "Pending" },
+  { poNumber: "PO2024003", vendorName: "Service Provider Charlie", poDate: "2024-07-20", totalAmount: 75000, status: "Fulfilled" },
 ];
 
 export default function PurchaseOrderListPage() {
   const [purchaseOrders, setPurchaseOrders] = React.useState<PurchaseOrderItemDisplay[]>(mockPurchaseOrders);
+  const formattingOptions = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
 
   return (
     <div className="space-y-8">
@@ -68,7 +67,7 @@ export default function PurchaseOrderListPage() {
                     <TableCell>{po.vendorName}</TableCell>
                     <TableCell>{new Date(po.poDate).toLocaleDateString()}</TableCell>
                     <TableCell className="text-right">
-                       {CURRENCY_SYMBOLS[po.currency]}{po.totalAmount.toLocaleString(po.currency === 'INR' ? 'en-IN' : undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                       {po.totalAmount.toLocaleString('en-IN', formattingOptions)}
                     </TableCell>
                     <TableCell>
                       <Badge

@@ -4,12 +4,12 @@
 
 import * as React from "react";
 import { PageHeader } from "@/components/shared/PageHeader";
-import { Card, CardContent, CardDescription, CardFooter as UICardFooter, CardHeader, CardTitle } from "@/components/ui/card"; // Renamed CardFooter to UICardFooter
+import { Card, CardContent, CardDescription, CardFooter as UICardFooter, CardHeader, CardTitle } from "@/components/ui/card"; 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption, TableFooter } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye, Truck, Recycle, ShieldCheck, ShoppingCart, Tags, Package, CalendarDays, User, MessageSquare, Bell, ChevronsUp, Send, Info, History, CheckCircle, CircleDot, Circle, Workflow as WorkflowIcon } from "lucide-react";
-import { type RequestType, type Currency, CURRENCY_SYMBOLS, type UserRole, type UserAction, MOCK_WORKFLOW_TEMPLATES, type WorkflowTemplate, type WorkflowStep } from "@/lib/constants";
+import { type RequestType, type UserRole, type UserAction, MOCK_WORKFLOW_TEMPLATES, type WorkflowTemplate, type WorkflowStep } from "@/lib/constants";
 import { type MaterialMovementFormData, type ScrapMovementFormData, type WorkPermitFormData, type PurchaseOrderFormData, type SaleOrderFormData, type OrderItem } from "@/lib/schemas";
 import {
   Dialog,
@@ -32,8 +32,8 @@ interface ApprovalHistoryItem {
   stepId: string;
   stepName: string;
   action: UserAction | "submitted" | "commented" | "reminded" | "escalated" | "system_auto_proceed";
-  actor: string; // User name or "System"
-  timestamp: string; // ISO Date string
+  actor: string; 
+  timestamp: string; 
   comment?: string;
 }
 
@@ -54,7 +54,7 @@ const mockAllRequestsData: ApprovalItem[] = [
   {
     id: "MM001", requestType: "Material Movement", requesterName: "Alice Smith", requesterDepartment: "Production", submissionDate: "2024-07-28T10:00:00Z",
     currentStepId: "mm_dept_head", currentStepName: "Department Head Approval", workflowTemplateId: "material_movement_default",
-    payload: { materialType: "Raw Material", source: "Warehouse A", destination: "Production Line 1", quantity: 100, currency: "INR", value: 150000, isReturnable: "no", vehicleNumber:"MH12AB1234" } as MaterialMovementFormData,
+    payload: { materialType: "Raw Material", source: "Warehouse A", destination: "Production Line 1", quantity: 100, value: 150000, isReturnable: "no", vehicleNumber:"MH12AB1234" } as MaterialMovementFormData,
     history: [
       { stepId: "submission", stepName: "Submitted", actor: "Alice Smith", action: "submitted", timestamp: "2024-07-28T10:00:00Z", comment: "Initial submission for urgent production requirement." },
       { stepId: "mm_dept_head", stepName: "Pending Dept. Head", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-28T10:01:00Z" },
@@ -82,7 +82,7 @@ const mockAllRequestsData: ApprovalItem[] = [
   {
     id: "PO004", requestType: "Purchase Order", requesterName: "David Brown", requesterDepartment: "Logistics", submissionDate: "2024-07-29T11:00:00Z",
     currentStepId: "po_dept_head", currentStepName: "Dept. Head Approval", workflowTemplateId: "po_default",
-    payload: { vendorName: "Tech Solutions Inc.", poDate: new Date("2024-07-29"), currency: "EUR", items: [{itemName: "Laptop Model X", quantity: 5, unitPrice: 1200, hsnSacCode:"84713010", gstPercentage:18}, {itemName: "Docking Station", quantity: 5, unitPrice: 150, hsnSacCode:"84718000", gstPercentage:18}], deliveryAddress: "Main Office, R&D Block", paymentTerms: "Net 30" } as PurchaseOrderFormData,
+    payload: { vendorName: "Tech Solutions Inc.", poDate: new Date("2024-07-29"), items: [{itemName: "Laptop Model X", quantity: 5, unitPrice: 1200, hsnSacCode:"84713010", gstPercentage:18}, {itemName: "Docking Station", quantity: 5, unitPrice: 150, hsnSacCode:"84718000", gstPercentage:18}], deliveryAddress: "Main Office, R&D Block", paymentTerms: "Net 30" } as PurchaseOrderFormData,
      history: [
       { stepId: "submission", stepName: "Submitted", actor: "David Brown", action: "submitted", timestamp: "2024-07-29T11:00:00Z" },
       { stepId: "po_dept_head", stepName: "Pending Dept. Head Approval", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-29T11:01:00Z"}
@@ -91,7 +91,7 @@ const mockAllRequestsData: ApprovalItem[] = [
    {
     id: "SO005", requestType: "Sale Order", requesterName: "Eve Green", requesterDepartment: "Sales", submissionDate: "2024-07-30T11:00:00Z",
     currentStepId: "so_manager_approval", currentStepName: "Sales Manager Approval", workflowTemplateId: "so_default",
-    payload: { customerName: "Client ABC Corp", soDate: new Date("2024-07-30"), currency: "INR", items: [{itemName: "Software License - Annual", quantity: 10, unitPrice: 5000, hsnSacCode: "997331", gstPercentage: 18}], shippingAddress: "Client HQ, Tower B, Floor 5", billingAddress: "Client HQ, Accounts Dept.", projectOrCrNo:"PROJ123", saleOrderCategory:"Software", purpose:"Annual License Renewal", costCenter:"SALES01", ioNumber:"IO_SALES005", budgetAmount:500000, materialRequiredDate:new Date("2024-08-15"), departmentHeadApproval:"Sales Head", deliveryTo:"IT Dept Contact" } as SaleOrderFormData,
+    payload: { customerName: "Client ABC Corp", soDate: new Date("2024-07-30"), items: [{itemName: "Software License - Annual", quantity: 10, unitPrice: 5000, hsnSacCode: "997331", gstPercentage: 18}], shippingAddress: "Client HQ, Tower B, Floor 5", billingAddress: "Client HQ, Accounts Dept.", projectOrCrNo:"PROJ123", saleOrderCategory:"Software", purpose:"Annual License Renewal", costCenter:"SALES01", ioNumber:"IO_SALES005", budgetAmount:500000, materialRequiredDate:new Date("2024-08-15"), departmentHeadApproval:"Sales Head", deliveryTo:"IT Dept Contact" } as SaleOrderFormData,
      history: [
       { stepId: "submission", stepName: "Submitted", actor: "Eve Green", action: "submitted", timestamp: "2024-07-30T11:00:00Z" },
       { stepId: "so_manager_approval", stepName: "Pending Sales Manager Approval", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-30T11:01:00Z"}
@@ -113,13 +113,12 @@ const getRequestTypeIcon = (requestType: RequestType, className?: string) => {
 
 const renderRequestSummary = (item: ApprovalItem): string => {
   const { requestType, payload } = item;
-  const locale = payload.currency === "INR" ? 'en-IN' : undefined;
-  const formattingOptions: Intl.NumberFormatOptions = payload.currency === "INR" ? { minimumFractionDigits: 2, maximumFractionDigits: 2 } : {};
+  const formattingOptions: Intl.NumberFormatOptions = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
 
   switch (requestType) {
     case "Material Movement":
       const mm = payload as MaterialMovementFormData;
-      return `${mm.quantity} x ${mm.materialType} from ${mm.source} to ${mm.destination}. Value: ${CURRENCY_SYMBOLS[mm.currency as Currency]}${mm.value.toLocaleString(locale, formattingOptions)}`;
+      return `${mm.quantity} x ${mm.materialType} from ${mm.source} to ${mm.destination}. Value: ${mm.value.toLocaleString('en-IN', formattingOptions)}`;
     case "Scrap Request":
       const sm = payload as ScrapMovementFormData;
       return `${sm.quantity} units of ${sm.scrapType} (${sm.weight} units weight). Desc: ${sm.description.substring(0,50)}...`;
@@ -129,11 +128,11 @@ const renderRequestSummary = (item: ApprovalItem): string => {
     case "Purchase Order":
       const po = payload as PurchaseOrderFormData;
       const poTotal = po.items.reduce((sum, i) => sum + (i.quantity * i.unitPrice), 0);
-      return `Vendor: ${po.vendorName}. ${po.items.length} item(s). Total: ${CURRENCY_SYMBOLS[po.currency as Currency]}${poTotal.toLocaleString(locale, formattingOptions)}`;
+      return `Vendor: ${po.vendorName}. ${po.items.length} item(s). Total: ${poTotal.toLocaleString('en-IN', formattingOptions)}`;
     case "Sale Order":
       const so = payload as SaleOrderFormData;
       const soTotal = so.items.reduce((sum, i) => sum + (i.quantity * i.unitPrice), 0);
-      return `Customer: ${so.customerName}. ${so.items.length} item(s). Total: ${CURRENCY_SYMBOLS[so.currency as Currency]}${soTotal.toLocaleString(locale, formattingOptions)}`;
+      return `Customer: ${so.customerName}. ${so.items.length} item(s). Total: ${soTotal.toLocaleString('en-IN', formattingOptions)}`;
     default:
       return "Details not available.";
   }
@@ -141,9 +140,7 @@ const renderRequestSummary = (item: ApprovalItem): string => {
 
 const renderRequestPayloadDetailsDialog = (payload: RequestPayload, requestType: RequestType) => {
     const details: {key: string, value: string | number | undefined | React.ReactNode }[] = [];
-    const locale = payload.currency === "INR" ? 'en-IN' : undefined;
-    const formattingOptions: Intl.NumberFormatOptions = payload.currency === "INR" ? { minimumFractionDigits: 2, maximumFractionDigits: 2 } : {};
-
+    const formattingOptions: Intl.NumberFormatOptions = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
 
     switch (requestType) {
       case "Material Movement":
@@ -152,7 +149,7 @@ const renderRequestPayloadDetailsDialog = (payload: RequestPayload, requestType:
         details.push({ key: "Source", value: mmPayload.source });
         details.push({ key: "Destination", value: mmPayload.destination });
         details.push({ key: "Quantity", value: mmPayload.quantity });
-        details.push({ key: "Value", value: `${CURRENCY_SYMBOLS[mmPayload.currency as Currency]}${mmPayload.value.toLocaleString(locale, formattingOptions)}` });
+        details.push({ key: "Value", value: mmPayload.value.toLocaleString('en-IN', formattingOptions) });
         details.push({ key: "Returnable", value: mmPayload.isReturnable });
         if (mmPayload.vehicleNumber) details.push({ key: "Vehicle No.", value: mmPayload.vehicleNumber });
         break;
@@ -171,13 +168,8 @@ const renderRequestPayloadDetailsDialog = (payload: RequestPayload, requestType:
         break;
       case "Purchase Order":
         const poPayload = payload as PurchaseOrderFormData;
-        const poCurrencySymbol = CURRENCY_SYMBOLS[poPayload.currency as Currency];
-        const poLocale = poPayload.currency === "INR" ? 'en-IN' : undefined;
-        const poFormattingOptions: Intl.NumberFormatOptions = poPayload.currency === "INR" ? { minimumFractionDigits: 2, maximumFractionDigits: 2 } : {};
-
         details.push({ key: "Vendor", value: poPayload.vendorName });
         details.push({ key: "PO Date", value: new Date(poPayload.poDate).toLocaleDateString() });
-        details.push({ key: "Currency", value: `${poPayload.currency} (${poCurrencySymbol})` });
         details.push({ key: "Delivery Address", value: poPayload.deliveryAddress });
         if(poPayload.paymentTerms) details.push({ key: "Payment Terms", value: poPayload.paymentTerms });
         details.push({ key: "Items", value: (
@@ -185,22 +177,17 @@ const renderRequestPayloadDetailsDialog = (payload: RequestPayload, requestType:
             <TableHeader><TableRow><TableHead>Item</TableHead><TableHead>Qty</TableHead><TableHead className="text-right">Price</TableHead><TableHead className="text-right">Total</TableHead></TableRow></TableHeader>
             <TableBody>
             {poPayload.items.map((item, idx) => (
-              <TableRow key={idx}><TableCell>{item.itemName}</TableCell><TableCell>{item.quantity}</TableCell><TableCell className="text-right">{poCurrencySymbol}{item.unitPrice.toLocaleString(poLocale, poFormattingOptions)}</TableCell><TableCell className="text-right">{poCurrencySymbol}{(item.quantity * item.unitPrice).toLocaleString(poLocale, poFormattingOptions)}</TableCell></TableRow>
+              <TableRow key={idx}><TableCell>{item.itemName}</TableCell><TableCell>{item.quantity}</TableCell><TableCell className="text-right">{item.unitPrice.toLocaleString('en-IN', formattingOptions)}</TableCell><TableCell className="text-right">{(item.quantity * item.unitPrice).toLocaleString('en-IN', formattingOptions)}</TableCell></TableRow>
             ))}
             </TableBody>
-             <TableFooter><TableRow><TableCell colSpan={3} className="text-right font-bold">Grand Total</TableCell><TableCell className="text-right font-bold">{poCurrencySymbol}{poPayload.items.reduce((sum, i) => sum + (i.quantity * i.unitPrice), 0).toLocaleString(poLocale, poFormattingOptions)}</TableCell></TableRow></TableFooter>
+             <TableFooter><TableRow><TableCell colSpan={3} className="text-right font-bold">Grand Total</TableCell><TableCell className="text-right font-bold">{poPayload.items.reduce((sum, i) => sum + (i.quantity * i.unitPrice), 0).toLocaleString('en-IN', formattingOptions)}</TableCell></TableRow></TableFooter>
           </Table>
         )});
         break;
       case "Sale Order":
         const soPayload = payload as SaleOrderFormData;
-        const soCurrencySymbol = CURRENCY_SYMBOLS[soPayload.currency as Currency];
-        const soLocale = soPayload.currency === "INR" ? 'en-IN' : undefined;
-        const soFormattingOptions: Intl.NumberFormatOptions = soPayload.currency === "INR" ? { minimumFractionDigits: 2, maximumFractionDigits: 2 } : {};
-
         details.push({ key: "Customer", value: soPayload.customerName });
         details.push({ key: "SO Date", value: new Date(soPayload.soDate).toLocaleDateString() });
-        details.push({ key: "Currency", value: `${soPayload.currency} (${soCurrencySymbol})` });
         details.push({ key: "Shipping Address", value: soPayload.shippingAddress });
         details.push({ key: "Billing Address", value: soPayload.billingAddress });
          details.push({ key: "Items", value: (
@@ -208,10 +195,10 @@ const renderRequestPayloadDetailsDialog = (payload: RequestPayload, requestType:
             <TableHeader><TableRow><TableHead>Item</TableHead><TableHead>Qty</TableHead><TableHead className="text-right">Price</TableHead><TableHead className="text-right">Total</TableHead></TableRow></TableHeader>
             <TableBody>
             {soPayload.items.map((item, idx) => (
-              <TableRow key={idx}><TableCell>{item.itemName}</TableCell><TableCell>{item.quantity}</TableCell><TableCell className="text-right">{soCurrencySymbol}{item.unitPrice.toLocaleString(soLocale, soFormattingOptions)}</TableCell><TableCell className="text-right">{soCurrencySymbol}{(item.quantity * item.unitPrice).toLocaleString(soLocale, soFormattingOptions)}</TableCell></TableRow>
+              <TableRow key={idx}><TableCell>{item.itemName}</TableCell><TableCell>{item.quantity}</TableCell><TableCell className="text-right">{item.unitPrice.toLocaleString('en-IN', formattingOptions)}</TableCell><TableCell className="text-right">{(item.quantity * item.unitPrice).toLocaleString('en-IN', formattingOptions)}</TableCell></TableRow>
             ))}
             </TableBody>
-            <TableFooter><TableRow><TableCell colSpan={3} className="text-right font-bold">Grand Total</TableCell><TableCell className="text-right font-bold">{soCurrencySymbol}{soPayload.items.reduce((sum, i) => sum + (i.quantity * i.unitPrice), 0).toLocaleString(soLocale, soFormattingOptions)}</TableCell></TableRow></TableFooter>
+            <TableFooter><TableRow><TableCell colSpan={3} className="text-right font-bold">Grand Total</TableCell><TableCell className="text-right font-bold">{soPayload.items.reduce((sum, i) => sum + (i.quantity * i.unitPrice), 0).toLocaleString('en-IN', formattingOptions)}</TableCell></TableRow></TableFooter>
           </Table>
         )});
         break;
@@ -284,8 +271,7 @@ export default function AllRequestsPage() {
         {workflow.steps.map((step, index) => {
           const isCompleted = request.history.some(h => h.stepId === step.id && h.action === "approve") && step.id !== request.currentStepId;
           const isCurrent = step.id === request.currentStepId;
-          // const isPending = !isCompleted && !isCurrent && index > currentStepIndex; // This logic might be complex depending on rejection flows
-
+          
           let icon;
           let textClass = "text-muted-foreground";
           let roleClass = "text-muted-foreground";
@@ -298,7 +284,7 @@ export default function AllRequestsPage() {
             icon = <CircleDot className="w-5 h-5 text-primary" />;
             textClass = "text-primary font-semibold";
             roleClass = "text-primary";
-          } else { // Pending or not yet reached
+          } else { 
             icon = <Circle className="w-5 h-5 text-muted-foreground/50" />;
              textClass = "text-muted-foreground/70";
              roleClass = "text-muted-foreground/70";
@@ -396,7 +382,7 @@ export default function AllRequestsPage() {
             setNewComment(""); 
           }
         }}>
-          <DialogContent className="sm:max-w-3xl"> {/* Increased width for better layout */}
+          <DialogContent className="sm:max-w-3xl">
             <DialogHeader>
               <DialogTitle className="flex items-center">
                 {getRequestTypeIcon(selectedRequest.requestType, "w-6 h-6 mr-2 text-primary")}
@@ -409,7 +395,7 @@ export default function AllRequestsPage() {
             </DialogHeader>
             <ScrollArea className="max-h-[calc(100vh-20rem)] pr-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-4">
-                <div className="md:col-span-2 space-y-4"> {/* Main content area */}
+                <div className="md:col-span-2 space-y-4"> 
                   <Card>
                     <CardHeader><CardTitle className="text-lg flex items-center"><Info className="w-5 h-5 mr-2 text-primary"/>Basic Information</CardTitle></CardHeader>
                     <CardContent className="space-y-1 text-sm">
@@ -468,7 +454,7 @@ export default function AllRequestsPage() {
                       </div>
                   </div>
                 </div>
-                <div className="md:col-span-1"> {/* Workflow Progress Sidebar */}
+                <div className="md:col-span-1"> 
                    <Card>
                     <CardHeader><CardTitle className="text-lg flex items-center"><WorkflowIcon className="w-5 h-5 mr-2 text-primary"/>Workflow Progress</CardTitle></CardHeader>
                     <CardContent>
@@ -489,4 +475,3 @@ export default function AllRequestsPage() {
     </div>
   );
 }
-

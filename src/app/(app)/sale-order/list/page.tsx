@@ -10,25 +10,24 @@ import { PlusCircle, Eye, Edit, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { CURRENCY_SYMBOLS, type Currency } from "@/lib/constants";
 
 interface SaleOrderItemDisplay {
   soNumber: string;
   customerName: string;
   soDate: string; // Keep as string for display
   totalAmount: number;
-  currency: Currency;
   status: "Draft" | "Confirmed" | "Shipped" | "Delivered" | "Cancelled";
 }
 
 const mockSaleOrders: SaleOrderItemDisplay[] = [
-  { soNumber: "SO2024001", customerName: "Customer X Inc.", soDate: "2024-07-22", totalAmount: 85000, currency: "INR", status: "Confirmed" },
-  { soNumber: "SO2024002", customerName: "Client Y Solutions", soDate: "2024-07-25", totalAmount: 1200, currency: "EUR", status: "Draft" },
-  { soNumber: "SO2024003", customerName: "Partner Z Ltd.", soDate: "2024-07-28", totalAmount: 300000, currency: "INR", status: "Shipped" },
+  { soNumber: "SO2024001", customerName: "Customer X Inc.", soDate: "2024-07-22", totalAmount: 85000, status: "Confirmed" },
+  { soNumber: "SO2024002", customerName: "Client Y Solutions", soDate: "2024-07-25", totalAmount: 1200, status: "Draft" },
+  { soNumber: "SO2024003", customerName: "Partner Z Ltd.", soDate: "2024-07-28", totalAmount: 300000, status: "Shipped" },
 ];
 
 export default function SaleOrderListPage() {
   const [saleOrders, setSaleOrders] = React.useState<SaleOrderItemDisplay[]>(mockSaleOrders);
+  const formattingOptions = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
 
   return (
     <div className="space-y-8">
@@ -68,7 +67,7 @@ export default function SaleOrderListPage() {
                     <TableCell>{so.customerName}</TableCell>
                     <TableCell>{new Date(so.soDate).toLocaleDateString()}</TableCell>
                      <TableCell className="text-right">
-                       {CURRENCY_SYMBOLS[so.currency]}{so.totalAmount.toLocaleString(so.currency === 'INR' ? 'en-IN' : undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                       {so.totalAmount.toLocaleString('en-IN', formattingOptions)}
                     </TableCell>
                     <TableCell>
                       <Badge

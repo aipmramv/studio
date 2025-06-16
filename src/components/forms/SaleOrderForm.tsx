@@ -24,7 +24,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { SaleOrderSchema, type SaleOrderFormData } from "@/lib/schemas";
-import { CURRENCIES, CURRENCY_SYMBOLS, type Currency } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
@@ -41,7 +40,6 @@ export function SaleOrderForm() {
       purpose: "",
       costCenter: "",
       ioNumber: "",
-      currency: "INR",
       budgetAmount: 0,
       materialRequiredDate: new Date(),
       departmentHeadApproval: "",
@@ -57,8 +55,6 @@ export function SaleOrderForm() {
     control: form.control,
     name: "items",
   });
-
-  const selectedCurrency = form.watch("currency") as Currency;
 
   function onSubmit(data: SaleOrderFormData) {
     console.log("Sale Order Data:", data);
@@ -222,33 +218,6 @@ export function SaleOrderForm() {
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="currency"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Currency</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select currency" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {CURRENCIES.map((currency) => (
-                          <SelectItem key={currency} value={currency}>
-                            {currency} ({CURRENCY_SYMBOLS[currency]})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                <FormField
                 control={form.control}
                 name="materialRequiredDate"
@@ -287,6 +256,9 @@ export function SaleOrderForm() {
                   </FormItem>
                 )}
               />
+            </div>
+
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <FormField
                 control={form.control}
                 name="departmentHeadApproval"
@@ -300,9 +272,7 @@ export function SaleOrderForm() {
                   </FormItem>
                 )}
               />
-            </div>
-            
-             <FormField
+              <FormField
                 control={form.control}
                 name="deliveryTo"
                 render={({ field }) => (
@@ -315,7 +285,7 @@ export function SaleOrderForm() {
                   </FormItem>
                 )}
               />
-
+            </div>
 
             <div>
               <h3 className="mb-2 text-lg font-medium">Material Purchase List / Items</h3>
@@ -352,7 +322,7 @@ export function SaleOrderForm() {
                     name={`items.${index}.unitPrice`}
                     render={({ field }) => (
                       <FormItem className="md:col-span-2">
-                        <FormLabel>Unit Price ({CURRENCY_SYMBOLS[selectedCurrency]})</FormLabel>
+                        <FormLabel>Unit Price</FormLabel>
                         <FormControl>
                           <Input type="number" placeholder="0.00" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />
                         </FormControl>
@@ -430,4 +400,3 @@ export function SaleOrderForm() {
     </Card>
   );
 }
-

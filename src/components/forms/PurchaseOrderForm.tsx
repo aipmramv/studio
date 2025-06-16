@@ -25,10 +25,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { PurchaseOrderSchema, type PurchaseOrderFormData, type OrderItem } from "@/lib/schemas";
-import { CURRENCIES, CURRENCY_SYMBOLS, DEPARTMENTS, type Currency } from "@/lib/constants";
+import { DEPARTMENTS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { FileUpload } from "@/components/ui/file-upload"; // Added for attachments
+import { FileUpload } from "@/components/ui/file-upload"; 
 
 export function PurchaseOrderForm() {
   const { toast } = useToast();
@@ -44,7 +44,6 @@ export function PurchaseOrderForm() {
       costCenter: "",
       ioNumber: "",
       poDate: new Date(),
-      currency: "INR",
       items: [{ itemName: "", quantity: 1, unitPrice: 0, hsnSacCode: "", gstPercentage: undefined }],
       deliveryAddress: "",
       segment: "",
@@ -58,7 +57,6 @@ export function PurchaseOrderForm() {
     name: "items",
   });
 
-  const selectedCurrency = form.watch("currency") as Currency;
   const currentItems = form.watch("items");
 
   const calculateTotalValue = React.useCallback(() => {
@@ -85,9 +83,8 @@ export function PurchaseOrderForm() {
     form.reset();
     setAttachments(null);
   }
-
-  const currencyLocale = selectedCurrency === 'INR' ? 'en-IN' : undefined;
-  const currencyFormattingOptions = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
+  
+  const formattingOptions = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
 
   return (
     <Card className="w-full shadow-xl">
@@ -228,30 +225,6 @@ export function PurchaseOrderForm() {
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="currency"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Currency</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select currency" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {CURRENCIES.map((currency) => (
-                          <SelectItem key={currency} value={currency}>
-                            {currency} ({CURRENCY_SYMBOLS[currency]})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </div>
 
             <div>
@@ -290,7 +263,7 @@ export function PurchaseOrderForm() {
                       name={`items.${index}.unitPrice`}
                       render={({ field }) => (
                         <FormItem className="md:col-span-2">
-                          <FormLabel>Unit Price ({CURRENCY_SYMBOLS[selectedCurrency]})</FormLabel>
+                          <FormLabel>Unit Price</FormLabel>
                           <FormControl>
                             <Input type="number" placeholder="0.00" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)}/>
                           </FormControl>
@@ -346,11 +319,11 @@ export function PurchaseOrderForm() {
             <div className="p-4 mt-4 border rounded-lg bg-muted/50">
                 <h4 className="mb-2 text-md font-semibold text-foreground">PO Value Summary</h4>
                 <div className="space-y-1 text-sm">
-                    <div className="flex justify-between"><span>Subtotal:</span> <span>{CURRENCY_SYMBOLS[selectedCurrency]}{subTotal.toLocaleString(currencyLocale, currencyFormattingOptions)}</span></div>
-                    <div className="flex justify-between"><span>Total GST:</span> <span>{CURRENCY_SYMBOLS[selectedCurrency]}{totalGst.toLocaleString(currencyLocale, currencyFormattingOptions)}</span></div>
+                    <div className="flex justify-between"><span>Subtotal:</span> <span>{subTotal.toLocaleString('en-IN', formattingOptions)}</span></div>
+                    <div className="flex justify-between"><span>Total GST:</span> <span>{totalGst.toLocaleString('en-IN', formattingOptions)}</span></div>
                     <div className="flex justify-between pt-1 mt-1 border-t border-border">
                         <span className="font-bold">Grand Total:</span>
-                        <span className="font-bold">{CURRENCY_SYMBOLS[selectedCurrency]}{grandTotal.toLocaleString(currencyLocale, currencyFormattingOptions)}</span>
+                        <span className="font-bold">{grandTotal.toLocaleString('en-IN', formattingOptions)}</span>
                     </div>
                 </div>
             </div>

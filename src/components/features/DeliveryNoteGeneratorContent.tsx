@@ -10,7 +10,6 @@ import { Printer, FileText, AlertCircle, ExternalLink, Send, Download, Loader2 }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { type Currency, CURRENCY_SYMBOLS } from "@/lib/constants";
 
 interface MaterialItem {
   sno: number;
@@ -27,7 +26,6 @@ interface DeliveryNoteData {
   approvedRequestID: string;
   source: string;
   destination: string;
-  currency: Currency;
   materials: MaterialItem[];
   eWayBillLink?: string;
 }
@@ -39,7 +37,6 @@ const mockDeliveryNoteData: DeliveryNoteData = {
   approvedRequestID: "MM001",
   source: "Production Warehouse A",
   destination: "Client Site X",
-  currency: "INR",
   materials: [
     { sno: 1, description: "Steel Beams Grade A (10m)", quantity: 10, uom: "Pieces", value: 120000 },
     { sno: 2, description: "Fasteners Kit Type B", quantity: 50, uom: "Kits", value: 30000 },
@@ -59,10 +56,7 @@ export function DeliveryNoteGeneratorContent() {
   const canSubmit = currentTime < submissionDeadline;
 
   const totalValue = deliveryNoteData.materials.reduce((sum, item) => sum + item.value, 0);
-  const currencySymbol = CURRENCY_SYMBOLS[deliveryNoteData.currency];
-  const currencyLocale = deliveryNoteData.currency === 'INR' ? 'en-IN' : undefined;
-  const currencyFormattingOptions = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
-
+  const formattingOptions = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
 
   const handleSubmitDeliveryNote = () => {
     if (!canSubmit) {
@@ -153,7 +147,7 @@ export function DeliveryNoteGeneratorContent() {
                 <TableHead>Description of Goods</TableHead>
                 <TableHead className="text-right">Quantity</TableHead>
                 <TableHead>UOM</TableHead>
-                <TableHead className="text-right">Value ({currencySymbol})</TableHead>
+                <TableHead className="text-right">Value</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -163,12 +157,12 @@ export function DeliveryNoteGeneratorContent() {
                   <TableCell className="font-medium">{item.description}</TableCell>
                   <TableCell className="text-right">{item.quantity}</TableCell>
                   <TableCell>{item.uom}</TableCell>
-                  <TableCell className="text-right">{currencySymbol}{item.value.toLocaleString(currencyLocale, currencyFormattingOptions)}</TableCell>
+                  <TableCell className="text-right">{item.value.toLocaleString('en-IN', formattingOptions)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
              <TableCaption className="p-2 text-right bg-muted/50">
-              <strong>Total Value: {currencySymbol}{totalValue.toLocaleString(currencyLocale, currencyFormattingOptions)}</strong>
+              <strong>Total Value: {totalValue.toLocaleString('en-IN', formattingOptions)}</strong>
             </TableCaption>
           </Table>
         </div>
