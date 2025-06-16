@@ -55,7 +55,7 @@ export function LoginForm() {
   return (
     <Card className="w-full max-w-md shadow-2xl">
       <CardHeader className="text-center">
-        <CardTitle className="text-3xl font-bold font-headline">TrackFlow Login</CardTitle>
+        <CardTitle className="text-3xl font-bold font-headline">R&D Stores Flow Login</CardTitle>
         <CardDescription>Enter your credentials to access your account.</CardDescription>
       </CardHeader>
       <CardContent>
