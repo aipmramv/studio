@@ -48,7 +48,7 @@ export const WorkPermitSchema = z.object({
 });
 export type WorkPermitFormData = z.infer<typeof WorkPermitSchema>;
 
-export const ApprovalSchema = z.object({ // This is for the comment when approving/rejecting
+export const ApprovalSchema = z.object({ 
   comment: z.string().optional(),
 });
 export type ApprovalFormData = z.infer<typeof ApprovalSchema>;
@@ -82,10 +82,48 @@ export const SaleOrderSchema = z.object({
 });
 export type SaleOrderFormData = z.infer<typeof SaleOrderSchema>;
 
-// Generic Request Payload type for the dashboard
+
 export type RequestPayload = 
   | MaterialMovementFormData 
   | ScrapMovementFormData 
   | WorkPermitFormData 
   | PurchaseOrderFormData 
   | SaleOrderFormData;
+
+
+export const WorkflowStepSchema = z.object({
+  id: z.string().min(1, "Step ID is required."), // Usually auto-generated or derived
+  name: z.string().min(1, "Step name is required."),
+  assignedRoles: z.array(z.enum(USER_ROLES)).min(1, "At least one role must be assigned."),
+  nextStepId: z.string().optional(),
+  rejectionLeadsToStepId: z.string().optional(),
+});
+export type WorkflowStepFormData = z.infer<typeof WorkflowStepSchema>;
+
+export const WorkflowTemplateSchema = z.object({
+  id: z.string().min(1, "Template ID is required."), // Usually auto-generated or derived
+  name: z.string().min(1, "Workflow name is required."),
+  requestType: z.enum(REQUEST_TYPES, { required_error: "Request type is required." }),
+  initialStepId: z.string().min(1, "An initial step must be defined for the workflow."),
+  // Steps are managed separately within the UI but are part of the template data structure
+});
+export type WorkflowTemplateFormData = z.infer<typeof WorkflowTemplateSchema>;
+
+export const MaterialTypeSchema = z.object({
+  name: z.string().min(1, "Material type name is required."),
+});
+export type MaterialTypeFormData = z.infer<typeof MaterialTypeSchema>;
+
+export const InviteUserSchema = z.object({
+  email: z.string().email("Invalid email address."),
+  role: z.enum(USER_ROLES, { required_error: "Role is required." }),
+});
+export type InviteUserFormData = z.infer<typeof InviteUserSchema>;
+
+export const EmailTemplateSchema = z.object({
+  id: z.string(),
+  name: z.string().min(1, "Template name is required."),
+  subject: z.string().min(1, "Subject is required."),
+  body: z.string().min(1, "Body is required."),
+});
+export type EmailTemplateFormData = z.infer<typeof EmailTemplateSchema>;
