@@ -1,5 +1,6 @@
+
 import { z } from 'zod';
-import { MATERIAL_TYPES, SCRAP_TYPES, BUILDING_TYPES, ACTIVITY_TYPES_WORK_PERMIT, USER_ROLES, DEPARTMENTS } from './constants';
+import { MATERIAL_TYPES, SCRAP_TYPES, BUILDING_TYPES, ACTIVITY_TYPES_WORK_PERMIT, USER_ROLES, DEPARTMENTS, CURRENCIES } from './constants';
 
 export const LoginSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -23,6 +24,7 @@ export const MaterialMovementSchema = z.object({
   source: z.string().min(1, "Source is required."),
   destination: z.string().min(1, "Destination is required."),
   quantity: z.coerce.number().min(1, "Quantity must be at least 1."),
+  currency: z.enum(CURRENCIES, { required_error: "Currency is required." }),
   value: z.coerce.number().min(0, "Value cannot be negative."),
   isReturnable: z.enum(['yes', 'no'], { required_error: "Returnable status is required." }),
   vehicleNumber: z.string().optional(),

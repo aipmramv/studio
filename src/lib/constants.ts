@@ -1,3 +1,4 @@
+
 export const USER_ROLES = ["requester", "approver", "admin", "safety", "mm_team"] as const;
 export type UserRole = typeof USER_ROLES[number];
 
@@ -18,3 +19,11 @@ export type Department = typeof DEPARTMENTS[number];
 
 export const ACTIVITY_TYPES_WORK_PERMIT = ["Hot Work", "Confined Space Entry", "Working at Height", "Electrical Work", "Excavation", "General Maintenance"] as const;
 export type ActivityTypeWorkPermit = typeof ACTIVITY_TYPES_WORK_PERMIT[number];
+
+export const CURRENCIES = ["INR", "EUR"] as const;
+export type Currency = typeof CURRENCIES[number];
+
+export const CURRENCY_SYMBOLS: Record<Currency, string> = {
+  INR: "₹",
+  EUR: "€",
+};

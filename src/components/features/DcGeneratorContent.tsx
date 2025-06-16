@@ -1,3 +1,4 @@
+
 // src/components/features/DcGeneratorContent.tsx
 "use client";
 
@@ -9,6 +10,7 @@ import { Printer, FileText, AlertCircle, ExternalLink, Send, Download, Loader2 }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { type Currency, CURRENCY_SYMBOLS } from "@/lib/constants";
 
 interface MaterialItem {
   sno: number;
@@ -25,6 +27,7 @@ interface DCData {
   approvedRequestID: string;
   source: string;
   destination: string;
+  currency: Currency; // Added currency
   materials: MaterialItem[];
   eWayBillLink?: string;
 }
@@ -36,6 +39,7 @@ const mockDCData: DCData = {
   approvedRequestID: "MM001",
   source: "Production Warehouse A",
   destination: "Client Site X",
+  currency: "INR", // Assuming INR for this mock DC
   materials: [
     { sno: 1, description: "Steel Beams Grade A (10m)", quantity: 10, uom: "Pieces", value: 120000 },
     { sno: 2, description: "Fasteners Kit Type B", quantity: 50, uom: "Kits", value: 30000 },
@@ -55,6 +59,7 @@ export function DcGeneratorContent() {
   const canSubmit = currentTime < submissionDeadline;
 
   const totalValue = dcData.materials.reduce((sum, item) => sum + item.value, 0);
+  const currencySymbol = CURRENCY_SYMBOLS[dcData.currency];
 
   const handleSubmitDc = () => {
     if (!canSubmit) {
@@ -146,7 +151,7 @@ export function DcGeneratorContent() {
                 <TableHead>Description of Goods</TableHead>
                 <TableHead className="text-right">Quantity</TableHead>
                 <TableHead>UOM</TableHead>
-                <TableHead className="text-right">Value (₹)</TableHead>
+                <TableHead className="text-right">Value ({currencySymbol})</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -161,7 +166,7 @@ export function DcGeneratorContent() {
               ))}
             </TableBody>
              <TableCaption className="p-2 text-right bg-muted/50">
-              <strong>Total Value: ₹{totalValue.toLocaleString('en-IN')}</strong>
+              <strong>Total Value: {currencySymbol}{totalValue.toLocaleString('en-IN')}</strong>
             </TableCaption>
           </Table>
         </div>

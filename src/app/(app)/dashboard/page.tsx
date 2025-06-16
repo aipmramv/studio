@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Check, X, MessageSquare, Briefcase, User, CalendarDays, Filter, LayoutGrid, List } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { APPROVAL_STATUSES, type ApprovalStatus } from "@/lib/constants";
+import { APPROVAL_STATUSES, type ApprovalStatus, type Currency, CURRENCY_SYMBOLS } from "@/lib/constants";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
@@ -34,6 +34,18 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+interface ApprovalItemDetails {
+  material?: string;
+  quantity?: number;
+  value?: number;
+  currency?: Currency;
+  scrapType?: string;
+  weight?: string;
+  building?: string;
+  activity?: string;
+  [key: string]: any; // For other potential details
+}
+
 interface ApprovalItem {
   id: string;
   type: "Material Movement" | "Scrap Movement" | "Work Permit";
@@ -41,14 +53,14 @@ interface ApprovalItem {
   department: string;
   date: string;
   status: ApprovalStatus;
-  details: Record<string, any>;
+  details: ApprovalItemDetails;
 }
 
 const mockApprovals: ApprovalItem[] = [
-  { id: "MM001", type: "Material Movement", requester: "Alice Smith", department: "Production", date: "2024-07-28", status: "Pending Department Head", details: { material: "Steel Beams", quantity: 10, value: 150000 } },
+  { id: "MM001", type: "Material Movement", requester: "Alice Smith", department: "Production", date: "2024-07-28", status: "Pending Department Head", details: { material: "Steel Beams", quantity: 10, value: 150000, currency: "INR" } },
   { id: "SM002", type: "Scrap Movement", requester: "Bob Johnson", department: "Maintenance", date: "2024-07-27", status: "Pending Finance", details: { scrapType: "E-waste", weight: "50kg" } },
   { id: "WP003", type: "Work Permit", requester: "Carol White", department: "IT", date: "2024-07-29", status: "Pending Safety", details: { building: "KOSMO", activity: "Server Maintenance" } },
-  { id: "MM004", type: "Material Movement", requester: "David Brown", department: "Logistics", date: "2024-07-29", status: "Pending Dispatch", details: { material: "Spare Parts", quantity: 5, value: 20000 } },
+  { id: "MM004", type: "Material Movement", requester: "David Brown", department: "Logistics", date: "2024-07-29", status: "Pending Dispatch", details: { material: "Spare Parts", quantity: 5, value: 200, currency: "EUR" } },
 ];
 
 export default function ApprovalsDashboardPage() {
@@ -103,6 +115,21 @@ export default function ApprovalsDashboardPage() {
       </Form>
     </AlertDialogContent>
   );
+
+  const renderApprovalDetails = (details: ApprovalItemDetails) => {
+    return Object.entries(details).map(([key, value]) => {
+      if (key === 'currency' && details.value !== undefined) return null; // Currency is handled with value
+      let displayValue = String(value);
+      if (key === 'value' && details.currency && value !== undefined) {
+        displayValue = `${CURRENCY_SYMBOLS[details.currency as Currency]}${Number(value).toLocaleString()}`;
+      }
+      return (
+        <p key={key} className="text-muted-foreground">
+          <span className="capitalize font-medium text-foreground">{key.replace(/([A-Z])/g, ' $1')}: </span>{displayValue}
+        </p>
+      );
+    });
+  };
 
   return (
     <div className="space-y-8">
@@ -170,11 +197,7 @@ export default function ApprovalsDashboardPage() {
                     </div>
                     <div className="pt-2 border-t">
                       <h4 className="font-semibold mb-1 text-foreground">Details:</h4>
-                      {Object.entries(item.details).map(([key, value]) => (
-                        <p key={key} className="text-muted-foreground">
-                          <span className="capitalize font-medium text-foreground">{key.replace(/([A-Z])/g, ' $1')}: </span>{String(value)}
-                        </p>
-                      ))}
+                      {renderApprovalDetails(item.details)}
                     </div>
                   </CardContent>
                   <CardFooter className="flex gap-2">
@@ -207,6 +230,7 @@ export default function ApprovalsDashboardPage() {
                       <TableHead>Department</TableHead>
                       <TableHead>Date</TableHead>
                       <TableHead>Status</TableHead>
+                      {/* Optionally add a details column or expand row for details in grid view */}
                       <TableHead className="text-right pr-4">Actions</TableHead>
                     </TableRow>
                   </TableHeader>

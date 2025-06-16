@@ -1,10 +1,11 @@
+
 // src/components/forms/MaterialMovementForm.tsx
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as React from "react";
-import { DollarSign, FilePlus, Package, Save, Send, Truck, ChevronsUpDown, Check } from "lucide-react";
+import { DollarSign, FilePlus, Package, Save, Send, Truck, ChevronsUpDown, Check, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -21,7 +22,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { MaterialMovementSchema, type MaterialMovementFormData } from "@/lib/schemas";
-import { MATERIAL_TYPES, DEPARTMENTS } from "@/lib/constants";
+import { MATERIAL_TYPES, DEPARTMENTS, CURRENCIES, CURRENCY_SYMBOLS, type Currency } from "@/lib/constants";
 import { FileUpload } from "@/components/ui/file-upload";
 import { AiComplianceCheck } from "@/components/features/AiComplianceCheck";
 import { useToast } from "@/hooks/use-toast";
@@ -38,6 +39,7 @@ export function MaterialMovementForm() {
       source: "",
       destination: "",
       quantity: 1,
+      currency: "INR",
       value: 0,
       isReturnable: "no",
       vehicleNumber: "",
@@ -45,11 +47,12 @@ export function MaterialMovementForm() {
   });
 
   const materialValue = form.watch("value");
+  const selectedCurrency = form.watch("currency");
 
   React.useEffect(() => {
-    if (materialValue > 100000) {
+    if (materialValue > 100000) { // This threshold is implicitly INR based on original label
       setShowVehicleNumber(true);
-      form.register("vehicleNumber", { required: "Vehicle number is mandatory for value > ₹1,00,000" });
+      form.register("vehicleNumber", { required: "Vehicle number is mandatory for value > 1,00,000" });
     } else {
       setShowVehicleNumber(false);
       form.unregister("vehicleNumber");
@@ -107,7 +110,7 @@ export function MaterialMovementForm() {
                   <FormItem>
                     <FormLabel>Quantity</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="e.g., 100" {...field} />
+                      <Input type="number" placeholder="e.g., 100" {...field} onChange={e => field.onChange(parseInt(e.target.value,10) || 0)} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -162,17 +165,43 @@ export function MaterialMovementForm() {
                   </FormItem>
                 )}
               />
+               <FormField
+                control={form.control}
+                name="currency"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel>Currency</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex space-x-4"
+                      >
+                        {CURRENCIES.map(currency => (
+                          <FormItem key={currency} className="flex items-center space-x-2">
+                            <FormControl>
+                              <RadioGroupItem value={currency} />
+                            </FormControl>
+                            <FormLabel className="font-normal">{currency} ({CURRENCY_SYMBOLS[currency as Currency]})</FormLabel>
+                          </FormItem>
+                        ))}
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="value"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="flex items-center"><DollarSign className="w-4 h-4 mr-1" />Material Value (₹)</FormLabel>
+                    <FormLabel className="flex items-center"><DollarSign className="w-4 h-4 mr-1" />Material Value ({CURRENCY_SYMBOLS[selectedCurrency as Currency]})</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="e.g., 50000" {...field} />
+                      <Input type="number" placeholder="e.g., 50000" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />
                     </FormControl>
                     <FormDescription>
-                      If value &gt; ₹1,00,000, vehicle number is mandatory.
+                      If value &gt; 1,00,000 (numeric, irrespective of currency for this rule), vehicle number is mandatory.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
