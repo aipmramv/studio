@@ -6,7 +6,7 @@ import * as React from "react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Edit, Mail, Save, PlusCircle } from "lucide-react";
+import { Edit, Mail, Save, PlusCircle, Info } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from "@/components/ui/table";
 import {
   Dialog,
@@ -23,14 +23,14 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { EmailTemplateSchema, type EmailTemplateFormData } from "@/lib/schemas";
 import { useToast } from "@/hooks/use-toast";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription as UiFormDescription } from "@/components/ui/form";
 
 interface EmailTemplate extends EmailTemplateFormData {}
 
 const mockEmailTemplates: EmailTemplate[] = [
-  { id: "et_new_request", name: "New Request Submitted", subject: "New Request {{requestId}} Submitted", body: "Dear Team,\n\nA new request ({{requestType}}) with ID {{requestId}} has been submitted by {{requesterName}} and requires your attention.\n\nDetails: {{requestLink}}\n\nThank you." },
-  { id: "et_request_approved", name: "Request Approved", subject: "Request {{requestId}} Approved", body: "Dear {{userName}},\n\nYour request ({{requestType}}) with ID {{requestId}} has been approved at step {{stepName}}.\n\nComments: {{comment}}\n\nThank you." },
-  { id: "et_request_rejected", name: "Request Rejected", subject: "Action Required: Request {{requestId}} Rejected", body: "Dear {{userName}},\n\nYour request ({{requestType}}) with ID {{requestId}} has been rejected at step {{stepName}}.\n\nReason: {{comment}}\nPlease review and take necessary action: {{requestLink}}\n\nThank you." },
+  { id: "et_new_request", name: "New Request Submitted", subject: "New Request {{requestId}} Submitted", body: "Dear Team,\n\nA new request ({{requestType}}) with ID {{requestId}} has been submitted by {{requesterName}} and requires your attention.\n\nDetails: {{requestLink}}\n\nThank you.", triggerEvent: "request_submitted" },
+  { id: "et_request_approved", name: "Request Approved", subject: "Request {{requestId}} Approved", body: "Dear {{userName}},\n\nYour request ({{requestType}}) with ID {{requestId}} has been approved at step {{stepName}}.\n\nComments: {{comment}}\n\nThank you.", triggerEvent: "step_approved" },
+  { id: "et_request_rejected", name: "Request Rejected", subject: "Action Required: Request {{requestId}} Rejected", body: "Dear {{userName}},\n\nYour request ({{requestType}}) with ID {{requestId}} has been rejected at step {{stepName}}.\n\nReason: {{comment}}\nPlease review and take necessary action: {{requestLink}}\n\nThank you.", triggerEvent: "step_rejected" },
 ];
 
 
@@ -42,7 +42,7 @@ export default function EmailTemplatesPage() {
 
   const form = useForm<EmailTemplateFormData>({
     resolver: zodResolver(EmailTemplateSchema),
-    defaultValues: { id: "", name: "", subject: "", body: "" },
+    defaultValues: { id: "", name: "", subject: "", body: "", triggerEvent: "" },
   });
 
   const openEditDialog = (template: EmailTemplate) => {
@@ -53,7 +53,7 @@ export default function EmailTemplatesPage() {
   
   const openAddDialog = () => {
     setEditingTemplate(null);
-    form.reset({ id: `et_${Date.now()}`, name: "", subject: "", body: ""});
+    form.reset({ id: `et_${Date.now()}`, name: "", subject: "", body: "", triggerEvent: ""});
     setIsDialogOpen(true);
   };
 
@@ -137,6 +137,25 @@ export default function EmailTemplatesPage() {
                       </FormItem>
                   )}
               />
+               <FormField
+                control={form.control}
+                name="triggerEvent"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center">
+                      <Info className="w-4 h-4 mr-1 text-muted-foreground" />
+                      Trigger Event / Workflow Step ID (Optional)
+                    </FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., request_submitted or step_finance_approval" {...field} />
+                    </FormControl>
+                    <UiFormDescription>
+                      For advanced rules: Link this template to a specific workflow event or step ID.
+                    </UiFormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="id"
@@ -154,7 +173,7 @@ export default function EmailTemplatesPage() {
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center"><Mail className="w-5 h-5 mr-2 text-primary" /> Email Template List</CardTitle>
-          <CardDescription>View and edit system email templates.</CardDescription>
+          <CardDescription>View and edit system email templates. Trigger events define when specific templates are used.</CardDescription>
         </CardHeader>
         <CardContent>
           {templates.length > 0 ? (
@@ -163,6 +182,7 @@ export default function EmailTemplatesPage() {
                 <TableRow>
                   <TableHead>Template Name</TableHead>
                   <TableHead>Subject</TableHead>
+                  <TableHead>Trigger Event/Step</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -171,6 +191,7 @@ export default function EmailTemplatesPage() {
                   <TableRow key={template.id}>
                     <TableCell className="font-medium">{template.name}</TableCell>
                     <TableCell>{template.subject}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{template.triggerEvent || "General"}</TableCell>
                     <TableCell className="text-right">
                       <Button variant="outline" size="sm" onClick={() => openEditDialog(template)}>
                         <Edit className="w-3 h-3 mr-1" /> Edit
@@ -189,4 +210,3 @@ export default function EmailTemplatesPage() {
     </div>
   );
 }
-

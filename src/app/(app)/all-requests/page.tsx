@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter as UICardFooter, CardHea
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption, TableFooter } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Truck, Recycle, ShieldCheck, ShoppingCart, Tags, Package, CalendarDays, User, MessageSquare, Bell, ChevronsUp, Send, Info, History, CheckCircle, CircleDot, Circle, Workflow as WorkflowIcon } from "lucide-react";
+import { Eye, Truck, Recycle, ShieldCheck, ShoppingCart, Tags, Package, CalendarDays, User, MessageSquare, Bell, ChevronsUp, Send, Info, History, CheckCircle, CircleDot, Circle, Workflow as WorkflowIcon, Clock } from "lucide-react";
 import { type RequestType, type UserRole, type UserAction, MOCK_WORKFLOW_TEMPLATES, type WorkflowTemplate, type WorkflowStep } from "@/lib/constants";
 import { type MaterialMovementFormData, type ScrapMovementFormData, type WorkPermitFormData, type PurchaseOrderFormData, type SaleOrderFormData, type OrderItem } from "@/lib/schemas";
 import {
@@ -72,17 +72,18 @@ const mockAllRequestsData: ApprovalItem[] = [
   },
   {
     id: "WP003", requestType: "Work Permit", requesterName: "Carol White", requesterDepartment: "IT", submissionDate: "2024-07-29T09:15:00Z",
-    currentStepId: "wp_safety_review", currentStepName: "Safety Team Review", workflowTemplateId: "work_permit_default",
-    payload: { building: "KOSMO", activityType: "Server Maintenance", activityDetails: "Routine server maintenance in DC room 3. Includes rack mounting and cable management." } as WorkPermitFormData,
+    currentStepId: "wp_maintenance_review", currentStepName: "Maintenance Team Review", workflowTemplateId: "work_permit_default",
+    payload: { activityType: "Electrical Work (LV/MV/HV)", building: "KOSMO", activityDetails: "Routine server maintenance in DC room 3. Includes rack mounting and cable management.", specificAreaOrEquipment: "DC Room 3, Rack A5", permitValidity: new Date("2024-08-05") } as WorkPermitFormData,
     history: [
       { stepId: "submission", stepName: "Submitted", actor: "Carol White", action: "submitted", timestamp: "2024-07-29T09:15:00Z" },
-      { stepId: "wp_safety_review", stepName: "Pending Safety Review", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-29T09:16:00Z"}
+      { stepId: "wp_safety_review", stepName: "Safety Team Review", actor: "Safety Officer", action: "approve", timestamp: "2024-07-29T14:00:00Z", comment: "Safety protocols confirmed." },
+      { stepId: "wp_maintenance_review", stepName: "Pending Maintenance Review", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-29T14:01:00Z"}
     ]
   },
   {
     id: "PO004", requestType: "Purchase Order", requesterName: "David Brown", requesterDepartment: "Logistics", submissionDate: "2024-07-29T11:00:00Z",
     currentStepId: "po_dept_head", currentStepName: "Dept. Head Approval", workflowTemplateId: "po_default",
-    payload: { vendorName: "Tech Solutions Inc.", poDate: new Date("2024-07-29"), items: [{itemName: "Laptop Model X", quantity: 5, unitPrice: 1200, hsnSacCode:"84713010", gstPercentage:18}, {itemName: "Docking Station", quantity: 5, unitPrice: 150, hsnSacCode:"84718000", gstPercentage:18}], deliveryAddress: "Main Office, R&D Block", paymentTerms: "Net 30" } as PurchaseOrderFormData,
+    payload: { vendorName: "Tech Solutions Inc.", poDate: new Date("2024-07-29"), items: [{itemName: "Laptop Model X", quantity: 5, unitPrice: 120000, hsnSacCode:"84713010", gstPercentage:18}, {itemName: "Docking Station", quantity: 5, unitPrice: 15000, hsnSacCode:"84718000", gstPercentage:18}], deliveryAddress: "Main Office, R&D Block", paymentTerms: "Net 30", poCategory: "IT Equipment", department: "IT", costCenter: "CC_IT_001_Infra", ioNumber: "IO_IT_2024_004" } as PurchaseOrderFormData,
      history: [
       { stepId: "submission", stepName: "Submitted", actor: "David Brown", action: "submitted", timestamp: "2024-07-29T11:00:00Z" },
       { stepId: "po_dept_head", stepName: "Pending Dept. Head Approval", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-29T11:01:00Z"}
@@ -91,7 +92,7 @@ const mockAllRequestsData: ApprovalItem[] = [
    {
     id: "SO005", requestType: "Sale Order", requesterName: "Eve Green", requesterDepartment: "Sales", submissionDate: "2024-07-30T11:00:00Z",
     currentStepId: "so_manager_approval", currentStepName: "Sales Manager Approval", workflowTemplateId: "so_default",
-    payload: { customerName: "Client ABC Corp", soDate: new Date("2024-07-30"), items: [{itemName: "Software License - Annual", quantity: 10, unitPrice: 5000, hsnSacCode: "997331", gstPercentage: 18}], shippingAddress: "Client HQ, Tower B, Floor 5", billingAddress: "Client HQ, Accounts Dept.", projectOrCrNo:"PROJ123", saleOrderCategory:"Software", purpose:"Annual License Renewal", costCenter:"SALES01", ioNumber:"IO_SALES005", budgetAmount:500000, materialRequiredDate:new Date("2024-08-15"), departmentHeadApproval:"Sales Head", deliveryTo:"IT Dept Contact" } as SaleOrderFormData,
+    payload: { customerName: "Client ABC Corp", soDate: new Date("2024-07-30"), items: [{itemName: "Software License - Annual", quantity: 10, unitPrice: 50000, hsnSacCode: "997331", gstPercentage: 18}], shippingAddress: "Client HQ, Tower B, Floor 5", billingAddress: "Client HQ, Accounts Dept.", projectOrCrNo:"PROJ123", saleOrderCategory:"Software", purpose:"Annual License Renewal", costCenter:"CC_SALES_001", ioNumber:"IO_SALES_2024_005", budgetAmount:5000000, materialRequiredDate:new Date("2024-08-15"), departmentHeadApproval:"Sales Head", deliveryTo:"IT Dept Contact" } as SaleOrderFormData,
      history: [
       { stepId: "submission", stepName: "Submitted", actor: "Eve Green", action: "submitted", timestamp: "2024-07-30T11:00:00Z" },
       { stepId: "so_manager_approval", stepName: "Pending Sales Manager Approval", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-30T11:01:00Z"}
@@ -124,14 +125,22 @@ const renderRequestSummary = (item: ApprovalItem): string => {
       return `${sm.quantity} units of ${sm.scrapType} (${sm.weight} units weight). Desc: ${sm.description.substring(0,50)}...`;
     case "Work Permit":
       const wp = payload as WorkPermitFormData;
-      return `For ${wp.activityType} in ${wp.building}. Details: ${wp.activityDetails.substring(0,50)}...`;
+      return `For ${wp.activityType} in ${wp.building}. Area: ${wp.specificAreaOrEquipment}. Details: ${wp.activityDetails.substring(0,30)}...`;
     case "Purchase Order":
       const po = payload as PurchaseOrderFormData;
-      const poTotal = po.items.reduce((sum, i) => sum + (i.quantity * i.unitPrice), 0);
+      const poTotal = po.items.reduce((sum, i) => {
+        const itemTotal = (i.quantity || 0) * (i.unitPrice || 0);
+        const itemGst = itemTotal * ((i.gstPercentage || 0) / 100);
+        return sum + itemTotal + itemGst;
+      }, 0);
       return `Vendor: ${po.vendorName}. ${po.items.length} item(s). Total: ${poTotal.toLocaleString('en-IN', formattingOptions)}`;
     case "Sale Order":
       const so = payload as SaleOrderFormData;
-      const soTotal = so.items.reduce((sum, i) => sum + (i.quantity * i.unitPrice), 0);
+      const soTotal = so.items.reduce((sum, i) => {
+        const itemTotal = (i.quantity || 0) * (i.unitPrice || 0);
+        const itemGst = itemTotal * ((i.gstPercentage || 0) / 100);
+        return sum + itemTotal + itemGst;
+      }, 0);
       return `Customer: ${so.customerName}. ${so.items.length} item(s). Total: ${soTotal.toLocaleString('en-IN', formattingOptions)}`;
     default:
       return "Details not available.";
@@ -162,9 +171,11 @@ const renderRequestPayloadDetailsDialog = (payload: RequestPayload, requestType:
         break;
       case "Work Permit":
         const wpPayload = payload as WorkPermitFormData;
-        details.push({ key: "Building", value: wpPayload.building });
-        details.push({ key: "Activity Type", value: wpPayload.activityType });
+        details.push({ key: "Building/Location", value: wpPayload.building });
+        details.push({ key: "Permit Type/Activity", value: wpPayload.activityType });
+        details.push({ key: "Specific Area/Equipment", value: wpPayload.specificAreaOrEquipment });
         details.push({ key: "Activity Details", value: <p className="whitespace-pre-wrap">{wpPayload.activityDetails}</p> });
+        if(wpPayload.permitValidity) details.push({ key: "Permit Valid Until", value: new Date(wpPayload.permitValidity).toLocaleDateString() });
         break;
       case "Purchase Order":
         const poPayload = payload as PurchaseOrderFormData;
@@ -172,17 +183,34 @@ const renderRequestPayloadDetailsDialog = (payload: RequestPayload, requestType:
         details.push({ key: "PO Date", value: new Date(poPayload.poDate).toLocaleDateString() });
         details.push({ key: "Delivery Address", value: poPayload.deliveryAddress });
         if(poPayload.paymentTerms) details.push({ key: "Payment Terms", value: poPayload.paymentTerms });
+        details.push({ key: "PO Category", value: poPayload.poCategory });
+        details.push({ key: "Department", value: poPayload.department });
+        details.push({ key: "Cost Center", value: poPayload.costCenter });
+        details.push({ key: "IO Number", value: poPayload.ioNumber });
+        if(poPayload.kmKmgCode) details.push({ key: "KM/KMG Code", value: poPayload.kmKmgCode });
+        if(poPayload.segment) details.push({ key: "Segment", value: poPayload.segment });
+
         details.push({ key: "Items", value: (
           <Table className="mt-2 text-xs">
-            <TableHeader><TableRow><TableHead>Item</TableHead><TableHead>Qty</TableHead><TableHead className="text-right">Price</TableHead><TableHead className="text-right">Total</TableHead></TableRow></TableHeader>
+            <TableHeader><TableRow><TableHead>Item</TableHead><TableHead>Qty</TableHead><TableHead className="text-right">Price</TableHead><TableHead>HSN/SAC</TableHead><TableHead className="text-right">GST%</TableHead><TableHead className="text-right">Total</TableHead></TableRow></TableHeader>
             <TableBody>
-            {poPayload.items.map((item, idx) => (
-              <TableRow key={idx}><TableCell>{item.itemName}</TableCell><TableCell>{item.quantity}</TableCell><TableCell className="text-right">{item.unitPrice.toLocaleString('en-IN', formattingOptions)}</TableCell><TableCell className="text-right">{(item.quantity * item.unitPrice).toLocaleString('en-IN', formattingOptions)}</TableCell></TableRow>
-            ))}
+            {poPayload.items.map((item, idx) => {
+              const itemTotal = (item.quantity || 0) * (item.unitPrice || 0);
+              const itemGst = itemTotal * ((item.gstPercentage || 0) / 100);
+              const lineTotal = itemTotal + itemGst;
+              return (
+              <TableRow key={idx}><TableCell>{item.itemName}</TableCell><TableCell>{item.quantity}</TableCell><TableCell className="text-right">{item.unitPrice.toLocaleString('en-IN', formattingOptions)}</TableCell><TableCell>{item.hsnSacCode || 'N/A'}</TableCell><TableCell className="text-right">{item.gstPercentage ? `${item.gstPercentage}%` : 'N/A'}</TableCell><TableCell className="text-right">{lineTotal.toLocaleString('en-IN', formattingOptions)}</TableCell></TableRow>
+              );
+            })}
             </TableBody>
-             <TableFooter><TableRow><TableCell colSpan={3} className="text-right font-bold">Grand Total</TableCell><TableCell className="text-right font-bold">{poPayload.items.reduce((sum, i) => sum + (i.quantity * i.unitPrice), 0).toLocaleString('en-IN', formattingOptions)}</TableCell></TableRow></TableFooter>
+             <TableFooter><TableRow><TableCell colSpan={5} className="text-right font-bold">Grand Total</TableCell><TableCell className="text-right font-bold">{poPayload.items.reduce((sum, i) => {
+                const itemTotal = (i.quantity || 0) * (i.unitPrice || 0);
+                const itemGst = itemTotal * ((i.gstPercentage || 0) / 100);
+                return sum + itemTotal + itemGst;
+             }, 0).toLocaleString('en-IN', formattingOptions)}</TableCell></TableRow></TableFooter>
           </Table>
         )});
+        if(poPayload.remarks) details.push({ key: "Remarks", value: <p className="whitespace-pre-wrap">{poPayload.remarks}</p> });
         break;
       case "Sale Order":
         const soPayload = payload as SaleOrderFormData;
@@ -190,17 +218,36 @@ const renderRequestPayloadDetailsDialog = (payload: RequestPayload, requestType:
         details.push({ key: "SO Date", value: new Date(soPayload.soDate).toLocaleDateString() });
         details.push({ key: "Shipping Address", value: soPayload.shippingAddress });
         details.push({ key: "Billing Address", value: soPayload.billingAddress });
+        details.push({ key: "Project/CR No.", value: soPayload.projectOrCrNo });
+        details.push({ key: "SO Category", value: soPayload.saleOrderCategory });
+        details.push({ key: "Purpose", value: <p className="whitespace-pre-wrap">{soPayload.purpose}</p> });
+        details.push({ key: "Cost Center", value: soPayload.costCenter });
+        details.push({ key: "IO Number", value: soPayload.ioNumber });
+        details.push({ key: "Budget Amount", value: soPayload.budgetAmount.toLocaleString('en-IN', formattingOptions) });
+        details.push({ key: "Material Req. Date", value: new Date(soPayload.materialRequiredDate).toLocaleDateString() });
+        details.push({ key: "Dept. Head Approval", value: soPayload.departmentHeadApproval });
+        details.push({ key: "Delivery To", value: soPayload.deliveryTo });
          details.push({ key: "Items", value: (
             <Table className="mt-2 text-xs">
-            <TableHeader><TableRow><TableHead>Item</TableHead><TableHead>Qty</TableHead><TableHead className="text-right">Price</TableHead><TableHead className="text-right">Total</TableHead></TableRow></TableHeader>
+            <TableHeader><TableRow><TableHead>Item</TableHead><TableHead>Qty</TableHead><TableHead className="text-right">Price</TableHead><TableHead>HSN/SAC</TableHead><TableHead className="text-right">GST%</TableHead><TableHead className="text-right">Total</TableHead></TableRow></TableHeader>
             <TableBody>
-            {soPayload.items.map((item, idx) => (
-              <TableRow key={idx}><TableCell>{item.itemName}</TableCell><TableCell>{item.quantity}</TableCell><TableCell className="text-right">{item.unitPrice.toLocaleString('en-IN', formattingOptions)}</TableCell><TableCell className="text-right">{(item.quantity * item.unitPrice).toLocaleString('en-IN', formattingOptions)}</TableCell></TableRow>
-            ))}
+            {soPayload.items.map((item, idx) => {
+              const itemTotal = (item.quantity || 0) * (item.unitPrice || 0);
+              const itemGst = itemTotal * ((item.gstPercentage || 0) / 100);
+              const lineTotal = itemTotal + itemGst;
+              return(
+              <TableRow key={idx}><TableCell>{item.itemName}</TableCell><TableCell>{item.quantity}</TableCell><TableCell className="text-right">{item.unitPrice.toLocaleString('en-IN', formattingOptions)}</TableCell><TableCell>{item.hsnSacCode || 'N/A'}</TableCell><TableCell className="text-right">{item.gstPercentage ? `${item.gstPercentage}%` : 'N/A'}</TableCell><TableCell className="text-right">{lineTotal.toLocaleString('en-IN', formattingOptions)}</TableCell></TableRow>
+              );
+            })}
             </TableBody>
-            <TableFooter><TableRow><TableCell colSpan={3} className="text-right font-bold">Grand Total</TableCell><TableCell className="text-right font-bold">{soPayload.items.reduce((sum, i) => sum + (i.quantity * i.unitPrice), 0).toLocaleString('en-IN', formattingOptions)}</TableCell></TableRow></TableFooter>
+            <TableFooter><TableRow><TableCell colSpan={5} className="text-right font-bold">Grand Total</TableCell><TableCell className="text-right font-bold">{soPayload.items.reduce((sum, i) => {
+                const itemTotal = (i.quantity || 0) * (i.unitPrice || 0);
+                const itemGst = itemTotal * ((i.gstPercentage || 0) / 100);
+                return sum + itemTotal + itemGst;
+            }, 0).toLocaleString('en-IN', formattingOptions)}</TableCell></TableRow></TableFooter>
           </Table>
         )});
+        if(soPayload.remarks) details.push({ key: "Remarks", value: <p className="whitespace-pre-wrap">{soPayload.remarks}</p> });
         break;
       default:
         details.push({ key: "Details", value: "No specific details available for this request type." });
@@ -235,8 +282,8 @@ export default function AllRequestsPage() {
       history: [
         ...selectedRequest.history,
         {
-          stepId: "comment",
-          stepName: "Comment Added",
+          stepId: selectedRequest.currentStepId, // Comment associated with current step
+          stepName: `Comment on: ${selectedRequest.currentStepName}`,
           actor: "Current User (Mock)", 
           action: "commented",
           timestamp: new Date().toISOString(),
@@ -252,11 +299,43 @@ export default function AllRequestsPage() {
 
   const handleRemind = () => {
     if (!selectedRequest) return;
+     const updatedRequest = {
+      ...selectedRequest,
+      history: [
+        ...selectedRequest.history,
+        {
+          stepId: selectedRequest.currentStepId,
+          stepName: "Reminder Sent",
+          actor: "Current User (Mock)",
+          action: "reminded",
+          timestamp: new Date().toISOString(),
+          comment: `Reminder sent for step: ${selectedRequest.currentStepName}`,
+        },
+      ],
+    };
+    setSelectedRequest(updatedRequest);
+    setRequests(prev => prev.map(r => r.id === updatedRequest.id ? updatedRequest : r));
     toast({ title: "Reminder Sent (Mock)", description: `A reminder has been sent for request ${selectedRequest.id}.`});
   };
   
   const handleEscalate = () => {
     if (!selectedRequest) return;
+     const updatedRequest = {
+      ...selectedRequest,
+      history: [
+        ...selectedRequest.history,
+        {
+          stepId: selectedRequest.currentStepId,
+          stepName: "Request Escalated",
+          actor: "Current User (Mock)",
+          action: "escalated",
+          timestamp: new Date().toISOString(),
+          comment: `Request escalated at step: ${selectedRequest.currentStepName}`,
+        },
+      ],
+    };
+    setSelectedRequest(updatedRequest);
+    setRequests(prev => prev.map(r => r.id === updatedRequest.id ? updatedRequest : r));
     toast({ title: "Request Escalated (Mock)", description: `Request ${selectedRequest.id} has been escalated.`});
   };
 
@@ -265,45 +344,59 @@ export default function AllRequestsPage() {
     if (!workflow) return <p className="text-sm text-muted-foreground">Workflow details not available.</p>;
 
     const currentStepIndex = workflow.steps.findIndex(step => step.id === request.currentStepId);
-
+    
     return (
       <div className="space-y-0">
         {workflow.steps.map((step, index) => {
-          const isCompleted = request.history.some(h => h.stepId === step.id && h.action === "approve") && step.id !== request.currentStepId;
-          const isCurrent = step.id === request.currentStepId;
-          
+          const historyForStep = request.history.filter(h => h.stepId === step.id && h.action === "approve");
+          const isCompleted = historyForStep.length > 0;
+          const isCurrent = step.id === request.currentStepId && !isCompleted; // Current if not yet approved
+          const isPending = !isCompleted && !isCurrent && index > currentStepIndex; // Pending if after current and not completed
+
           let icon;
           let textClass = "text-muted-foreground";
           let roleClass = "text-muted-foreground";
+          let lineClass = "bg-border";
 
           if (isCompleted) {
             icon = <CheckCircle className="w-5 h-5 text-green-500" />;
             textClass = "text-green-600";
             roleClass = "text-green-500";
+            lineClass = "bg-green-500";
           } else if (isCurrent) {
-            icon = <CircleDot className="w-5 h-5 text-primary" />;
+            icon = <Clock className="w-5 h-5 text-primary animate-pulse" />; // Changed to Clock
             textClass = "text-primary font-semibold";
             roleClass = "text-primary";
+            lineClass = "bg-primary";
           } else { 
             icon = <Circle className="w-5 h-5 text-muted-foreground/50" />;
-             textClass = "text-muted-foreground/70";
-             roleClass = "text-muted-foreground/70";
+            textClass = "text-muted-foreground/70";
+            roleClass = "text-muted-foreground/70";
           }
           
+          // If current step is the initial one and history only has 'submitted' or 'system_auto_proceed' for it
+          const isInitialCurrentStep = isCurrent && index === 0 && request.history.every(h => h.stepId === step.id ? (h.action === "system_auto_proceed" || h.action === "submitted") : true);
+          if(isInitialCurrentStep) {
+             lineClass = "bg-primary"; // Ensure first line is primary if it's the current starting step
+          }
+
+
           return (
             <div key={step.id} className="flex items-start">
               <div className="flex flex-col items-center mr-4">
                 {icon}
                 {index < workflow.steps.length - 1 && (
-                  <div className={cn(
-                      "w-px h-8 mt-1",
-                      (isCompleted && index < currentStepIndex) || isCurrent ? "bg-primary/50" : "bg-border"
-                    )} />
+                  <div className={cn( "w-px h-10 mt-1", lineClass )} />
                 )}
               </div>
-              <div className="pb-8">
+              <div className={cn("pb-10", index === workflow.steps.length -1 && "pb-0")}>
                 <p className={cn("text-sm", textClass)}>{step.name}</p>
-                <p className={cn("text-xs", roleClass)}>Assigned: {step.assignedRoles.join(', ').replace(/_/g, ' ')}</p>
+                <p className={cn("text-xs", roleClass)}>
+                  Assigned: {step.assignedRoles.map(r => r.charAt(0).toUpperCase() + r.slice(1).replace(/_/g, ' ')).join(', ')}
+                </p>
+                 {isCompleted && historyForStep[0]?.timestamp && (
+                  <p className="text-xs text-muted-foreground">Completed: {new Date(historyForStep[0].timestamp).toLocaleDateString()}</p>
+                )}
               </div>
             </div>
           );
@@ -419,7 +512,7 @@ export default function AllRequestsPage() {
                         <ul className="space-y-3">
                           {selectedRequest.history.map((entry, index) => (
                             <li key={index} className="p-3 rounded-md border bg-background text-sm">
-                              <p className="font-semibold">{entry.stepName} - <span className="capitalize font-normal">{entry.action.replace("_", " ")}</span></p>
+                              <p className="font-semibold">{entry.stepName} - <span className="capitalize font-normal">{entry.action.replace(/_/g, " ")}</span></p>
                               <p className="text-xs text-muted-foreground">By: {entry.actor} on {new Date(entry.timestamp).toLocaleString()}</p>
                               {entry.comment && <p className="mt-1 italic text-muted-foreground">"{entry.comment}"</p>}
                             </li>

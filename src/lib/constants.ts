@@ -1,5 +1,5 @@
 
-export const USER_ROLES = ["requester", "approver", "admin", "safety", "mm_team", "department_head", "finance_team", "dispatch_team"] as const;
+export const USER_ROLES = ["requester", "approver", "admin", "safety", "mm_team", "department_head", "finance_team", "dispatch_team", "maintenance_team", "facility_team"] as const;
 export type UserRole = typeof USER_ROLES[number];
 
 export const MATERIAL_TYPES = ["Raw Material", "Scrap", "Tool", "Finished Goods", "Consumable"] as const;
@@ -8,36 +8,48 @@ export type MaterialType = typeof MATERIAL_TYPES[number];
 export const SCRAP_TYPES = ["Plastic", "E-waste", "Metal Ferrous", "Metal Non-Ferrous", "Paper", "Wood", "Chemical", "Other"] as const;
 export type ScrapType = typeof SCRAP_TYPES[number];
 
-export const BUILDING_TYPES = ["KOSMO", "Test Tower", "Admin Block", "Warehouse A", "Warehouse B"] as const;
+export const BUILDING_TYPES = ["KOSMO", "Test Tower", "Admin Block", "Warehouse A", "Warehouse B", "Production Hall X", "Utility Building"] as const;
 export type BuildingType = typeof BUILDING_TYPES[number];
 
-export const DEPARTMENTS = ["Production", "Maintenance", "Logistics", "Quality Assurance", "IT", "HR", "Finance"] as const;
+export const DEPARTMENTS = ["Production", "Maintenance", "Logistics", "Quality Assurance", "IT", "HR", "Finance", "R&D", "Safety & Environment"] as const;
 export type Department = typeof DEPARTMENTS[number];
 
-export const ACTIVITY_TYPES_WORK_PERMIT = ["Hot Work", "Confined Space Entry", "Working at Height", "Electrical Work", "Excavation", "General Maintenance"] as const;
+// Updated as per requirement 2.4
+export const ACTIVITY_TYPES_WORK_PERMIT = [
+  "Civil Works (Excavation, Construction)", 
+  "Electrical Work (LV/MV/HV)", 
+  "Equipment Installation/Modification", 
+  "Equipment Maintenance/Repair",
+  "Safety-Critical System Testing",
+  "Hot Work (Welding, Grinding)", 
+  "Confined Space Entry", 
+  "Working at Height",
+  "Chemical Handling",
+  "General Maintenance/Inspection"
+] as const;
 export type ActivityTypeWorkPermit = typeof ACTIVITY_TYPES_WORK_PERMIT[number];
+
 
 export const REQUEST_TYPES = ["Purchase Order", "Sale Order", "Material Movement", "Work Permit", "Scrap Request"] as const;
 export type RequestType = typeof REQUEST_TYPES[number];
 
 export interface WorkflowStep {
-  id: string; // Unique ID for this step within the template (e.g., "dept_head_approval")
-  name: string; // Display name (e.g., "Department Head Approval")
-  assignedRoles: UserRole[]; // Roles that can action this step
-  // For simplicity, we'll assume sequential. More complex logic (parallel, conditional) would expand this.
-  nextStepId?: string; // ID of the next step if approved. Undefined if this is the last approval step.
-  rejectionLeadsToStepId?: string; // Optional: step to go to if rejected (e.g., back to requester or a rework step)
+  id: string; 
+  name: string; 
+  assignedRoles: UserRole[]; 
+  nextStepId?: string; 
+  rejectionLeadsToStepId?: string; 
 }
 
 export interface WorkflowTemplate {
-  id: string; // Unique ID for the template (e.g., "material_movement_default")
+  id: string; 
   requestType: RequestType;
-  name: string; // Display name (e.g., "Default Material Movement Workflow")
+  name: string; 
   steps: WorkflowStep[];
   initialStepId: string;
 }
 
-// Mock Workflow Templates (These would be stored in Firestore in a real app)
+
 export const MOCK_WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
   {
     id: "material_movement_default",
@@ -51,13 +63,14 @@ export const MOCK_WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
     ],
   },
   {
-    id: "work_permit_default",
+    id: "work_permit_default", // Used for Work Permit
     requestType: "Work Permit",
     name: "Standard Work Permit Workflow",
     initialStepId: "wp_safety_review",
     steps: [
-      { id: "wp_safety_review", name: "Safety Team Review", assignedRoles: ["safety"], nextStepId: "wp_facility_head" },
-      { id: "wp_facility_head", name: "Facility Head Approval", assignedRoles: ["department_head"] },
+      { id: "wp_safety_review", name: "Safety Team Review", assignedRoles: ["safety"], nextStepId: "wp_maintenance_review" },
+      { id: "wp_maintenance_review", name: "Maintenance Team Review", assignedRoles: ["maintenance_team"], nextStepId: "wp_facility_head" },
+      { id: "wp_facility_head", name: "Facility Head Approval", assignedRoles: ["facility_team", "department_head"] },
     ],
   },
   {
@@ -73,7 +86,7 @@ export const MOCK_WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
   {
     id: "scrap_default",
     requestType: "Scrap Request",
-    name: "Standard Scrap Request Workflow",
+    name: "Standard Scrap Disposal Workflow",
     initialStepId: "sm_supervisor_approval",
     steps: [
       { id: "sm_supervisor_approval", name: "Supervisor Approval", assignedRoles: ["department_head"], nextStepId: "sm_ehs_clearance" },
@@ -96,3 +109,15 @@ export const MOCK_WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
 
 export const USER_ACTIONS = ["approve", "reject"] as const;
 export type UserAction = typeof USER_ACTIONS[number];
+
+export const COST_CENTERS = [
+  "CC_RD_001_Electronics",
+  "CC_RD_002_Mechanical",
+  "CC_MFG_001_Assembly",
+  "CC_MFG_002_Testing",
+  "CC_ADMIN_001_HR",
+  "CC_ADMIN_002_Finance",
+  "CC_IT_001_Infra",
+  "CC_MAINT_001_General"
+] as const;
+export type CostCenter = typeof COST_CENTERS[number];

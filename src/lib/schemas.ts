@@ -1,6 +1,6 @@
 
 import { z } from 'zod';
-import { MATERIAL_TYPES, SCRAP_TYPES, BUILDING_TYPES, ACTIVITY_TYPES_WORK_PERMIT, USER_ROLES, DEPARTMENTS, REQUEST_TYPES } from './constants';
+import { MATERIAL_TYPES, SCRAP_TYPES, BUILDING_TYPES, ACTIVITY_TYPES_WORK_PERMIT, USER_ROLES, DEPARTMENTS, REQUEST_TYPES, COST_CENTERS } from './constants';
 
 export const LoginSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -44,6 +44,8 @@ export const WorkPermitSchema = z.object({
   building: z.enum(BUILDING_TYPES, { required_error: "Building is required." }),
   activityType: z.enum(ACTIVITY_TYPES_WORK_PERMIT, { required_error: "Activity type is required." }),
   activityDetails: z.string().min(10, "Please provide more details about the activity (min 10 characters).").max(1000, "Activity details cannot exceed 1000 characters."),
+  specificAreaOrEquipment: z.string().min(1, "Specific area/equipment details are required.").max(200, "Too long."),
+  permitValidity: z.date({required_error: "Permit validity date is required."}).optional(), // Made optional based on typical usage
 });
 export type WorkPermitFormData = z.infer<typeof WorkPermitSchema>;
 
@@ -53,7 +55,7 @@ export const ApprovalSchema = z.object({
 export type ApprovalFormData = z.infer<typeof ApprovalSchema>;
 
 const OrderItemSchema = z.object({
-  itemName: z.string().min(1, "Item name/description is required."), // Material Description
+  itemName: z.string().min(1, "Item name/description is required."), 
   quantity: z.coerce.number().min(1, "Quantity must be at least 1."),
   unitPrice: z.coerce.number().min(0, "Unit price cannot be negative."),
   hsnSacCode: z.string().optional(),
@@ -109,8 +111,8 @@ export const WorkflowStepSchema = z.object({
   id: z.string().min(1, "Step ID is required."), 
   name: z.string().min(1, "Step name is required."),
   assignedRoles: z.array(z.enum(USER_ROLES)).min(1, "At least one role must be assigned."),
-  nextStepId: z.string().optional(),
-  rejectionLeadsToStepId: z.string().optional(),
+  nextStepId: z.string().optional().or(z.literal("")),
+  rejectionLeadsToStepId: z.string().optional().or(z.literal("")),
 });
 export type WorkflowStepFormData = z.infer<typeof WorkflowStepSchema>;
 
@@ -118,7 +120,7 @@ export const WorkflowTemplateSchema = z.object({
   id: z.string().min(1, "Template ID is required."), 
   name: z.string().min(1, "Workflow name is required."),
   requestType: z.enum(REQUEST_TYPES, { required_error: "Request type is required." }),
-  initialStepId: z.string().min(1, "An initial step must be defined for the workflow."),
+  initialStepId: z.string().min(1, "An initial step must be defined for the workflow.").or(z.literal("")),
 });
 export type WorkflowTemplateFormData = z.infer<typeof WorkflowTemplateSchema>;
 
@@ -138,5 +140,11 @@ export const EmailTemplateSchema = z.object({
   name: z.string().min(1, "Template name is required."),
   subject: z.string().min(1, "Subject is required."),
   body: z.string().min(1, "Body is required."),
+  triggerEvent: z.string().optional(), // For "Custom notification rules per workflow step"
 });
 export type EmailTemplateFormData = z.infer<typeof EmailTemplateSchema>;
+
+export const CostCenterSchema = z.object({
+  name: z.string().min(1, "Cost center name is required."),
+});
+export type CostCenterFormData = z.infer<typeof CostCenterSchema>;

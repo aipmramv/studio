@@ -5,12 +5,12 @@ import {
   LogOut, Settings, ShieldCheck, Database, Package, Building, Briefcase,
   ClipboardCheck, ShoppingCart, Tags, PlusCircle, Warehouse,
   Store, PackagePlus, PackageMinus, Undo2, SearchCheck, SlidersHorizontal, GitFork,
-  Users, Mail, UserCog, Layers
+  Users, Mail, UserCog, Layers, FileArchive, DollarSignIcon
 } from 'lucide-react';
 
 export interface NavItem {
   title: string;
-  href: string; // Can be a base path for parent items
+  href: string; 
   icon: LucideIcon;
   disabled?: boolean;
   external?: boolean;
@@ -35,13 +35,13 @@ export const mainNavItems: NavItem[] = [
   },
   {
     title: 'Requests',
-    href: '/material-movement/new', // Point to first child for parent click
+    href: '/material-movement/new', 
     icon: ClipboardCheck,
     description: "Manage all types of requests.",
     items: [
       {
         title: 'Material Movement',
-        href: '/material-movement/new', // Point to first child
+        href: '/material-movement/new', 
         icon: Truck,
         description: "Log and track material movements.",
         items: [
@@ -50,18 +50,18 @@ export const mainNavItems: NavItem[] = [
         ]
       },
       {
-        title: 'Scrap Request',
-        href: '/scrap-movement/new', // Point to first child
+        title: 'Scrap Disposal', // Renamed slightly as per doc "Scrap Disposal Request"
+        href: '/scrap-movement/new', 
         icon: Recycle,
         description: "Log and track scrap disposals.",
         items: [
-          { title: 'New Request', href: '/scrap-movement/new', icon: PlusCircle, description: "Create a new scrap request." },
-          { title: 'View Requests', href: '/scrap-movement/list', icon: ListChecks, description: "View all scrap requests." },
+          { title: 'New Request', href: '/scrap-movement/new', icon: PlusCircle, description: "Create a new scrap disposal request." },
+          { title: 'View Requests', href: '/scrap-movement/list', icon: ListChecks, description: "View all scrap disposal requests." },
         ]
       },
       {
         title: 'Work Permit',
-        href: '/work-permit/new', // Point to first child
+        href: '/work-permit/new', 
         icon: ShieldCheck,
         description: "Request and manage work permits.",
         items: [
@@ -71,7 +71,7 @@ export const mainNavItems: NavItem[] = [
       },
       {
         title: 'Purchase Order',
-        href: '/purchase-order/new', // Point to first child
+        href: '/purchase-order/new', 
         icon: ShoppingCart,
         description: "Manage Purchase Orders.",
         items: [
@@ -81,7 +81,7 @@ export const mainNavItems: NavItem[] = [
       },
       {
         title: 'Sale Order',
-        href: '/sale-order/new', // Point to first child
+        href: '/sale-order/new', 
         icon: Tags,
         description: "Manage Sale Orders.",
         items: [
@@ -102,7 +102,7 @@ export const mainNavItems: NavItem[] = [
     ]
   },
   {
-    title: 'Stores',
+    title: 'Stores Management', // Renamed from 'Stores' for clarity as per doc "Stores Lifecycle Management"
     href: '/stores/manage',
     icon: Warehouse,
     description: "Manage store operations, inventory, and audits.",
@@ -110,23 +110,30 @@ export const mainNavItems: NavItem[] = [
       { title: 'Manage Stores', href: '/stores/manage', icon: Store, description: "Manage store locations." },
       { title: 'Material Receipt', href: '/stores/material-receipt', icon: PackagePlus, description: "Record material receipts." },
       { title: 'Material Issue', href: '/stores/material-issue', icon: PackageMinus, description: "Record material issues." },
-      { title: 'Material Returns', href: '/stores/material-returns', icon: Undo2, description: "Record material returns." },
+      { title: 'Material Return', href: '/stores/material-returns', icon: Undo2, description: "Record material returns." },
       { title: 'Stores Audit', href: '/stores/audit', icon: SearchCheck, description: "Conduct store audits." },
     ]
   },
   {
-    title: 'Analytics',
+    title: 'Analytics & Reports', // Renamed from Analytics for clarity
     href: '/kpi-dashboard',
     icon: BarChart3,
-    description: "View key performance indicators.",
-    roles: ['admin', 'mm_team'],
+    description: "View key performance indicators and audit logs.",
+    roles: ['admin', 'mm_team', 'department_head', 'finance_team'], // Expanded roles
     items: [
       {
         title: 'KPI Dashboard',
         href: '/kpi-dashboard',
         icon: BarChart3,
         description: "View key performance indicators.",
-        roles: ['admin', 'mm_team'],
+        roles: ['admin', 'mm_team', 'department_head', 'finance_team'],
+      },
+      {
+        title: 'Audit Logs', // New item from requirement 2.5
+        href: '/administration/audit-logs',
+        icon: FileArchive, 
+        description: "View system audit logs.",
+        roles: ['admin'],
       }
     ]
   },
@@ -166,10 +173,11 @@ export const mainNavItems: NavItem[] = [
         roles: ['admin'],
         items: [
           { title: 'Material Types', href: '/masters/material-types', icon: Package, description: "Manage material types." },
-          { title: 'Scrap Types', href: '/masters/scrap-types', icon: Recycle, description: "Manage scrap types." },
+          { title: 'Scrap Categories', href: '/masters/scrap-types', icon: Recycle, description: "Manage scrap types." }, // Renamed from Scrap Types for consistency
           { title: 'Building Types', href: '/masters/building-types', icon: Building, description: "Manage building types." },
           { title: 'Departments', href: '/masters/departments', icon: Briefcase, description: "Manage departments." },
           { title: 'Activity Types', href: '/masters/activity-types', icon: ClipboardCheck, description: "Manage work permit activity types." },
+          { title: 'Cost Centers', href: '/masters/cost-centers', icon: DollarSignIcon, description: "Manage cost centers." }, // New item from requirement 5
         ]
       },
     ]
@@ -191,7 +199,7 @@ export const userNavItems: NavItem[] = [
     },
     {
         title: "Logout",
-        href: "/logout", // This is handled by useAuth, not a page
+        href: "/logout", 
         icon: LogOut,
         description: "Sign out of your account."
     }
