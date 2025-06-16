@@ -1,6 +1,6 @@
 
 import type { LucideIcon } from 'lucide-react';
-import { LayoutDashboard, Truck, Recycle, FileText, ListChecks, BarChart3, UserCircle, LogOut, Settings, ShieldCheck, Database, Package, Building, Briefcase, ClipboardCheck, ShoppingCart, Tags, PlusCircle } from 'lucide-react';
+import { LayoutDashboard, Truck, Recycle, FileText, ListChecks, BarChart3, UserCircle, LogOut, Settings, ShieldCheck, Database, Package, Building, Briefcase, ClipboardCheck, ShoppingCart, Tags, PlusCircle, FileSignature } from 'lucide-react';
 
 export interface NavItem {
   title: string;
@@ -72,10 +72,14 @@ export const mainNavItems: NavItem[] = [
     ]
   },
   {
-    title: 'DC Generator',
-    href: '/dc-generator',
-    icon: ListChecks, // Re-using ListChecks as it fits the "document generation" theme
-    description: "Generate Delivery Challans.",
+    title: 'Delivery Note',
+    href: '/delivery-note',
+    icon: FileSignature,
+    description: "Generate and view Delivery Notes.",
+    items: [
+        { title: 'Generate Note', href: '/delivery-note/generate', icon: PlusCircle },
+        { title: 'View Notes', href: '/delivery-note/list', icon: ListChecks },
+    ]
   },
   {
     title: 'KPI Dashboard',
@@ -115,7 +119,7 @@ export const userNavItems: NavItem[] = [
     },
     {
         title: "Logout",
-        href: "/logout", 
+        href: "/logout",
         icon: LogOut,
         description: "Sign out of your account."
     }
