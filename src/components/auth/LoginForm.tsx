@@ -1,4 +1,3 @@
-
 // src/components/auth/LoginForm.tsx
 "use client";
 
@@ -22,7 +21,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { LoginSchema, type LoginFormData } from "@/lib/schemas";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth"; // Mock auth hook
-import { Separator } from "@/components/ui/separator";
 
 export function LoginForm() {
   const router = useRouter();
@@ -74,7 +72,7 @@ export function LoginForm() {
   return (
     <Card className="w-full max-w-md shadow-2xl">
       <CardHeader className="text-center">
-        <CardTitle className="text-3xl font-bold font-headline">R&D Stores Flow Login</CardTitle>
+        <CardTitle className="text-3xl font-bold font-headline">TrackFlow Login</CardTitle>
         <CardDescription>Enter your credentials or sign in with Microsoft.</CardDescription>
       </CardHeader>
       <CardContent>

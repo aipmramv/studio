@@ -60,7 +60,7 @@ export function SignupForm() {
     <Card className="w-full max-w-md shadow-2xl">
       <CardHeader className="text-center">
         <CardTitle className="text-3xl font-bold font-headline">Create Account</CardTitle>
-        <CardDescription>Join R&D Stores Flow by filling out the form below.</CardDescription>
+        <CardDescription>Join TrackFlow by filling out the form below.</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
