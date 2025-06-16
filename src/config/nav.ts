@@ -1,6 +1,6 @@
 
 import type { LucideIcon } from 'lucide-react';
-import { LayoutDashboard, Truck, Recycle, FileText, ListChecks, BarChart3, UserCircle, LogOut, Settings, ShieldCheck, Database, Package, Building, Briefcase, ClipboardCheck } from 'lucide-react';
+import { LayoutDashboard, Truck, Recycle, FileText, ListChecks, BarChart3, UserCircle, LogOut, Settings, ShieldCheck, Database, Package, Building, Briefcase, ClipboardCheck, ShoppingCart, Tags, PlusCircle } from 'lucide-react';
 
 export interface NavItem {
   title: string;
@@ -52,9 +52,29 @@ export const mainNavItems: NavItem[] = [
     ]
   },
   {
+    title: 'Purchase Order',
+    href: '/purchase-order',
+    icon: ShoppingCart,
+    description: "Manage Purchase Orders.",
+    items: [
+      { title: 'New Request', href: '/purchase-order/new', icon: FileText },
+      { title: 'View Requests', href: '/purchase-order/list', icon: ListChecks },
+    ]
+  },
+  {
+    title: 'Sale Order',
+    href: '/sale-order',
+    icon: Tags,
+    description: "Manage Sale Orders.",
+    items: [
+      { title: 'New Request', href: '/sale-order/new', icon: FileText },
+      { title: 'View Requests', href: '/sale-order/list', icon: ListChecks },
+    ]
+  },
+  {
     title: 'DC Generator',
     href: '/dc-generator',
-    icon: ListChecks,
+    icon: ListChecks, // Re-using ListChecks as it fits the "document generation" theme
     description: "Generate Delivery Challans.",
   },
   {
