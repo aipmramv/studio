@@ -1,3 +1,4 @@
+
 // src/components/auth/LoginForm.tsx
 "use client";
 
@@ -21,6 +22,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { LoginSchema, type LoginFormData } from "@/lib/schemas";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth"; // Mock auth hook
+import { Separator } from "@/components/ui/separator";
 
 export function LoginForm() {
   const router = useRouter();
@@ -52,11 +54,28 @@ export function LoginForm() {
     }
   }
 
+  async function handleMicrosoftLogin() {
+    try {
+      await login(); // Mock login doesn't need specific params for SSO
+      toast({
+        title: "Login Successful",
+        description: "Signed in with Microsoft (mocked).",
+      });
+      router.push("/dashboard");
+    } catch (error) {
+      toast({
+        title: "Microsoft Login Failed",
+        description: (error as Error).message || "An unexpected error occurred.",
+        variant: "destructive",
+      });
+    }
+  }
+
   return (
     <Card className="w-full max-w-md shadow-2xl">
       <CardHeader className="text-center">
         <CardTitle className="text-3xl font-bold font-headline">R&D Stores Flow Login</CardTitle>
-        <CardDescription>Enter your credentials to access your account.</CardDescription>
+        <CardDescription>Enter your credentials or sign in with Microsoft.</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -92,8 +111,25 @@ export function LoginForm() {
             </Button>
           </form>
         </Form>
+
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-card px-2 text-muted-foreground">
+              Or continue with
+            </span>
+          </div>
+        </div>
+
+        <Button variant="outline" className="w-full" onClick={handleMicrosoftLogin} disabled={loading}>
+           {/* Using a generic icon or text as direct Microsoft logo might not be in lucide */}
+          Sign in with Microsoft
+        </Button>
+
       </CardContent>
-      <CardFooter className="flex flex-col items-center space-y-2">
+      <CardFooter className="flex flex-col items-center space-y-2 pt-6">
         <Link href="#" className="text-sm text-primary hover:underline">
             Forgot password?
         </Link>
