@@ -8,8 +8,8 @@ import { Card, CardContent, CardDescription, CardFooter as UICardFooter, CardHea
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption, TableFooter } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Truck, Recycle, ShieldCheck, ShoppingCart, Tags, Package, CalendarDays, User, MessageSquare, Bell, ChevronsUp, Send, Info, History } from "lucide-react";
-import { type RequestType, type Currency, CURRENCY_SYMBOLS, type UserRole, type UserAction } from "@/lib/constants";
+import { Eye, Truck, Recycle, ShieldCheck, ShoppingCart, Tags, Package, CalendarDays, User, MessageSquare, Bell, ChevronsUp, Send, Info, History, CheckCircle, CircleDot, Circle, Workflow as WorkflowIcon } from "lucide-react";
+import { type RequestType, type Currency, CURRENCY_SYMBOLS, type UserRole, type UserAction, MOCK_WORKFLOW_TEMPLATES, type WorkflowTemplate, type WorkflowStep } from "@/lib/constants";
 import { type MaterialMovementFormData, type ScrapMovementFormData, type WorkPermitFormData, type PurchaseOrderFormData, type SaleOrderFormData, type OrderItem } from "@/lib/schemas";
 import {
   Dialog,
@@ -45,6 +45,7 @@ interface ApprovalItem {
   submissionDate: string;
   currentStepId: string;
   currentStepName: string;
+  workflowTemplateId: string; 
   payload: RequestPayload;
   history: ApprovalHistoryItem[];
 }
@@ -52,7 +53,7 @@ interface ApprovalItem {
 const mockAllRequestsData: ApprovalItem[] = [
   {
     id: "MM001", requestType: "Material Movement", requesterName: "Alice Smith", requesterDepartment: "Production", submissionDate: "2024-07-28T10:00:00Z",
-    currentStepId: "mm_dept_head", currentStepName: "Department Head Approval",
+    currentStepId: "mm_dept_head", currentStepName: "Department Head Approval", workflowTemplateId: "material_movement_default",
     payload: { materialType: "Raw Material", source: "Warehouse A", destination: "Production Line 1", quantity: 100, currency: "INR", value: 150000, isReturnable: "no", vehicleNumber:"MH12AB1234" } as MaterialMovementFormData,
     history: [
       { stepId: "submission", stepName: "Submitted", actor: "Alice Smith", action: "submitted", timestamp: "2024-07-28T10:00:00Z", comment: "Initial submission for urgent production requirement." },
@@ -61,36 +62,39 @@ const mockAllRequestsData: ApprovalItem[] = [
   },
   {
     id: "SM002", requestType: "Scrap Request", requesterName: "Bob Johnson", requesterDepartment: "Maintenance", submissionDate: "2024-07-27T14:30:00Z",
-    currentStepId: "sm_finance_clearance", currentStepName: "Finance Clearance",
+    currentStepId: "sm_ehs_clearance", currentStepName: "EHS Clearance", workflowTemplateId: "scrap_default",
     payload: { scrapType: "E-waste", description: "Old monitors and keyboards, non-functional", quantity: 10, weight: 50 } as ScrapMovementFormData,
     history: [
       { stepId: "submission", stepName: "Submitted", actor: "Bob Johnson", action: "submitted", timestamp: "2024-07-27T14:30:00Z" },
-      { stepId: "sm_initial_review", stepName: "Initial Review", actor: "Maintenance Lead", action: "approve", timestamp: "2024-07-27T15:00:00Z", comment: "Looks OK." },
-      { stepId: "sm_finance_clearance", stepName: "Pending Finance", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-27T15:01:00Z" },
+      { stepId: "sm_supervisor_approval", stepName: "Supervisor Approval", actor: "Maintenance Lead", action: "approve", timestamp: "2024-07-27T15:00:00Z", comment: "Looks OK." },
+      { stepId: "sm_ehs_clearance", stepName: "Pending EHS Clearance", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-27T15:01:00Z" },
     ]
   },
   {
     id: "WP003", requestType: "Work Permit", requesterName: "Carol White", requesterDepartment: "IT", submissionDate: "2024-07-29T09:15:00Z",
-    currentStepId: "wp_safety_review", currentStepName: "Safety Team Review",
+    currentStepId: "wp_safety_review", currentStepName: "Safety Team Review", workflowTemplateId: "work_permit_default",
     payload: { building: "KOSMO", activityType: "Server Maintenance", activityDetails: "Routine server maintenance in DC room 3. Includes rack mounting and cable management." } as WorkPermitFormData,
     history: [
       { stepId: "submission", stepName: "Submitted", actor: "Carol White", action: "submitted", timestamp: "2024-07-29T09:15:00Z" },
+      { stepId: "wp_safety_review", stepName: "Pending Safety Review", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-29T09:16:00Z"}
     ]
   },
   {
     id: "PO004", requestType: "Purchase Order", requesterName: "David Brown", requesterDepartment: "Logistics", submissionDate: "2024-07-29T11:00:00Z",
-    currentStepId: "po_dept_head", currentStepName: "Dept. Head Approval",
+    currentStepId: "po_dept_head", currentStepName: "Dept. Head Approval", workflowTemplateId: "po_default",
     payload: { vendorName: "Tech Solutions Inc.", poDate: new Date("2024-07-29"), currency: "EUR", items: [{itemName: "Laptop Model X", quantity: 5, unitPrice: 1200}, {itemName: "Docking Station", quantity: 5, unitPrice: 150}], deliveryAddress: "Main Office, R&D Block", paymentTerms: "Net 30" } as PurchaseOrderFormData,
      history: [
       { stepId: "submission", stepName: "Submitted", actor: "David Brown", action: "submitted", timestamp: "2024-07-29T11:00:00Z" },
+      { stepId: "po_dept_head", stepName: "Pending Dept. Head Approval", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-29T11:01:00Z"}
     ]
   },
    {
     id: "SO005", requestType: "Sale Order", requesterName: "Eve Green", requesterDepartment: "Sales", submissionDate: "2024-07-30T11:00:00Z",
-    currentStepId: "so_manager_approval", currentStepName: "Sales Manager Approval",
+    currentStepId: "so_manager_approval", currentStepName: "Sales Manager Approval", workflowTemplateId: "so_default",
     payload: { customerName: "Client ABC Corp", soDate: new Date("2024-07-30"), currency: "INR", items: [{itemName: "Software License - Annual", quantity: 10, unitPrice: 5000}], shippingAddress: "Client HQ, Tower B, Floor 5", billingAddress: "Client HQ, Accounts Dept." } as SaleOrderFormData,
      history: [
       { stepId: "submission", stepName: "Submitted", actor: "Eve Green", action: "submitted", timestamp: "2024-07-30T11:00:00Z" },
+      { stepId: "so_manager_approval", stepName: "Pending Sales Manager Approval", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-30T11:01:00Z"}
     ]
   },
 ];
@@ -226,7 +230,6 @@ export default function AllRequestsPage() {
       toast({ title: "Cannot add empty comment", variant: "destructive" });
       return;
     }
-    // Mock action: Add comment to history (in a real app, this would be a backend call)
     const updatedRequest = {
       ...selectedRequest,
       history: [
@@ -234,7 +237,7 @@ export default function AllRequestsPage() {
         {
           stepId: "comment",
           stepName: "Comment Added",
-          actor: "Current User (Mock)", // Replace with actual user
+          actor: "Current User (Mock)", 
           action: "commented",
           timestamp: new Date().toISOString(),
           comment: newComment,
@@ -255,6 +258,66 @@ export default function AllRequestsPage() {
   const handleEscalate = () => {
     if (!selectedRequest) return;
     toast({ title: "Request Escalated (Mock)", description: `Request ${selectedRequest.id} has been escalated.`});
+  };
+
+  const renderWorkflowProgress = (request: ApprovalItem) => {
+    const workflow = MOCK_WORKFLOW_TEMPLATES.find(wt => wt.id === request.workflowTemplateId);
+    if (!workflow) return <p className="text-sm text-muted-foreground">Workflow details not available.</p>;
+
+    const currentStepIndex = workflow.steps.findIndex(step => step.id === request.currentStepId);
+
+    return (
+      <div className="space-y-0">
+        {workflow.steps.map((step, index) => {
+          const isCompleted = request.history.some(h => h.stepId === step.id && h.action === "approve") && step.id !== request.currentStepId;
+          const isCurrent = step.id === request.currentStepId;
+          const isPending = !isCompleted && !isCurrent && index > currentStepIndex;
+
+
+          let icon;
+          let textClass = "text-muted-foreground";
+          let roleClass = "text-muted-foreground";
+
+          if (isCompleted) {
+            icon = <CheckCircle className="w-5 h-5 text-green-500" />;
+            textClass = "text-green-600";
+            roleClass = "text-green-500";
+          } else if (isCurrent) {
+            icon = <CircleDot className="w-5 h-5 text-primary" />;
+            textClass = "text-primary font-semibold";
+            roleClass = "text-primary";
+          } else { // Pending or not yet reached
+            icon = <Circle className="w-5 h-5 text-muted-foreground/50" />;
+             textClass = "text-muted-foreground/70";
+             roleClass = "text-muted-foreground/70";
+          }
+          
+          // If a step was in history but not 'approved', it's not 'completed' for the flow progress.
+          // If it's before current and not approved, it implies a rejection or stall there. We'll show it as pending or based on its actual history.
+          // For simplicity here, we're focusing on "approved" to mark completion in the visual flow.
+          // A more complex scenario would track rejections and alternative paths.
+
+
+          return (
+            <div key={step.id} className="flex items-start">
+              <div className="flex flex-col items-center mr-4">
+                {icon}
+                {index < workflow.steps.length - 1 && (
+                  <div className={cn(
+                      "w-px h-8 mt-1",
+                      isCompleted || (isCurrent && index < workflow.steps.length -1) ? "bg-primary/50" : "bg-border"
+                    )} />
+                )}
+              </div>
+              <div className="pb-8">
+                <p className={cn("text-sm", textClass)}>{step.name}</p>
+                <p className={cn("text-xs", roleClass)}>Assigned: {step.assignedRoles.join(', ').replace(/_/g, ' ')}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
   };
 
 
@@ -324,10 +387,10 @@ export default function AllRequestsPage() {
           setIsDetailDialogOpen(isOpen);
           if (!isOpen) {
             setSelectedRequest(null); 
-            setNewComment(""); // Reset comment on dialog close
+            setNewComment(""); 
           }
         }}>
-          <DialogContent className="sm:max-w-2xl">
+          <DialogContent className="sm:max-w-3xl"> {/* Increased width for better layout */}
             <DialogHeader>
               <DialogTitle className="flex items-center">
                 {getRequestTypeIcon(selectedRequest.requestType, "w-6 h-6 mr-2 text-primary")}
@@ -335,67 +398,77 @@ export default function AllRequestsPage() {
                 <Badge variant="outline" className="ml-auto capitalize">{selectedRequest.requestType}</Badge>
               </DialogTitle>
               <DialogDescription>
-                Detailed information and approval timeline for request {selectedRequest.id}.
+                Detailed information, workflow progress, and approval timeline for request {selectedRequest.id}.
               </DialogDescription>
             </DialogHeader>
-            <ScrollArea className="max-h-[calc(100vh-20rem)] pr-6"> {/* Adjusted max height & added padding for scrollbar */}
-              <div className="space-y-4 py-4">
-                <Card>
-                  <CardHeader><CardTitle className="text-lg flex items-center"><Info className="w-5 h-5 mr-2 text-primary"/>Basic Information</CardTitle></CardHeader>
-                  <CardContent className="space-y-1 text-sm">
-                    <p><strong>Requester:</strong> {selectedRequest.requesterName} ({selectedRequest.requesterDepartment})</p>
-                    <p><strong>Submitted:</strong> {new Date(selectedRequest.submissionDate).toLocaleString()}</p>
-                    <p><strong>Current Step:</strong> {selectedRequest.currentStepName}</p>
-                  </CardContent>
-                </Card>
+            <ScrollArea className="max-h-[calc(100vh-20rem)] pr-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-4">
+                <div className="md:col-span-2 space-y-4"> {/* Main content area */}
+                  <Card>
+                    <CardHeader><CardTitle className="text-lg flex items-center"><Info className="w-5 h-5 mr-2 text-primary"/>Basic Information</CardTitle></CardHeader>
+                    <CardContent className="space-y-1 text-sm">
+                      <p><strong>Requester:</strong> {selectedRequest.requesterName} ({selectedRequest.requesterDepartment})</p>
+                      <p><strong>Submitted:</strong> {new Date(selectedRequest.submissionDate).toLocaleString()}</p>
+                      <p><strong>Current Step:</strong> {selectedRequest.currentStepName}</p>
+                    </CardContent>
+                  </Card>
 
-                <Card>
-                  <CardHeader><CardTitle className="text-lg flex items-center"><Package className="w-5 h-5 mr-2 text-primary"/>Payload Details</CardTitle></CardHeader>
-                  <CardContent>
-                    {renderRequestPayloadDetailsDialog(selectedRequest.payload, selectedRequest.requestType)}
-                  </CardContent>
-                </Card>
+                  <Card>
+                    <CardHeader><CardTitle className="text-lg flex items-center"><Package className="w-5 h-5 mr-2 text-primary"/>Payload Details</CardTitle></CardHeader>
+                    <CardContent>
+                      {renderRequestPayloadDetailsDialog(selectedRequest.payload, selectedRequest.requestType)}
+                    </CardContent>
+                  </Card>
 
-                <Card>
-                  <CardHeader><CardTitle className="text-lg flex items-center"><History className="w-5 h-5 mr-2 text-primary"/>Approval Timeline</CardTitle></CardHeader>
-                  <CardContent>
-                    {selectedRequest.history.length > 0 ? (
-                      <ul className="space-y-3">
-                        {selectedRequest.history.map((entry, index) => (
-                          <li key={index} className="p-3 rounded-md border bg-background text-sm">
-                            <p className="font-semibold">{entry.stepName} - <span className="capitalize font-normal">{entry.action.replace("_", " ")}</span></p>
-                            <p className="text-xs text-muted-foreground">By: {entry.actor} on {new Date(entry.timestamp).toLocaleString()}</p>
-                            {entry.comment && <p className="mt-1 italic text-muted-foreground">"{entry.comment}"</p>}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">No history available yet.</p>
-                    )}
-                  </CardContent>
-                </Card>
-                
-                <Separator />
+                  <Card>
+                    <CardHeader><CardTitle className="text-lg flex items-center"><History className="w-5 h-5 mr-2 text-primary"/>Approval Timeline</CardTitle></CardHeader>
+                    <CardContent>
+                      {selectedRequest.history.length > 0 ? (
+                        <ul className="space-y-3">
+                          {selectedRequest.history.map((entry, index) => (
+                            <li key={index} className="p-3 rounded-md border bg-background text-sm">
+                              <p className="font-semibold">{entry.stepName} - <span className="capitalize font-normal">{entry.action.replace("_", " ")}</span></p>
+                              <p className="text-xs text-muted-foreground">By: {entry.actor} on {new Date(entry.timestamp).toLocaleString()}</p>
+                              {entry.comment && <p className="mt-1 italic text-muted-foreground">"{entry.comment}"</p>}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">No history available yet.</p>
+                      )}
+                    </CardContent>
+                  </Card>
+                  
+                  <Separator />
 
-                <div className="space-y-3">
-                    <h4 className="text-md font-semibold text-foreground">Actions & Comments</h4>
-                    <Textarea
-                        placeholder="Add a comment..."
-                        value={newComment}
-                        onChange={(e) => setNewComment(e.target.value)}
-                        className="min-h-[80px]"
-                    />
-                    <Button onClick={handleAddComment} size="sm" disabled={!newComment.trim()}>
-                        <MessageSquare className="w-4 h-4 mr-2" /> Add Comment
-                    </Button>
-                    <div className="flex gap-2 mt-2">
-                        <Button onClick={handleRemind} variant="outline" size="sm">
-                            <Bell className="w-4 h-4 mr-2" /> Remind Assignee
-                        </Button>
-                        <Button onClick={handleEscalate} variant="outline" size="sm" className="text-destructive border-destructive hover:bg-destructive/10 hover:text-destructive">
-                            <ChevronsUp className="w-4 h-4 mr-2" /> Escalate
-                        </Button>
-                    </div>
+                  <div className="space-y-3">
+                      <h4 className="text-md font-semibold text-foreground">Actions & Comments</h4>
+                      <Textarea
+                          placeholder="Add a comment..."
+                          value={newComment}
+                          onChange={(e) => setNewComment(e.target.value)}
+                          className="min-h-[80px]"
+                      />
+                      <Button onClick={handleAddComment} size="sm" disabled={!newComment.trim()}>
+                          <MessageSquare className="w-4 h-4 mr-2" /> Add Comment
+                      </Button>
+                      <div className="flex gap-2 mt-2">
+                          <Button onClick={handleRemind} variant="outline" size="sm">
+                              <Bell className="w-4 h-4 mr-2" /> Remind Assignee
+                          </Button>
+                          <Button onClick={handleEscalate} variant="outline" size="sm" className="text-destructive border-destructive hover:bg-destructive/10 hover:text-destructive">
+                              <ChevronsUp className="w-4 h-4 mr-2" /> Escalate
+                          </Button>
+                      </div>
+                  </div>
+                </div>
+                <div className="md:col-span-1"> {/* Workflow Progress Sidebar */}
+                   <Card>
+                    <CardHeader><CardTitle className="text-lg flex items-center"><WorkflowIcon className="w-5 h-5 mr-2 text-primary"/>Workflow Progress</CardTitle></CardHeader>
+                    <CardContent>
+                        {renderWorkflowProgress(selectedRequest)}
+                    </CardContent>
+                   </Card>
                 </div>
               </div>
             </ScrollArea>

@@ -77,8 +77,31 @@ export const MOCK_WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
       { id: "po_dept_head", name: "Dept. Head Approval", assignedRoles: ["department_head"], nextStepId: "po_finance" },
       { id: "po_finance", name: "Finance Approval", assignedRoles: ["finance_team"] },
     ]
+  },
+  {
+    id: "scrap_default",
+    requestType: "Scrap Request",
+    name: "Standard Scrap Request Workflow",
+    initialStepId: "sm_supervisor_approval",
+    steps: [
+      { id: "sm_supervisor_approval", name: "Supervisor Approval", assignedRoles: ["department_head"], nextStepId: "sm_ehs_clearance" },
+      { id: "sm_ehs_clearance", name: "EHS Clearance", assignedRoles: ["safety"], nextStepId: "sm_gate_pass" },
+      { id: "sm_gate_pass", name: "Gate Pass Issue", assignedRoles: ["dispatch_team"] },
+    ],
+  },
+  {
+    id: "so_default",
+    requestType: "Sale Order",
+    name: "Standard Sale Order Workflow",
+    initialStepId: "so_manager_approval",
+    steps: [
+      { id: "so_manager_approval", name: "Sales Manager Approval", assignedRoles: ["department_head"], nextStepId: "so_finance_review" },
+      { id: "so_finance_review", name: "Finance Review", assignedRoles: ["finance_team"], nextStepId: "so_dispatch_prep" },
+      { id: "so_dispatch_prep", name: "Dispatch Preparation", assignedRoles: ["dispatch_team"] },
+    ],
   }
 ];
 
 export const USER_ACTIONS = ["approve", "reject"] as const;
 export type UserAction = typeof USER_ACTIONS[number];
+
