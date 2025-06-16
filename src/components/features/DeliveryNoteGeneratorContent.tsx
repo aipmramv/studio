@@ -60,6 +60,9 @@ export function DeliveryNoteGeneratorContent() {
 
   const totalValue = deliveryNoteData.materials.reduce((sum, item) => sum + item.value, 0);
   const currencySymbol = CURRENCY_SYMBOLS[deliveryNoteData.currency];
+  const currencyLocale = deliveryNoteData.currency === 'INR' ? 'en-IN' : undefined;
+  const currencyFormattingOptions = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
+
 
   const handleSubmitDeliveryNote = () => {
     if (!canSubmit) {
@@ -160,12 +163,12 @@ export function DeliveryNoteGeneratorContent() {
                   <TableCell className="font-medium">{item.description}</TableCell>
                   <TableCell className="text-right">{item.quantity}</TableCell>
                   <TableCell>{item.uom}</TableCell>
-                  <TableCell className="text-right">{currencySymbol}{item.value.toLocaleString('en-IN')}</TableCell>
+                  <TableCell className="text-right">{currencySymbol}{item.value.toLocaleString(currencyLocale, currencyFormattingOptions)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
              <TableCaption className="p-2 text-right bg-muted/50">
-              <strong>Total Value: {currencySymbol}{totalValue.toLocaleString('en-IN')}</strong>
+              <strong>Total Value: {currencySymbol}{totalValue.toLocaleString(currencyLocale, currencyFormattingOptions)}</strong>
             </TableCaption>
           </Table>
         </div>

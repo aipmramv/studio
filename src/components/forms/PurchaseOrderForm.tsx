@@ -86,6 +86,9 @@ export function PurchaseOrderForm() {
     setAttachments(null);
   }
 
+  const currencyLocale = selectedCurrency === 'INR' ? 'en-IN' : undefined;
+  const currencyFormattingOptions = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
+
   return (
     <Card className="w-full shadow-xl">
       <CardHeader>
@@ -339,15 +342,15 @@ export function PurchaseOrderForm() {
                 <PlusCircle className="w-4 h-4 mr-2" /> Add Item
               </Button>
             </div>
-            
+
             <div className="p-4 mt-4 border rounded-lg bg-muted/50">
                 <h4 className="mb-2 text-md font-semibold text-foreground">PO Value Summary</h4>
                 <div className="space-y-1 text-sm">
-                    <div className="flex justify-between"><span>Subtotal:</span> <span>{CURRENCY_SYMBOLS[selectedCurrency]}{subTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
-                    <div className="flex justify-between"><span>Total GST:</span> <span>{CURRENCY_SYMBOLS[selectedCurrency]}{totalGst.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
+                    <div className="flex justify-between"><span>Subtotal:</span> <span>{CURRENCY_SYMBOLS[selectedCurrency]}{subTotal.toLocaleString(currencyLocale, currencyFormattingOptions)}</span></div>
+                    <div className="flex justify-between"><span>Total GST:</span> <span>{CURRENCY_SYMBOLS[selectedCurrency]}{totalGst.toLocaleString(currencyLocale, currencyFormattingOptions)}</span></div>
                     <div className="flex justify-between pt-1 mt-1 border-t border-border">
                         <span className="font-bold">Grand Total:</span>
-                        <span className="font-bold">{CURRENCY_SYMBOLS[selectedCurrency]}{grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        <span className="font-bold">{CURRENCY_SYMBOLS[selectedCurrency]}{grandTotal.toLocaleString(currencyLocale, currencyFormattingOptions)}</span>
                     </div>
                 </div>
             </div>
@@ -366,7 +369,7 @@ export function PurchaseOrderForm() {
                 </FormItem>
               )}
             />
-            
+
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <FormField
                     control={form.control}
@@ -395,7 +398,7 @@ export function PurchaseOrderForm() {
                     )}
                 />
             </div>
-            
+
             <FileUpload
               onFileChange={setAttachments}
               label="Attachments (Optional)"
@@ -428,4 +431,3 @@ export function PurchaseOrderForm() {
     </Card>
   );
 }
-

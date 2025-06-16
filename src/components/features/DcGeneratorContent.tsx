@@ -27,7 +27,7 @@ interface DCData {
   approvedRequestID: string;
   source: string;
   destination: string;
-  currency: Currency; // Added currency
+  currency: Currency;
   materials: MaterialItem[];
   eWayBillLink?: string;
 }
@@ -39,7 +39,7 @@ const mockDCData: DCData = {
   approvedRequestID: "MM001",
   source: "Production Warehouse A",
   destination: "Client Site X",
-  currency: "INR", // Assuming INR for this mock DC
+  currency: "INR",
   materials: [
     { sno: 1, description: "Steel Beams Grade A (10m)", quantity: 10, uom: "Pieces", value: 120000 },
     { sno: 2, description: "Fasteners Kit Type B", quantity: 50, uom: "Kits", value: 30000 },
@@ -60,6 +60,8 @@ export function DcGeneratorContent() {
 
   const totalValue = dcData.materials.reduce((sum, item) => sum + item.value, 0);
   const currencySymbol = CURRENCY_SYMBOLS[dcData.currency];
+  const currencyLocale = dcData.currency === 'INR' ? 'en-IN' : undefined;
+  const currencyFormattingOptions = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
 
   const handleSubmitDc = () => {
     if (!canSubmit) {
@@ -125,9 +127,9 @@ export function DcGeneratorContent() {
         <div>
           <Label htmlFor="ewaybill" className="text-base font-medium">E-Way Bill Reference</Label>
           <div className="flex items-center gap-2 mt-1">
-            <Input 
-              id="ewaybill" 
-              placeholder="Enter E-Way Bill Number or Link" 
+            <Input
+              id="ewaybill"
+              placeholder="Enter E-Way Bill Number or Link"
               value={eWayBillRef}
               onChange={(e) => setEWayBillRef(e.target.value)}
               className="flex-grow"
@@ -141,7 +143,7 @@ export function DcGeneratorContent() {
             )}
           </div>
         </div>
-        
+
         <h3 className="text-lg font-semibold text-foreground">Material List</h3>
         <div className="overflow-x-auto border rounded-lg">
           <Table>
@@ -161,12 +163,12 @@ export function DcGeneratorContent() {
                   <TableCell className="font-medium">{item.description}</TableCell>
                   <TableCell className="text-right">{item.quantity}</TableCell>
                   <TableCell>{item.uom}</TableCell>
-                  <TableCell className="text-right">{currencySymbol}{item.value.toLocaleString('en-IN')}</TableCell>
+                  <TableCell className="text-right">{currencySymbol}{item.value.toLocaleString(currencyLocale, currencyFormattingOptions)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
              <TableCaption className="p-2 text-right bg-muted/50">
-              <strong>Total Value: {currencySymbol}{totalValue.toLocaleString('en-IN')}</strong>
+              <strong>Total Value: {currencySymbol}{totalValue.toLocaleString(currencyLocale, currencyFormattingOptions)}</strong>
             </TableCaption>
           </Table>
         </div>
@@ -175,9 +177,9 @@ export function DcGeneratorContent() {
          <p className="text-sm text-muted-foreground md:mr-auto">
             Ensure all details are correct before submission.
           </p>
-        <Button 
-          onClick={handleSubmitDc} 
-          disabled={!canSubmit || isSubmitting} 
+        <Button
+          onClick={handleSubmitDc}
+          disabled={!canSubmit || isSubmitting}
           className="w-full md:w-auto"
         >
           {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Submitting...</> : <><Send className="w-4 h-4 mr-2" /> Submit DC</>}

@@ -68,10 +68,10 @@ export default function SaleOrderListPage() {
                     <TableCell>{so.customerName}</TableCell>
                     <TableCell>{new Date(so.soDate).toLocaleDateString()}</TableCell>
                      <TableCell className="text-right">
-                       {CURRENCY_SYMBOLS[so.currency]}{so.totalAmount.toLocaleString()}
+                       {CURRENCY_SYMBOLS[so.currency]}{so.totalAmount.toLocaleString(so.currency === 'INR' ? 'en-IN' : undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </TableCell>
                     <TableCell>
-                      <Badge 
+                      <Badge
                         variant={
                           so.status === "Confirmed" || so.status === "Shipped" || so.status === "Delivered" ? "default" :
                           so.status === "Draft" ? "secondary" :

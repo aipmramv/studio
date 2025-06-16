@@ -68,10 +68,10 @@ export default function PurchaseOrderListPage() {
                     <TableCell>{po.vendorName}</TableCell>
                     <TableCell>{new Date(po.poDate).toLocaleDateString()}</TableCell>
                     <TableCell className="text-right">
-                       {CURRENCY_SYMBOLS[po.currency]}{po.totalAmount.toLocaleString()}
+                       {CURRENCY_SYMBOLS[po.currency]}{po.totalAmount.toLocaleString(po.currency === 'INR' ? 'en-IN' : undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </TableCell>
                     <TableCell>
-                      <Badge 
+                      <Badge
                         variant={
                           po.status === "Approved" ? "default" :
                           po.status === "Pending" ? "secondary" :
