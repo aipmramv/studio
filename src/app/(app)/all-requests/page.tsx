@@ -3,12 +3,13 @@
 "use client";
 
 import * as React from "react";
+import { format } from "date-fns";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Card, CardContent, CardDescription, CardFooter as UICardFooter, CardHeader, CardTitle } from "@/components/ui/card"; 
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption, TableFooter } from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Truck, Recycle, ShieldCheck, ShoppingCart, Tags, Package, CalendarDays, User, MessageSquare, Bell, ChevronsUp, Send, Info, History, CheckCircle, CircleDot, Circle, Workflow as WorkflowIcon, Clock } from "lucide-react";
+import { Eye, Truck, Recycle, ShieldCheck, ShoppingCart, Tags, Package, CalendarDays, User, MessageSquare, Bell, ChevronsUp, Send, Info, History, CheckCircle, CircleDot, Circle, Workflow as WorkflowIcon, Clock, Search, Filter as FilterIcon, ChevronsLeft, ChevronsRight, X } from "lucide-react";
 import { type RequestType, type UserRole, type UserAction, MOCK_WORKFLOW_TEMPLATES, type WorkflowTemplate, type WorkflowStep } from "@/lib/constants";
 import { type MaterialMovementFormData, type ScrapMovementFormData, type WorkPermitFormData, type PurchaseOrderFormData, type SaleOrderFormData, type OrderItem } from "@/lib/schemas";
 import {
@@ -25,6 +26,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import type { DateRange } from "react-day-picker";
 
 type RequestPayload = MaterialMovementFormData | ScrapMovementFormData | WorkPermitFormData | PurchaseOrderFormData | SaleOrderFormData;
 
@@ -42,13 +48,15 @@ interface ApprovalItem {
   requestType: RequestType;
   requesterName: string;
   requesterDepartment: string;
-  submissionDate: string;
+  submissionDate: string; // ISO Date string
   currentStepId: string;
   currentStepName: string;
   workflowTemplateId: string; 
   payload: RequestPayload;
   history: ApprovalHistoryItem[];
 }
+
+const ITEMS_PER_PAGE = 10;
 
 const mockAllRequestsData: ApprovalItem[] = [
   {
@@ -83,7 +91,7 @@ const mockAllRequestsData: ApprovalItem[] = [
   {
     id: "PO004", requestType: "Purchase Order", requesterName: "David Brown", requesterDepartment: "Logistics", submissionDate: "2024-07-29T11:00:00Z",
     currentStepId: "po_dept_head", currentStepName: "Dept. Head Approval", workflowTemplateId: "po_default",
-    payload: { vendorName: "Tech Solutions Inc.", poDate: new Date("2024-07-29"), items: [{itemName: "Laptop Model X", quantity: 5, unitPrice: 120000, hsnSacCode:"84713010", gstPercentage:18}, {itemName: "Docking Station", quantity: 5, unitPrice: 15000, hsnSacCode:"84718000", gstPercentage:18}], deliveryAddress: "Main Office, R&D Block", paymentTerms: "Net 30", poCategory: "IT Equipment", department: "IT", costCenter: "CC_IT_001_Infra", ioNumber: "IO_IT_2024_004" } as PurchaseOrderFormData,
+    payload: { vendorName: "Tech Solutions Inc.", poDate: new Date("2024-07-29"), items: [{itemName: "Laptop Model X", quantity: 5, unitPrice: 120000, hsnSacCode:"84713010", gstPercentage:18}, {itemName: "Docking Station", quantity: 5, unitPrice: 15000, hsnSacCode:"84718000", gstPercentage:18}], deliveryAddress: "Main Office, R&D Block", poCategory: "IT Equipment", department: "IT", costCenter: "CC_IT_001_Infra", ioNumber: "IO_IT_2024_004" } as PurchaseOrderFormData,
      history: [
       { stepId: "submission", stepName: "Submitted", actor: "David Brown", action: "submitted", timestamp: "2024-07-29T11:00:00Z" },
       { stepId: "po_dept_head", stepName: "Pending Dept. Head Approval", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-29T11:01:00Z"}
@@ -98,7 +106,18 @@ const mockAllRequestsData: ApprovalItem[] = [
       { stepId: "so_manager_approval", stepName: "Pending Sales Manager Approval", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-30T11:01:00Z"}
     ]
   },
+  {
+    id: "MM006", requestType: "Material Movement", requesterName: "Frank Wright", requesterDepartment: "Logistics", submissionDate: "2024-08-01T10:00:00Z",
+    currentStepId: "mm_finance_check", currentStepName: "Finance Check (High Value)", workflowTemplateId: "material_movement_default",
+    payload: { materialType: "Finished Goods", source: "Main Warehouse", destination: "Shipping Dock", quantity: 50, value: 250000, isReturnable: "no", vehicleNumber:"MH14CD5678" } as MaterialMovementFormData,
+    history: [
+      { stepId: "submission", stepName: "Submitted", actor: "Frank Wright", action: "submitted", timestamp: "2024-08-01T10:00:00Z" },
+      { stepId: "mm_dept_head", stepName: "Department Head Approval", actor: "Logistics Head", action: "approve", timestamp: "2024-08-01T11:30:00Z" },
+      { stepId: "mm_finance_check", stepName: "Pending Finance Check", actor: "System", action: "system_auto_proceed", timestamp: "2024-08-01T11:31:00Z" },
+    ]
+  },
 ];
+
 
 const getRequestTypeIcon = (requestType: RequestType, className?: string) => {
   const props = { className: cn("w-4 h-4 mr-2 text-muted-foreground", className) };
@@ -203,11 +222,11 @@ const renderRequestPayloadDetailsDialog = (payload: RequestPayload, requestType:
               );
             })}
             </TableBody>
-             <TableFooter><TableRow><TableCell colSpan={5} className="text-right font-bold">Grand Total</TableCell><TableCell className="text-right font-bold">{poPayload.items.reduce((sum, i) => {
+             <UICardFooter className="p-0"><TableRow><TableCell colSpan={5} className="text-right font-bold">Grand Total</TableCell><TableCell className="text-right font-bold">{poPayload.items.reduce((sum, i) => {
                 const itemTotal = (i.quantity || 0) * (i.unitPrice || 0);
                 const itemGst = itemTotal * ((i.gstPercentage || 0) / 100);
                 return sum + itemTotal + itemGst;
-             }, 0).toLocaleString('en-IN', formattingOptions)}</TableCell></TableRow></TableFooter>
+             }, 0).toLocaleString('en-IN', formattingOptions)}</TableCell></TableRow></UICardFooter>
           </Table>
         )});
         if(poPayload.remarks) details.push({ key: "Remarks", value: <p className="whitespace-pre-wrap">{poPayload.remarks}</p> });
@@ -240,11 +259,11 @@ const renderRequestPayloadDetailsDialog = (payload: RequestPayload, requestType:
               );
             })}
             </TableBody>
-            <TableFooter><TableRow><TableCell colSpan={5} className="text-right font-bold">Grand Total</TableCell><TableCell className="text-right font-bold">{soPayload.items.reduce((sum, i) => {
+            <UICardFooter className="p-0"><TableRow><TableCell colSpan={5} className="text-right font-bold">Grand Total</TableCell><TableCell className="text-right font-bold">{soPayload.items.reduce((sum, i) => {
                 const itemTotal = (i.quantity || 0) * (i.unitPrice || 0);
                 const itemGst = itemTotal * ((i.gstPercentage || 0) / 100);
                 return sum + itemTotal + itemGst;
-            }, 0).toLocaleString('en-IN', formattingOptions)}</TableCell></TableRow></TableFooter>
+            }, 0).toLocaleString('en-IN', formattingOptions)}</TableCell></TableRow></UICardFooter>
           </Table>
         )});
         if(soPayload.remarks) details.push({ key: "Remarks", value: <p className="whitespace-pre-wrap">{soPayload.remarks}</p> });
@@ -267,6 +286,82 @@ export default function AllRequestsPage() {
   const [newComment, setNewComment] = React.useState("");
   const { toast } = useToast();
 
+  // State for filters and search
+  const [searchTerm, setSearchTerm] = React.useState("");
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>(undefined);
+  const [filterRequestType, setFilterRequestType] = React.useState("");
+  const [filterRequester, setFilterRequester] = React.useState("");
+  const [filterStatus, setFilterStatus] = React.useState("");
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const [isFiltersApplied, setIsFiltersApplied] = React.useState(false);
+
+  const distinctRequestTypes = React.useMemo(() => {
+    const types = new Set(requests.map(req => req.requestType));
+    return Array.from(types).sort();
+  }, [requests]);
+
+  const distinctStatuses = React.useMemo(() => {
+    const statuses = new Set(requests.map(req => req.currentStepName));
+    return Array.from(statuses).sort();
+  }, [requests]);
+
+  const filteredRequests = React.useMemo(() => {
+    let tempRequests = [...requests];
+
+    if (dateRange?.from) {
+      tempRequests = tempRequests.filter(req => new Date(req.submissionDate) >= dateRange.from!);
+    }
+    if (dateRange?.to) {
+      const toDate = new Date(dateRange.to);
+      toDate.setHours(23, 59, 59, 999); 
+      tempRequests = tempRequests.filter(req => new Date(req.submissionDate) <= toDate);
+    }
+    if (filterRequestType) {
+      tempRequests = tempRequests.filter(req => req.requestType === filterRequestType);
+    }
+    if (filterRequester) {
+      tempRequests = tempRequests.filter(req => 
+        req.requesterName.toLowerCase().includes(filterRequester.toLowerCase()) ||
+        (req.payload as any).email?.toLowerCase().includes(filterRequester.toLowerCase()) // Assuming email might be in payload
+      );
+    }
+    if (filterStatus) {
+      tempRequests = tempRequests.filter(req => req.currentStepName === filterStatus);
+    }
+    
+    if (searchTerm) {
+      tempRequests = tempRequests.filter(req =>
+        req.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        req.requestType.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        req.requesterName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        req.requesterDepartment.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        req.currentStepName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        renderRequestSummary(req).toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    return tempRequests.sort((a,b) => new Date(b.submissionDate).getTime() - new Date(a.submissionDate).getTime());
+  }, [requests, searchTerm, dateRange, filterRequestType, filterRequester, filterStatus]);
+
+  const totalPages = Math.ceil(filteredRequests.length / ITEMS_PER_PAGE);
+  const paginatedRequests = filteredRequests.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const handleClearFilters = () => {
+    setDateRange(undefined);
+    setFilterRequestType("");
+    setFilterRequester("");
+    setFilterStatus("");
+    setIsFiltersApplied(false);
+    setCurrentPage(1);
+  };
+  
+  const handleApplyFilters = () => {
+    setIsFiltersApplied(true);
+    setCurrentPage(1);
+  };
+
   const handleViewDetails = (item: ApprovalItem) => {
     setSelectedRequest(item);
     setIsDetailDialogOpen(true);
@@ -282,7 +377,7 @@ export default function AllRequestsPage() {
       history: [
         ...selectedRequest.history,
         {
-          stepId: selectedRequest.currentStepId, // Comment associated with current step
+          stepId: selectedRequest.currentStepId, 
           stepName: `Comment on: ${selectedRequest.currentStepName}`,
           actor: "Current User (Mock)", 
           action: "commented",
@@ -350,34 +445,32 @@ export default function AllRequestsPage() {
         {workflow.steps.map((step, index) => {
           const historyForStep = request.history.filter(h => h.stepId === step.id && h.action === "approve");
           const isCompleted = historyForStep.length > 0;
-          const isCurrent = step.id === request.currentStepId && !isCompleted; // Current if not yet approved
-          const isPending = !isCompleted && !isCurrent && index > currentStepIndex; // Pending if after current and not completed
-
+          const isCurrent = step.id === request.currentStepId && !isCompleted; 
+          
           let icon;
           let textClass = "text-muted-foreground";
           let roleClass = "text-muted-foreground";
           let lineClass = "bg-border";
 
           if (isCompleted) {
-            icon = <CheckCircle className="w-5 h-5 text-green-500" />;
-            textClass = "text-green-600";
-            roleClass = "text-green-500";
-            lineClass = "bg-green-500";
-          } else if (isCurrent) {
-            icon = <Clock className="w-5 h-5 text-primary animate-pulse" />; // Changed to Clock
-            textClass = "text-primary font-semibold";
+            icon = <CheckCircle className="w-5 h-5 text-primary" />;
+            textClass = "text-primary";
             roleClass = "text-primary";
             lineClass = "bg-primary";
+          } else if (isCurrent) {
+            icon = <Clock className="w-5 h-5 text-accent animate-pulse" />; 
+            textClass = "text-accent font-semibold";
+            roleClass = "text-accent";
+            lineClass = "bg-accent";
           } else { 
             icon = <Circle className="w-5 h-5 text-muted-foreground/50" />;
             textClass = "text-muted-foreground/70";
             roleClass = "text-muted-foreground/70";
           }
           
-          // If current step is the initial one and history only has 'submitted' or 'system_auto_proceed' for it
           const isInitialCurrentStep = isCurrent && index === 0 && request.history.every(h => h.stepId === step.id ? (h.action === "system_auto_proceed" || h.action === "submitted") : true);
           if(isInitialCurrentStep) {
-             lineClass = "bg-primary"; // Ensure first line is primary if it's the current starting step
+             lineClass = "bg-accent"; 
           }
 
 
@@ -414,55 +507,160 @@ export default function AllRequestsPage() {
       />
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle>Request Overview</CardTitle>
-          <CardDescription>
-            This table shows all types of requests. Click 'View' for detailed information and actions.
-          </CardDescription>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex-1">
+              <CardTitle>Request Overview</CardTitle>
+              <CardDescription>
+                This table shows all types of requests. Click 'View' for detailed information and actions.
+              </CardDescription>
+            </div>
+             <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline">
+                  <FilterIcon className="w-4 h-4 mr-2" /> Filters {isFiltersApplied && <span className="ml-2 h-2 w-2 rounded-full bg-primary animate-pulse"></span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-4 space-y-4" align="end">
+                <div>
+                  <label htmlFor="date-range" className="text-sm font-medium">Date Range</label>
+                  <Calendar
+                    id="date-range"
+                    mode="range"
+                    selected={dateRange}
+                    onSelect={setDateRange}
+                    className="rounded-md border p-0 mt-1"
+                    numberOfMonths={1}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="filter-requester" className="text-sm font-medium">Requester Name/Email</label>
+                  <Input 
+                    id="filter-requester"
+                    placeholder="e.g., Alice Smith" 
+                    value={filterRequester}
+                    onChange={(e) => setFilterRequester(e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+                 <div>
+                  <label htmlFor="filter-request-type" className="text-sm font-medium">Request Type</label>
+                  <Select value={filterRequestType} onValueChange={setFilterRequestType}>
+                    <SelectTrigger id="filter-request-type" className="mt-1">
+                      <SelectValue placeholder="All Types" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">All Types</SelectItem>
+                      {distinctRequestTypes.map(type => (
+                        <SelectItem key={type} value={type}>{type}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                 <div>
+                  <label htmlFor="filter-status" className="text-sm font-medium">Current Status/Step</label>
+                  <Select value={filterStatus} onValueChange={setFilterStatus}>
+                    <SelectTrigger id="filter-status" className="mt-1">
+                      <SelectValue placeholder="All Statuses" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">All Statuses</SelectItem>
+                       {distinctStatuses.map(status => (
+                        <SelectItem key={status} value={status}>{status}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button variant="ghost" size="sm" onClick={handleClearFilters}>Clear</Button>
+                  <Button size="sm" onClick={handleApplyFilters}>Apply</Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
         </CardHeader>
         <CardContent>
-          {requests.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Requester</TableHead>
-                  <TableHead>Submitted</TableHead>
-                  <TableHead>Status / Current Step</TableHead>
-                  <TableHead>Summary</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {requests.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="font-medium">{item.id}</TableCell>
-                    <TableCell className="flex items-center">
-                      {getRequestTypeIcon(item.requestType)}
-                      {item.requestType}
-                    </TableCell>
-                    <TableCell>{item.requesterName} ({item.requesterDepartment})</TableCell>
-                    <TableCell>{new Date(item.submissionDate).toLocaleDateString()}</TableCell>
-                    <TableCell>
-                      <Badge variant="secondary" className="capitalize">
-                        {item.currentStepName.toLowerCase()}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground max-w-xs truncate" title={renderRequestSummary(item)}>
-                      {renderRequestSummary(item)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="outline" size="sm" onClick={() => handleViewDetails(item)}>
-                        <Eye className="w-4 h-4 mr-1" /> View
-                      </Button>
-                    </TableCell>
+          <div className="flex items-center gap-4 mb-6">
+            <div className="relative flex-grow">
+              <Search className="absolute w-4 h-4 left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input 
+                placeholder="Search by ID, Type, Requester, Status, Summary..." 
+                className="pl-10"
+                value={searchTerm}
+                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+              />
+            </div>
+          </div>
+
+          {paginatedRequests.length > 0 ? (
+            <>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>ID</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Requester</TableHead>
+                    <TableHead>Submitted</TableHead>
+                    <TableHead>Status / Current Step</TableHead>
+                    <TableHead>Summary</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-              <TableCaption>{requests.length} request(s) found.</TableCaption>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {paginatedRequests.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell className="font-medium">{item.id}</TableCell>
+                      <TableCell className="flex items-center">
+                        {getRequestTypeIcon(item.requestType)}
+                        {item.requestType}
+                      </TableCell>
+                      <TableCell>{item.requesterName} ({item.requesterDepartment})</TableCell>
+                      <TableCell>{format(new Date(item.submissionDate), "yyyy-MM-dd HH:mm")}</TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className="capitalize">
+                          {item.currentStepName.toLowerCase()}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground max-w-xs truncate" title={renderRequestSummary(item)}>
+                        {renderRequestSummary(item)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="outline" size="sm" onClick={() => handleViewDetails(item)}>
+                          <Eye className="w-4 h-4 mr-1" /> View
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+                <TableCaption>
+                  Showing {paginatedRequests.length} of {filteredRequests.length} requests.
+                  Page {currentPage} of {totalPages}.
+                </TableCaption>
+              </Table>
+            </div>
+             <div className="flex items-center justify-end space-x-2 py-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronsLeft className="w-4 h-4 mr-1" /> Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next <ChevronsRight className="w-4 h-4 ml-1" />
+                </Button>
+              </div>
+            </>
           ) : (
-            <p className="text-center text-muted-foreground py-4">No requests found.</p>
+            <p className="text-center text-muted-foreground py-8">
+              No requests match your current search/filters, or no requests available.
+            </p>
           )}
         </CardContent>
       </Card>

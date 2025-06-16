@@ -5,7 +5,7 @@ import {
   LogOut, Settings, ShieldCheck, Database, Package, Building, Briefcase,
   ClipboardCheck, ShoppingCart, Tags, PlusCircle, Warehouse,
   Store, PackagePlus, PackageMinus, Undo2, SearchCheck, SlidersHorizontal, GitFork,
-  Users, Mail, UserCog, Layers, FileArchive, DollarSignIcon
+  Users, Mail, UserCog, Layers, FileArchive, DollarSignIcon, PackageSearch
 } from 'lucide-react';
 
 export interface NavItem {
@@ -50,7 +50,7 @@ export const mainNavItems: NavItem[] = [
         ]
       },
       {
-        title: 'Scrap Disposal', // Renamed slightly as per doc "Scrap Disposal Request"
+        title: 'Scrap Disposal', 
         href: '/scrap-movement/new', 
         icon: Recycle,
         description: "Log and track scrap disposals.",
@@ -102,7 +102,7 @@ export const mainNavItems: NavItem[] = [
     ]
   },
   {
-    title: 'Stores Management', // Renamed from 'Stores' for clarity as per doc "Stores Lifecycle Management"
+    title: 'Stores Management', 
     href: '/stores/manage',
     icon: Warehouse,
     description: "Manage store operations, inventory, and audits.",
@@ -111,15 +111,15 @@ export const mainNavItems: NavItem[] = [
       { title: 'Material Receipt', href: '/stores/material-receipt', icon: PackagePlus, description: "Record material receipts." },
       { title: 'Material Issue', href: '/stores/material-issue', icon: PackageMinus, description: "Record material issues." },
       { title: 'Material Return', href: '/stores/material-returns', icon: Undo2, description: "Record material returns." },
-      { title: 'Stores Audit', href: '/stores/audit', icon: SearchCheck, description: "Conduct store audits." },
+      { title: 'Inventory Summary', href: '/stores/inventory-summary', icon: PackageSearch, description: "View material availability." },
     ]
   },
   {
-    title: 'Analytics & Reports', // Renamed from Analytics for clarity
+    title: 'Analytics & Reports', 
     href: '/kpi-dashboard',
     icon: BarChart3,
     description: "View key performance indicators and audit logs.",
-    roles: ['admin', 'mm_team', 'department_head', 'finance_team'], // Expanded roles
+    roles: ['admin', 'mm_team', 'department_head', 'finance_team'], 
     items: [
       {
         title: 'KPI Dashboard',
@@ -129,7 +129,7 @@ export const mainNavItems: NavItem[] = [
         roles: ['admin', 'mm_team', 'department_head', 'finance_team'],
       },
       {
-        title: 'Audit Logs', // New item from requirement 2.5
+        title: 'Audit Logs', 
         href: '/administration/audit-logs',
         icon: FileArchive, 
         description: "View system audit logs.",
@@ -173,11 +173,11 @@ export const mainNavItems: NavItem[] = [
         roles: ['admin'],
         items: [
           { title: 'Material Types', href: '/masters/material-types', icon: Package, description: "Manage material types." },
-          { title: 'Scrap Categories', href: '/masters/scrap-types', icon: Recycle, description: "Manage scrap types." }, // Renamed from Scrap Types for consistency
+          { title: 'Scrap Categories', href: '/masters/scrap-types', icon: Recycle, description: "Manage scrap types." }, 
           { title: 'Building Types', href: '/masters/building-types', icon: Building, description: "Manage building types." },
           { title: 'Departments', href: '/masters/departments', icon: Briefcase, description: "Manage departments." },
           { title: 'Activity Types', href: '/masters/activity-types', icon: ClipboardCheck, description: "Manage work permit activity types." },
-          { title: 'Cost Centers', href: '/masters/cost-centers', icon: DollarSignIcon, description: "Manage cost centers." }, // New item from requirement 5
+          { title: 'Cost Centers', href: '/masters/cost-centers', icon: DollarSignIcon, description: "Manage cost centers." }, 
         ]
       },
     ]

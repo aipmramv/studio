@@ -2,19 +2,26 @@
 export const USER_ROLES = ["requester", "approver", "admin", "safety", "mm_team", "department_head", "finance_team", "dispatch_team", "maintenance_team", "facility_team"] as const;
 export type UserRole = typeof USER_ROLES[number];
 
-export const MATERIAL_TYPES = ["Raw Material", "Scrap", "Tool", "Finished Goods", "Consumable"] as const;
+export const MATERIAL_TYPES = ["Raw Material", "Scrap", "Tool", "Finished Goods", "Consumable", "Component", "Spare Part"] as const;
 export type MaterialType = typeof MATERIAL_TYPES[number];
+
+export const MATERIAL_CATEGORIES = ["Raw Material", "Components", "Consumables", "Finished Goods", "Spare Parts", "Safety Equipment", "Tools & Tackles", "Office Supplies", "Chemicals"] as const;
+export type MaterialCategory = typeof MATERIAL_CATEGORIES[number];
+
 
 export const SCRAP_TYPES = ["Plastic", "E-waste", "Metal Ferrous", "Metal Non-Ferrous", "Paper", "Wood", "Chemical", "Other"] as const;
 export type ScrapType = typeof SCRAP_TYPES[number];
 
-export const BUILDING_TYPES = ["KOSMO", "Test Tower", "Admin Block", "Warehouse A", "Warehouse B", "Production Hall X", "Utility Building"] as const;
+export const BUILDING_TYPES = ["KOSMO", "Test Tower", "Admin Block", "Warehouse A", "Warehouse B", "Production Hall X", "Utility Building", "Main Gate", "Scrap Yard"] as const;
 export type BuildingType = typeof BUILDING_TYPES[number];
 
-export const DEPARTMENTS = ["Production", "Maintenance", "Logistics", "Quality Assurance", "IT", "HR", "Finance", "R&D", "Safety & Environment"] as const;
+export const STORE_LOCATIONS = ["Central Warehouse Alpha", "Electronics Sub-Store", "Maintenance Store", "Dispatch Area", "Production Line Store 1", "Quality Lab Store", "Receiving Bay"] as const;
+export type StoreLocation = typeof STORE_LOCATIONS[number];
+
+export const DEPARTMENTS = ["Production", "Maintenance", "Logistics", "Quality Assurance", "IT", "HR", "Finance", "R&D", "Safety & Environment", "Sales", "Facility Management"] as const;
 export type Department = typeof DEPARTMENTS[number];
 
-// Updated as per requirement 2.4
+
 export const ACTIVITY_TYPES_WORK_PERMIT = [
   "Civil Works (Excavation, Construction)", 
   "Electrical Work (LV/MV/HV)", 
@@ -25,7 +32,9 @@ export const ACTIVITY_TYPES_WORK_PERMIT = [
   "Confined Space Entry", 
   "Working at Height",
   "Chemical Handling",
-  "General Maintenance/Inspection"
+  "General Maintenance/Inspection",
+  "Software Update/System Change",
+  "Network Cabling/Modification"
 ] as const;
 export type ActivityTypeWorkPermit = typeof ACTIVITY_TYPES_WORK_PERMIT[number];
 
@@ -63,7 +72,7 @@ export const MOCK_WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
     ],
   },
   {
-    id: "work_permit_default", // Used for Work Permit
+    id: "work_permit_default", 
     requestType: "Work Permit",
     name: "Standard Work Permit Workflow",
     initialStepId: "wp_safety_review",

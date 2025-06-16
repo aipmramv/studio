@@ -77,13 +77,13 @@ const mockApprovalsData: ApprovalItem[] = [
   {
     id: "WP003", requestType: "Work Permit", requesterName: "Carol White", requesterDepartment: "IT", submissionDate: "2024-07-29T09:15:00Z",
     currentStepId: "wp_safety_review", currentStepName: "Safety Team Review", currentAssignees: ["safety", "admin"], workflowTemplateId: "work_permit_default",
-    payload: { building: "KOSMO", activityType: "Server Maintenance", activityDetails: "Routine server maintenance in DC room 3" } as WorkPermitFormData,
+    payload: { building: "KOSMO", activityType: "Electrical Work (LV/MV/HV)", activityDetails: "Routine server maintenance in DC room 3", specificAreaOrEquipment: "DC Room 3", permitValidity: new Date() } as WorkPermitFormData,
     history: [{ stepId: "submission", stepName:"Submitted", actor: "Carol White", action: "submitted", timestamp: "2024-07-29T09:15:00Z" }]
   },
   {
     id: "PO004", requestType: "Purchase Order", requesterName: "David Brown", requesterDepartment: "Logistics", submissionDate: "2024-07-29T11:00:00Z",
     currentStepId: "po_dept_head", currentStepName: "Dept. Head Approval", currentAssignees: ["department_head", "admin"], workflowTemplateId: "po_default",
-    payload: { vendorName: "Tech Solutions Inc.", poDate: new Date("2024-07-29"), items: [{itemName: "Laptop Model X", quantity: 5, unitPrice: 1200, hsnSacCode:"84713010", gstPercentage:18}], deliveryAddress: "Main Office", paymentTerms: "Net 30", poCategory:"IT Equipment", department:"IT", costCenter:"IT001", ioNumber:"IO_IT004" } as PurchaseOrderFormData,
+    payload: { vendorName: "Tech Solutions Inc.", poDate: new Date("2024-07-29"), items: [{itemName: "Laptop Model X", quantity: 5, unitPrice: 120000, hsnSacCode:"84713010", gstPercentage:18}], deliveryAddress: "Main Office", poCategory:"IT Equipment", department:"IT", costCenter:"IT001", ioNumber:"IO_IT004" } as PurchaseOrderFormData,
     history: [{ stepId: "submission", stepName:"Submitted", actor: "David Brown", action: "submitted", timestamp: "2024-07-29T11:00:00Z"}]
   },
 ];
@@ -101,8 +101,11 @@ export default function ApprovalsDashboardPage() {
 
   const userVisibleApprovals = React.useMemo(() => {
     if (!user) return [];
-    if(user.role === 'admin') return approvals;
-    return approvals.filter(item => item.currentAssignees.includes(user.role));
+    if(user.role === 'admin') return approvals; // Admin sees all
+    return approvals.filter(item => 
+      item.currentAssignees.includes(user.role) || // Directly assigned
+      (item.currentAssignees.includes('department_head') && user.department && item.requesterDepartment === user.department) // Department head logic (example)
+    );
   }, [approvals, user]);
 
   const handleApprovalAction = (itemId: string, action: UserAction, comment?: string) => {
@@ -152,71 +155,39 @@ export default function ApprovalsDashboardPage() {
     </AlertDialogContent>
   );
 
-  const renderRequestPayloadDetails = (payload: RequestPayload, requestType: RequestType) => {
-    const details: {key: string, value: string | number | undefined | React.ReactNode }[] = [];
+  const renderRequestPayloadSummary = (item: ApprovalItem): string => {
+    const { requestType, payload } = item;
     const formattingOptions: Intl.NumberFormatOptions = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
-
+  
     switch (requestType) {
       case "Material Movement":
-        const mmPayload = payload as MaterialMovementFormData;
-        details.push({ key: "Material Type", value: mmPayload.materialType });
-        details.push({ key: "Source", value: mmPayload.source });
-        details.push({ key: "Destination", value: mmPayload.destination });
-        details.push({ key: "Quantity", value: mmPayload.quantity });
-        details.push({ key: "Value", value: mmPayload.value.toLocaleString('en-IN', formattingOptions) });
-        details.push({ key: "Returnable", value: mmPayload.isReturnable });
-        if (mmPayload.vehicleNumber) details.push({ key: "Vehicle No.", value: mmPayload.vehicleNumber });
-        break;
+        const mm = payload as MaterialMovementFormData;
+        return `Move ${mm.quantity} x ${mm.materialType} from ${mm.source} to ${mm.destination}. Value: ${mm.value.toLocaleString('en-IN', formattingOptions)}`;
       case "Scrap Request":
-        const smPayload = payload as ScrapMovementFormData;
-        details.push({ key: "Scrap Type", value: smPayload.scrapType });
-        details.push({ key: "Description", value: smPayload.description });
-        details.push({ key: "Quantity", value: smPayload.quantity });
-        details.push({ key: "Weight", value: `${smPayload.weight} (units)` });
-        break;
+        const sm = payload as ScrapMovementFormData;
+        return `Dispose ${sm.quantity} units of ${sm.scrapType} (${sm.weight} units weight).`;
       case "Work Permit":
-        const wpPayload = payload as WorkPermitFormData;
-        details.push({ key: "Building", value: wpPayload.building });
-        details.push({ key: "Activity Type", value: wpPayload.activityType });
-        details.push({ key: "Activity Details", value: <p className="whitespace-pre-wrap">{wpPayload.activityDetails}</p> });
-        break;
+        const wp = payload as WorkPermitFormData;
+        return `Permit for ${wp.activityType} in ${wp.building}. Area: ${wp.specificAreaOrEquipment}.`;
       case "Purchase Order":
-        const poPayload = payload as PurchaseOrderFormData;
-        details.push({ key: "Vendor", value: poPayload.vendorName });
-        details.push({ key: "PO Date", value: new Date(poPayload.poDate).toLocaleDateString() });
-        details.push({ key: "Delivery Address", value: poPayload.deliveryAddress });
-        if(poPayload.paymentTerms) details.push({ key: "Payment Terms", value: poPayload.paymentTerms });
-        details.push({ key: "Items", value: (
-          <ul className="list-disc pl-5">
-            {poPayload.items.map((item, idx) => (
-              <li key={idx}>{item.quantity} x {item.itemName} @ {item.unitPrice.toLocaleString('en-IN', formattingOptions)}</li>
-            ))}
-          </ul>
-        )});
-        break;
+        const po = payload as PurchaseOrderFormData;
+        const poTotal = po.items.reduce((sum, i) => {
+          const itemTotal = (i.quantity || 0) * (i.unitPrice || 0);
+          const itemGst = itemTotal * ((i.gstPercentage || 0) / 100);
+          return sum + itemTotal + itemGst;
+        }, 0);
+        return `PO for ${po.vendorName}. ${po.items.length} item(s). Total: ${poTotal.toLocaleString('en-IN', formattingOptions)}`;
       case "Sale Order":
-        const soPayload = payload as SaleOrderFormData;
-        details.push({ key: "Customer", value: soPayload.customerName });
-        details.push({ key: "SO Date", value: new Date(soPayload.soDate).toLocaleDateString() });
-        details.push({ key: "Shipping Address", value: soPayload.shippingAddress });
-        details.push({ key: "Billing Address", value: soPayload.billingAddress });
-         details.push({ key: "Items", value: (
-          <ul className="list-disc pl-5">
-            {soPayload.items.map((item, idx) => (
-              <li key={idx}>{item.quantity} x {item.itemName} @ {item.unitPrice.toLocaleString('en-IN', formattingOptions)}</li>
-            ))}
-          </ul>
-        )});
-        break;
+        const so = payload as SaleOrderFormData;
+        const soTotal = so.items.reduce((sum, i) => {
+          const itemTotal = (i.quantity || 0) * (i.unitPrice || 0);
+          const itemGst = itemTotal * ((i.gstPercentage || 0) / 100);
+          return sum + itemTotal + itemGst;
+        }, 0);
+        return `SO for ${so.customerName}. ${so.items.length} item(s). Total: ${soTotal.toLocaleString('en-IN', formattingOptions)}`;
       default:
-        details.push({ key: "Details", value: "No specific details available for this request type." });
+        return "Details not available.";
     }
-
-    return details.map(detail => (
-      <div key={detail.key} className="text-muted-foreground">
-        <span className="capitalize font-medium text-foreground">{detail.key}: </span>{typeof detail.value === 'string' || typeof detail.value === 'number' ? detail.value : <>{detail.value}</>}
-      </div>
-    ));
   };
   
   const getRequestTypeIcon = (requestType: RequestType) => {
@@ -294,8 +265,8 @@ export default function ApprovalsDashboardPage() {
                       <span className="font-medium text-foreground">Submitted:</span>&nbsp;{new Date(item.submissionDate).toLocaleDateString()}
                     </div>
                     <div className="pt-2 mt-2 border-t">
-                      <h4 className="font-semibold mb-1 text-foreground">Details:</h4>
-                      {renderRequestPayloadDetails(item.payload, item.requestType)}
+                      <h4 className="font-semibold mb-1 text-foreground">Summary:</h4>
+                      <p className="text-muted-foreground text-xs">{renderRequestPayloadSummary(item)}</p>
                     </div>
                   </CardContent>
                   <CardFooter className="flex gap-2 mt-auto pt-4 border-t">
@@ -319,15 +290,16 @@ export default function ApprovalsDashboardPage() {
           {viewMode === 'grid' && (
             <Card className="shadow-lg">
               <CardContent className="p-0">
+                <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>ID</TableHead>
                       <TableHead>Type</TableHead>
                       <TableHead>Requester</TableHead>
-                      <TableHead>Department</TableHead>
                       <TableHead>Submitted</TableHead>
                       <TableHead>Current Step</TableHead>
+                      <TableHead>Summary</TableHead>
                       <TableHead className="text-right pr-4">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -335,14 +307,16 @@ export default function ApprovalsDashboardPage() {
                     {userVisibleApprovals.map((item) => (
                       <TableRow key={item.id}>
                         <TableCell className="font-medium">{item.id}</TableCell>
-                        <TableCell>{item.requestType}</TableCell>
-                        <TableCell>{item.requesterName}</TableCell>
-                        <TableCell>{item.requesterDepartment}</TableCell>
+                        <TableCell className="flex items-center"> {getRequestTypeIcon(item.requestType)} {item.requestType}</TableCell>
+                        <TableCell>{item.requesterName} ({item.requesterDepartment})</TableCell>
                         <TableCell>{new Date(item.submissionDate).toLocaleDateString()}</TableCell>
                         <TableCell>
                           <Badge variant="secondary" className="capitalize">
                             {item.currentStepName.toLowerCase()}
                           </Badge>
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground max-w-xs truncate" title={renderRequestPayloadSummary(item)}>
+                            {renderRequestPayloadSummary(item)}
                         </TableCell>
                         <TableCell className="text-right pr-4">
                           <div className="flex gap-2 justify-end">
@@ -363,6 +337,7 @@ export default function ApprovalsDashboardPage() {
                     ))}
                   </TableBody>
                 </Table>
+                </div>
               </CardContent>
             </Card>
           )}
