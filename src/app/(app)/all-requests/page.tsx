@@ -4,8 +4,8 @@
 
 import * as React from "react";
 import { PageHeader } from "@/components/shared/PageHeader";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from "@/components/ui/table";
+import { Card, CardContent, CardDescription, CardFooter as UICardFooter, CardHeader, CardTitle } from "@/components/ui/card"; // Renamed CardFooter to UICardFooter
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption, TableFooter } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye, Truck, Recycle, ShieldCheck, ShoppingCart, Tags, Package, CalendarDays, User, MessageSquare, Bell, ChevronsUp, Send, Info, History } from "lucide-react";
@@ -322,7 +322,10 @@ export default function AllRequestsPage() {
       {selectedRequest && (
         <Dialog open={isDetailDialogOpen} onOpenChange={(isOpen) => {
           setIsDetailDialogOpen(isOpen);
-          if (!isOpen) setSelectedRequest(null); setNewComment("");
+          if (!isOpen) {
+            setSelectedRequest(null); 
+            setNewComment(""); // Reset comment on dialog close
+          }
         }}>
           <DialogContent className="sm:max-w-2xl">
             <DialogHeader>
@@ -335,7 +338,7 @@ export default function AllRequestsPage() {
                 Detailed information and approval timeline for request {selectedRequest.id}.
               </DialogDescription>
             </DialogHeader>
-            <ScrollArea className="max-h-[calc(100vh-20rem)] pr-6"> {/* Adjusted max height */}
+            <ScrollArea className="max-h-[calc(100vh-20rem)] pr-6"> {/* Adjusted max height & added padding for scrollbar */}
               <div className="space-y-4 py-4">
                 <Card>
                   <CardHeader><CardTitle className="text-lg flex items-center"><Info className="w-5 h-5 mr-2 text-primary"/>Basic Information</CardTitle></CardHeader>
@@ -375,7 +378,7 @@ export default function AllRequestsPage() {
                 <Separator />
 
                 <div className="space-y-3">
-                    <h4 className="text-md font-semibold">Actions & Comments</h4>
+                    <h4 className="text-md font-semibold text-foreground">Actions & Comments</h4>
                     <Textarea
                         placeholder="Add a comment..."
                         value={newComment}
