@@ -28,13 +28,13 @@ export const mainNavItems: NavItem[] = [
   },
   {
     title: 'Requests',
-    href: '/requests', 
+    href: '/material-movement/new', // Point to first child of first sub-group
     icon: ClipboardCheck, 
     description: "Manage all types of requests.",
     items: [
       {
         title: 'Material Movement',
-        href: '/material-movement', 
+        href: '/material-movement/new', // Point to first child
         icon: Truck,
         description: "Log and track material movements.",
         items: [
@@ -43,8 +43,8 @@ export const mainNavItems: NavItem[] = [
         ]
       },
       {
-        title: 'Scrap Request', // Updated from Scrap Movement
-        href: '/scrap-movement', 
+        title: 'Scrap Request',
+        href: '/scrap-movement/new', // Point to first child
         icon: Recycle,
         description: "Log and track scrap disposals.",
         items: [
@@ -54,7 +54,7 @@ export const mainNavItems: NavItem[] = [
       },
       {
         title: 'Work Permit',
-        href: '/work-permit', 
+        href: '/work-permit/new', // Point to first child
         icon: ShieldCheck,
         description: "Request and manage work permits.",
         items: [
@@ -64,7 +64,7 @@ export const mainNavItems: NavItem[] = [
       },
       {
         title: 'Purchase Order',
-        href: '/purchase-order', 
+        href: '/purchase-order/new', // Point to first child
         icon: ShoppingCart,
         description: "Manage Purchase Orders.",
         items: [
@@ -74,7 +74,7 @@ export const mainNavItems: NavItem[] = [
       },
       {
         title: 'Sale Order',
-        href: '/sale-order', 
+        href: '/sale-order/new', // Point to first child
         icon: Tags,
         description: "Manage Sale Orders.",
         items: [
@@ -86,13 +86,13 @@ export const mainNavItems: NavItem[] = [
   },
   {
     title: 'Logistics',
-    href: '/logistics', 
+    href: '/delivery-note/generate', // Point to first child of first sub-group
     icon: Package, 
     description: "Manage delivery and stores operations.",
     items: [
       {
         title: 'Delivery Note',
-        href: '/delivery-note', 
+        href: '/delivery-note/generate', // Point to first child
         icon: FileSignature,
         description: "Generate and view Delivery Notes.",
         items: [
@@ -102,7 +102,7 @@ export const mainNavItems: NavItem[] = [
       },
       {
         title: 'Stores',
-        href: '/stores', 
+        href: '/stores/manage', // Point to first child
         icon: Warehouse,
         description: "Manage store operations.",
         items: [
@@ -117,7 +117,7 @@ export const mainNavItems: NavItem[] = [
   },
   {
     title: 'Analytics',
-    href: '/analytics', 
+    href: '/kpi-dashboard', // Point to first child (which is the only child)
     icon: BarChart3,
     description: "View key performance indicators.",
     roles: ['admin', 'mm_team'], 
@@ -133,14 +133,14 @@ export const mainNavItems: NavItem[] = [
   },
   {
     title: 'Administration',
-    href: '/administration', 
+    href: '/masters/material-types', // Point to first child of first sub-group
     icon: SlidersHorizontal, 
     description: "Manage application settings and metadata.",
     roles: ['admin'],
     items: [
       { 
         title: 'Masters', 
-        href: '/masters', 
+        href: '/masters/material-types', // Point to first child
         icon: Database, 
         description: "Manage application metadata.",
         roles: ['admin'],
@@ -155,7 +155,7 @@ export const mainNavItems: NavItem[] = [
       {
         title: 'Workflow Config',
         href: '/administration/workflows',
-        icon: GitFork, // Using GitFork as it represents branching/logic
+        icon: GitFork, 
         description: "Configure approval workflows.",
         roles: ['admin'],
       }
@@ -178,7 +178,7 @@ export const userNavItems: NavItem[] = [
     },
     {
         title: "Logout",
-        href: "/logout", 
+        href: "/logout", // This href isn't directly used for navigation if handled by onClick, but good for consistency
         icon: LogOut,
         description: "Sign out of your account."
     }

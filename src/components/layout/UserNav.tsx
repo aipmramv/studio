@@ -41,7 +41,7 @@ export function UserNav() {
     return name.substring(0, 2).toUpperCase();
   };
 
-  const LogoutIcon = userNavItems.find(item => item.title === 'Logout')?.icon;
+  const LogoutIconComponent = userNavItems.find(item => item.title === 'Logout')?.icon;
 
   return (
     <DropdownMenu>
@@ -68,11 +68,11 @@ export function UserNav() {
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           {userNavItems.filter(item => item.title !== 'Logout').map((item: NavItem) => {
-            const ItemIcon = item.icon; // Assign to a new variable starting with an uppercase letter
+            const ItemIconComponent = item.icon; // Renamed to avoid conflict with JSX intrinsic elements
             return (
               <DropdownMenuItem key={item.href} asChild>
                 <Link href={item.href} className="flex items-center gap-2 cursor-pointer">
-                  {ItemIcon && <ItemIcon className="h-4 w-4 text-muted-foreground" />}
+                  {ItemIconComponent && <ItemIconComponent className="h-4 w-4 text-muted-foreground" />}
                   <span>{item.title}</span>
                 </Link>
               </DropdownMenuItem>
@@ -81,7 +81,7 @@ export function UserNav() {
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout} className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10">
-          {LogoutIcon && <LogoutIcon className="h-4 w-4" />}
+          {LogoutIconComponent && <LogoutIconComponent className="h-4 w-4" />}
           <span>Logout</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
