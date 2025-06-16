@@ -9,7 +9,7 @@ import { UserNav } from "@/components/layout/UserNav";
 import { SidebarNav } from "@/components/layout/SidebarNav";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
-import { Loader2, Workflow } from "lucide-react"; // Using Workflow icon for TrackFlow
+import { Loader2, Workflow } from "lucide-react"; // Using Workflow icon for R&D Stores Flow
 
 interface AppLayoutBaseProps {
   children: React.ReactNode;
@@ -41,7 +41,7 @@ export function AppLayoutBase({ children }: AppLayoutBaseProps) {
               <Button variant="link" className="p-0 h-auto" asChild>
                 <Link href="/dashboard" className="flex items-center gap-2 text-sidebar-foreground hover:text-sidebar-primary transition-colors">
                   <Workflow className="h-8 w-8 text-sidebar-primary" />
-                  <h1 className="text-2xl font-bold font-headline group-data-[collapsible=icon]:hidden">TrackFlow</h1>
+                  <h1 className="text-xl font-bold font-headline group-data-[collapsible=icon]:hidden">R&D Stores Flow</h1>
                 </Link>
               </Button>
               {/* Mobile trigger, hidden on md+ */}

@@ -72,7 +72,7 @@ export function LoginForm() {
   return (
     <Card className="w-full max-w-md shadow-2xl">
       <CardHeader className="text-center">
-        <CardTitle className="text-3xl font-bold font-headline">TrackFlow Login</CardTitle>
+        <CardTitle className="text-3xl font-bold font-headline">R&D Stores Flow Login</CardTitle>
         <CardDescription>Enter your credentials or sign in with Microsoft.</CardDescription>
       </CardHeader>
       <CardContent>

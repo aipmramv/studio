@@ -3,8 +3,8 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'TrackFlow',
-  description: 'Material & Scrap Movement Tracking System',
+  title: 'R&D Stores Flow',
+  description: 'Material, Scrap, PO, SO, and Work Permit Management with Dynamic Workflows',
 };
 
 export default function RootLayout({

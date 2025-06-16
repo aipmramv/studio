@@ -1,6 +1,6 @@
-# TrackFlow
+# R&D Stores Flow
 
-TrackFlow is a comprehensive system for managing material movements, scrap requests, work permits, purchase orders, and sale orders with dynamic, multi-level approval workflows.
+R&D Stores Flow is a comprehensive system for managing material movements, scrap requests, work permits, purchase orders, and sale orders with dynamic, multi-level approval workflows.
 
 This application is built with Next.js, React, ShadCN UI, Tailwind CSS, and Genkit.
 
