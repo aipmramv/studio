@@ -48,26 +48,35 @@ export const WorkPermitSchema = z.object({
 });
 export type WorkPermitFormData = z.infer<typeof WorkPermitSchema>;
 
-export const ApprovalSchema = z.object({ 
+export const ApprovalSchema = z.object({
   comment: z.string().optional(),
 });
 export type ApprovalFormData = z.infer<typeof ApprovalSchema>;
 
 const OrderItemSchema = z.object({
-  itemName: z.string().min(1, "Item name is required."),
+  itemName: z.string().min(1, "Item name/description is required."), // Material Description
   quantity: z.coerce.number().min(1, "Quantity must be at least 1."),
   unitPrice: z.coerce.number().min(0, "Unit price cannot be negative."),
+  hsnSacCode: z.string().optional(),
+  gstPercentage: z.coerce.number().min(0).max(100).optional(),
 });
 export type OrderItem = z.infer<typeof OrderItemSchema>;
 
 export const PurchaseOrderSchema = z.object({
+  poCategory: z.string().min(1, "PO Category is required."),
+  department: z.enum(DEPARTMENTS, { required_error: "Department is required."}),
   vendorName: z.string().min(1, "Vendor name is required."),
+  kmKmgCode: z.string().optional(),
+  costCenter: z.string().min(1, "Cost Center is required."),
+  ioNumber: z.string().min(1, "IO Number is required."),
   poDate: z.date({ required_error: "PO date is required." }),
   currency: z.enum(CURRENCIES, { required_error: "Currency is required." }),
   items: z.array(OrderItemSchema).min(1, "At least one item is required."),
   deliveryAddress: z.string().min(1, "Delivery address is required."),
+  segment: z.string().optional(),
   paymentTerms: z.string().optional(),
-  notes: z.string().optional(),
+  remarks: z.string().optional(), // Renamed from notes
+  // attachments: z.any().optional(), // Handled by file state, not direct Zod schema for File object
 });
 export type PurchaseOrderFormData = z.infer<typeof PurchaseOrderSchema>;
 
@@ -84,7 +93,7 @@ export const SaleOrderSchema = z.object({
   materialRequiredDate: z.date({ required_error: "Material Required Date is required." }),
   departmentHeadApproval: z.string().min(1, "Department Head Approval is required."),
   deliveryTo: z.string().min(1, "Delivery To contact/department is required."),
-  items: z.array(OrderItemSchema).min(1, "At least one item is required."),
+  items: z.array(OrderItemSchema).min(1, "At least one item is required."), // Reusing OrderItemSchema
   shippingAddress: z.string().min(1, "Shipping address is required."),
   billingAddress: z.string().min(1, "Billing address is required."),
   remarks: z.string().optional(),
@@ -92,11 +101,11 @@ export const SaleOrderSchema = z.object({
 export type SaleOrderFormData = z.infer<typeof SaleOrderSchema>;
 
 
-export type RequestPayload = 
-  | MaterialMovementFormData 
-  | ScrapMovementFormData 
-  | WorkPermitFormData 
-  | PurchaseOrderFormData 
+export type RequestPayload =
+  | MaterialMovementFormData
+  | ScrapMovementFormData
+  | WorkPermitFormData
+  | PurchaseOrderFormData
   | SaleOrderFormData;
 
 
