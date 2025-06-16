@@ -23,9 +23,9 @@ export function useAuth() {
       // To test different roles, you can change this:
       const mockUser: AuthUser = {
         uid: 'mock-user-id',
-        email: 'user@example.com',
-        displayName: 'Mock User',
-        role: 'requester', // or 'approver', 'admin', 'safety', 'mm_team'
+        email: 'admin@example.com',
+        displayName: 'Admin User',
+        role: 'admin', // Changed to 'admin' to show Masters menu
       };
       // To simulate a logged-out state:
       // setUser(null);
@@ -43,9 +43,9 @@ export function useAuth() {
       setTimeout(() => {
         setUser({
           uid: 'mock-user-id',
-          email: 'user@example.com',
-          displayName: 'Mock User',
-          role: 'requester',
+          email: 'admin@example.com', // Default to admin for testing
+          displayName: 'Admin User',
+          role: 'admin',
         });
         setLoading(false);
         resolve();
@@ -62,7 +62,7 @@ export function useAuth() {
            uid: 'new-mock-user-id',
            email: 'newuser@example.com',
            displayName: 'New Mock User',
-           role: 'requester', // Default role
+           role: 'requester', // Default role for new signups
          });
          setLoading(false);
          resolve();
