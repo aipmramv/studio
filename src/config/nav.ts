@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Truck, Recycle, FileText, ListChecks, BarChart3, UserCircle, 
   LogOut, Settings, ShieldCheck, Database, Package, Building, Briefcase, 
   ClipboardCheck, ShoppingCart, Tags, PlusCircle, FileSignature, Warehouse, 
-  Store, PackagePlus, PackageMinus, Undo2, SearchCheck, Workflow, SlidersHorizontal
+  Store, PackagePlus, PackageMinus, Undo2, SearchCheck, Workflow, SlidersHorizontal, GitFork
 } from 'lucide-react';
 
 export interface NavItem {
@@ -28,13 +28,13 @@ export const mainNavItems: NavItem[] = [
   },
   {
     title: 'Requests',
-    href: '/requests', // Base path, actual navigation will be to children
+    href: '/requests', 
     icon: ClipboardCheck, 
     description: "Manage all types of requests.",
     items: [
       {
         title: 'Material Movement',
-        href: '/material-movement', // Base for this sub-group
+        href: '/material-movement', 
         icon: Truck,
         description: "Log and track material movements.",
         items: [
@@ -43,18 +43,18 @@ export const mainNavItems: NavItem[] = [
         ]
       },
       {
-        title: 'Scrap Movement',
-        href: '/scrap-movement', // Base for this sub-group
+        title: 'Scrap Request', // Updated from Scrap Movement
+        href: '/scrap-movement', 
         icon: Recycle,
         description: "Log and track scrap disposals.",
         items: [
-          { title: 'New Request', href: '/scrap-movement/new', icon: PlusCircle, description: "Create a new scrap movement request." },
-          { title: 'View Requests', href: '/scrap-movement/list', icon: ListChecks, description: "View all scrap movement requests." },
+          { title: 'New Request', href: '/scrap-movement/new', icon: PlusCircle, description: "Create a new scrap request." },
+          { title: 'View Requests', href: '/scrap-movement/list', icon: ListChecks, description: "View all scrap requests." },
         ]
       },
       {
         title: 'Work Permit',
-        href: '/work-permit', // Base for this sub-group
+        href: '/work-permit', 
         icon: ShieldCheck,
         description: "Request and manage work permits.",
         items: [
@@ -64,7 +64,7 @@ export const mainNavItems: NavItem[] = [
       },
       {
         title: 'Purchase Order',
-        href: '/purchase-order', // Base for this sub-group
+        href: '/purchase-order', 
         icon: ShoppingCart,
         description: "Manage Purchase Orders.",
         items: [
@@ -74,7 +74,7 @@ export const mainNavItems: NavItem[] = [
       },
       {
         title: 'Sale Order',
-        href: '/sale-order', // Base for this sub-group
+        href: '/sale-order', 
         icon: Tags,
         description: "Manage Sale Orders.",
         items: [
@@ -86,13 +86,13 @@ export const mainNavItems: NavItem[] = [
   },
   {
     title: 'Logistics',
-    href: '/logistics', // Base path
+    href: '/logistics', 
     icon: Package, 
     description: "Manage delivery and stores operations.",
     items: [
       {
         title: 'Delivery Note',
-        href: '/delivery-note', // Base for this sub-group
+        href: '/delivery-note', 
         icon: FileSignature,
         description: "Generate and view Delivery Notes.",
         items: [
@@ -102,7 +102,7 @@ export const mainNavItems: NavItem[] = [
       },
       {
         title: 'Stores',
-        href: '/stores', // Base for this sub-group
+        href: '/stores', 
         icon: Warehouse,
         description: "Manage store operations.",
         items: [
@@ -117,15 +117,15 @@ export const mainNavItems: NavItem[] = [
   },
   {
     title: 'Analytics',
-    href: '/analytics', // Base path
+    href: '/analytics', 
     icon: BarChart3,
     description: "View key performance indicators.",
-    roles: ['admin', 'mm_team'], // Role for the parent, applies to children unless overridden
+    roles: ['admin', 'mm_team'], 
     items: [
       {
         title: 'KPI Dashboard',
         href: '/kpi-dashboard',
-        icon: BarChart3, // Can use same icon or more specific if available
+        icon: BarChart3, 
         description: "View key performance indicators.",
         roles: ['admin', 'mm_team'], 
       }
@@ -133,14 +133,14 @@ export const mainNavItems: NavItem[] = [
   },
   {
     title: 'Administration',
-    href: '/administration', // Base path
-    icon: SlidersHorizontal, // Using SlidersHorizontal as a general admin/settings icon
+    href: '/administration', 
+    icon: SlidersHorizontal, 
     description: "Manage application settings and metadata.",
     roles: ['admin'],
     items: [
       { 
         title: 'Masters', 
-        href: '/masters', // Base for this sub-group
+        href: '/masters', 
         icon: Database, 
         description: "Manage application metadata.",
         roles: ['admin'],
@@ -152,7 +152,13 @@ export const mainNavItems: NavItem[] = [
           { title: 'Activity Types', href: '/masters/activity-types', icon: ClipboardCheck, description: "Manage work permit activity types." },
         ]
       },
-      // Future admin items like User Management can go here
+      {
+        title: 'Workflow Config',
+        href: '/administration/workflows',
+        icon: GitFork, // Using GitFork as it represents branching/logic
+        description: "Configure approval workflows.",
+        roles: ['admin'],
+      }
     ]
   }
 ];
@@ -166,7 +172,7 @@ export const userNavItems: NavItem[] = [
     },
     {
         title: "Settings",
-        href: "/settings", // This links to Application Settings page
+        href: "/settings", 
         icon: Settings,
         description: "Application settings." 
     },
@@ -177,4 +183,3 @@ export const userNavItems: NavItem[] = [
         description: "Sign out of your account."
     }
 ];
-

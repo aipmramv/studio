@@ -1,6 +1,6 @@
 
 import { z } from 'zod';
-import { MATERIAL_TYPES, SCRAP_TYPES, BUILDING_TYPES, ACTIVITY_TYPES_WORK_PERMIT, USER_ROLES, DEPARTMENTS, CURRENCIES } from './constants';
+import { MATERIAL_TYPES, SCRAP_TYPES, BUILDING_TYPES, ACTIVITY_TYPES_WORK_PERMIT, USER_ROLES, DEPARTMENTS, CURRENCIES, REQUEST_TYPES } from './constants';
 
 export const LoginSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -48,7 +48,7 @@ export const WorkPermitSchema = z.object({
 });
 export type WorkPermitFormData = z.infer<typeof WorkPermitSchema>;
 
-export const ApprovalSchema = z.object({
+export const ApprovalSchema = z.object({ // This is for the comment when approving/rejecting
   comment: z.string().optional(),
 });
 export type ApprovalFormData = z.infer<typeof ApprovalSchema>;
@@ -58,6 +58,7 @@ const OrderItemSchema = z.object({
   quantity: z.coerce.number().min(1, "Quantity must be at least 1."),
   unitPrice: z.coerce.number().min(0, "Unit price cannot be negative."),
 });
+export type OrderItem = z.infer<typeof OrderItemSchema>;
 
 export const PurchaseOrderSchema = z.object({
   vendorName: z.string().min(1, "Vendor name is required."),
@@ -80,3 +81,11 @@ export const SaleOrderSchema = z.object({
   notes: z.string().optional(),
 });
 export type SaleOrderFormData = z.infer<typeof SaleOrderSchema>;
+
+// Generic Request Payload type for the dashboard
+export type RequestPayload = 
+  | MaterialMovementFormData 
+  | ScrapMovementFormData 
+  | WorkPermitFormData 
+  | PurchaseOrderFormData 
+  | SaleOrderFormData;

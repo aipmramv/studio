@@ -5,15 +5,16 @@ import * as React from "react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, X, MessageSquare, Briefcase, User, CalendarDays, Filter, LayoutGrid, List } from "lucide-react";
+import { Check, X, User, CalendarDays, Filter, LayoutGrid, List, Briefcase, Package, ShieldCheck, ShoppingCart, Tags, Recycle, Edit3, DollarSign, Truck, ChevronsUpDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { APPROVAL_STATUSES, type ApprovalStatus, type Currency, CURRENCY_SYMBOLS } from "@/lib/constants";
+import { type Currency, CURRENCY_SYMBOLS, type RequestType, type UserRole, DEPARTMENTS, MOCK_WORKFLOW_TEMPLATES, USER_ACTIONS, type UserAction } from "@/lib/constants";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { ApprovalSchema, type ApprovalFormData } from "@/lib/schemas";
+import { ApprovalSchema, type ApprovalFormData, type MaterialMovementFormData, type ScrapMovementFormData, type WorkPermitFormData, type PurchaseOrderFormData, type SaleOrderFormData, type OrderItem } from "@/lib/schemas";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,37 +35,62 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-interface ApprovalItemDetails {
-  material?: string;
-  quantity?: number;
-  value?: number;
-  currency?: Currency;
-  scrapType?: string;
-  weight?: string;
-  building?: string;
-  activity?: string;
-  [key: string]: any; // For other potential details
+type RequestPayload = MaterialMovementFormData | ScrapMovementFormData | WorkPermitFormData | PurchaseOrderFormData | SaleOrderFormData;
+
+interface ApprovalHistoryItem {
+  stepId: string;
+  stepName: string;
+  action: UserAction | "submitted" | "system_auto_proceed";
+  actor: string; // User ID or "System"
+  timestamp: string;
+  comment?: string;
 }
 
 interface ApprovalItem {
-  id: string;
-  type: "Material Movement" | "Scrap Movement" | "Work Permit";
-  requester: string;
-  department: string;
-  date: string;
-  status: ApprovalStatus;
-  details: ApprovalItemDetails;
+  id: string; // Unique ID for the request instance
+  requestType: RequestType;
+  requesterName: string;
+  requesterDepartment: string;
+  submissionDate: string; // ISO Date string
+  currentStepId: string; // ID of the current WorkflowStep
+  currentStepName: string;
+  currentAssignees: UserRole[]; // Roles that can action the current step
+  payload: RequestPayload;
+  history: ApprovalHistoryItem[];
+  workflowTemplateId: string; // To know which template it's following
 }
 
-const mockApprovals: ApprovalItem[] = [
-  { id: "MM001", type: "Material Movement", requester: "Alice Smith", department: "Production", date: "2024-07-28", status: "Pending Department Head", details: { material: "Steel Beams", quantity: 10, value: 150000, currency: "INR" } },
-  { id: "SM002", type: "Scrap Movement", requester: "Bob Johnson", department: "Maintenance", date: "2024-07-27", status: "Pending Finance", details: { scrapType: "E-waste", weight: "50kg" } },
-  { id: "WP003", type: "Work Permit", requester: "Carol White", department: "IT", date: "2024-07-29", status: "Pending Safety", details: { building: "KOSMO", activity: "Server Maintenance" } },
-  { id: "MM004", type: "Material Movement", requester: "David Brown", department: "Logistics", date: "2024-07-29", status: "Pending Dispatch", details: { material: "Spare Parts", quantity: 5, value: 200, currency: "EUR" } },
+
+const mockApprovalsData: ApprovalItem[] = [
+  {
+    id: "MM001", requestType: "Material Movement", requesterName: "Alice Smith", requesterDepartment: "Production", submissionDate: "2024-07-28T10:00:00Z",
+    currentStepId: "mm_dept_head", currentStepName: "Department Head Approval", currentAssignees: ["department_head"], workflowTemplateId: "material_movement_default",
+    payload: { materialType: "Raw Material", source: "Warehouse A", destination: "Production Line 1", quantity: 100, currency: "INR", value: 150000, isReturnable: "no", vehicleNumber:"MH12AB1234" } as MaterialMovementFormData,
+    history: [{ stepId: "submission", stepName:"Submitted", actor: "Alice Smith", action: "submitted", timestamp: "2024-07-28T10:00:00Z" }]
+  },
+  {
+    id: "SM002", requestType: "Scrap Request", requesterName: "Bob Johnson", requesterDepartment: "Maintenance", submissionDate: "2024-07-27T14:30:00Z",
+    currentStepId: "sm_finance_clearance", currentStepName: "Finance Clearance", currentAssignees: ["finance_team"], workflowTemplateId: "scrap_default", // Assuming a scrap_default template
+    payload: { scrapType: "E-waste", description: "Old monitors and keyboards", quantity: 10, weight: 50 } as ScrapMovementFormData,
+    history: [{ stepId: "submission", stepName:"Submitted", actor: "Bob Johnson", action: "submitted", timestamp: "2024-07-27T14:30:00Z" }]
+  },
+  {
+    id: "WP003", requestType: "Work Permit", requesterName: "Carol White", requesterDepartment: "IT", submissionDate: "2024-07-29T09:15:00Z",
+    currentStepId: "wp_safety_review", currentStepName: "Safety Team Review", currentAssignees: ["safety"], workflowTemplateId: "work_permit_default",
+    payload: { building: "KOSMO", activityType: "Server Maintenance", activityDetails: "Routine server maintenance in DC room 3" } as WorkPermitFormData,
+    history: [{ stepId: "submission", stepName:"Submitted", actor: "Carol White", action: "submitted", timestamp: "2024-07-29T09:15:00Z" }]
+  },
+  {
+    id: "PO004", requestType: "Purchase Order", requesterName: "David Brown", requesterDepartment: "Logistics", submissionDate: "2024-07-29T11:00:00Z",
+    currentStepId: "po_dept_head", currentStepName: "Dept. Head Approval", currentAssignees: ["department_head"], workflowTemplateId: "po_default",
+    payload: { vendorName: "Tech Solutions Inc.", poDate: new Date("2024-07-29"), currency: "EUR", items: [{itemName: "Laptop Model X", quantity: 5, unitPrice: 1200}], deliveryAddress: "Main Office", paymentTerms: "Net 30" } as PurchaseOrderFormData,
+    history: [{ stepId: "submission", stepName:"Submitted", actor: "David Brown", action: "submitted", timestamp: "2024-07-29T11:00:00Z"}]
+  },
 ];
 
 export default function ApprovalsDashboardPage() {
-  const [approvals, setApprovals] = React.useState<ApprovalItem[]>(mockApprovals);
+  const { user } = useAuth();
+  const [approvals, setApprovals] = React.useState<ApprovalItem[]>(mockApprovalsData);
   const [viewMode, setViewMode] = React.useState<'card' | 'grid'>('card');
   const { toast } = useToast();
 
@@ -73,9 +99,26 @@ export default function ApprovalsDashboardPage() {
     defaultValues: { comment: "" },
   });
 
-  const handleApprovalAction = (itemId: string, action: "approve" | "reject", comment?: string) => {
-    console.log(`Item ${itemId} ${action}d with comment: ${comment}`);
-    setApprovals(prev => prev.filter(item => item.id !== itemId)); 
+  const userVisibleApprovals = React.useMemo(() => {
+    if (!user) return [];
+    return approvals.filter(item => item.currentAssignees.includes(user.role));
+  }, [approvals, user]);
+
+  const handleApprovalAction = (itemId: string, action: UserAction, comment?: string) => {
+    const item = approvals.find(ap => ap.id === itemId);
+    if (!item) return;
+
+    // In a real app, this would interact with a backend service to:
+    // 1. Validate the action against the workflow template.
+    // 2. Determine the next step (if any).
+    // 3. Update the request's currentStepId, currentStepName, currentAssignees.
+    // 4. Add to the history.
+    // 5. Persist changes.
+
+    console.log(`Item ${itemId} ${action}ed with comment: ${comment} by ${user?.displayName}`);
+    
+    // Mock: Simply remove the item from the list for now
+    setApprovals(prev => prev.filter(ap => ap.id !== itemId)); 
     toast({
       title: `Request ${action === "approve" ? "Approved" : "Rejected"}`,
       description: `Request ID ${itemId} has been processed.`,
@@ -116,20 +159,85 @@ export default function ApprovalsDashboardPage() {
     </AlertDialogContent>
   );
 
-  const renderApprovalDetails = (details: ApprovalItemDetails) => {
-    return Object.entries(details).map(([key, value]) => {
-      if (key === 'currency' && details.value !== undefined) return null; // Currency is handled with value
-      let displayValue = String(value);
-      if (key === 'value' && details.currency && value !== undefined) {
-        displayValue = `${CURRENCY_SYMBOLS[details.currency as Currency]}${Number(value).toLocaleString()}`;
-      }
-      return (
-        <p key={key} className="text-muted-foreground">
-          <span className="capitalize font-medium text-foreground">{key.replace(/([A-Z])/g, ' $1')}: </span>{displayValue}
-        </p>
-      );
-    });
+  const renderRequestPayloadDetails = (payload: RequestPayload, requestType: RequestType) => {
+    const details: {key: string, value: string | number | undefined | React.ReactNode }[] = [];
+
+    switch (requestType) {
+      case "Material Movement":
+        const mmPayload = payload as MaterialMovementFormData;
+        details.push({ key: "Material Type", value: mmPayload.materialType });
+        details.push({ key: "Source", value: mmPayload.source });
+        details.push({ key: "Destination", value: mmPayload.destination });
+        details.push({ key: "Quantity", value: mmPayload.quantity });
+        details.push({ key: "Value", value: `${CURRENCY_SYMBOLS[mmPayload.currency as Currency]}${mmPayload.value.toLocaleString()}` });
+        details.push({ key: "Returnable", value: mmPayload.isReturnable });
+        if (mmPayload.vehicleNumber) details.push({ key: "Vehicle No.", value: mmPayload.vehicleNumber });
+        break;
+      case "Scrap Request":
+        const smPayload = payload as ScrapMovementFormData;
+        details.push({ key: "Scrap Type", value: smPayload.scrapType });
+        details.push({ key: "Description", value: smPayload.description });
+        details.push({ key: "Quantity", value: smPayload.quantity });
+        details.push({ key: "Weight", value: `${smPayload.weight}` });
+        break;
+      case "Work Permit":
+        const wpPayload = payload as WorkPermitFormData;
+        details.push({ key: "Building", value: wpPayload.building });
+        details.push({ key: "Activity Type", value: wpPayload.activityType });
+        details.push({ key: "Activity Details", value: <p className="whitespace-pre-wrap">{wpPayload.activityDetails}</p> });
+        break;
+      case "Purchase Order":
+        const poPayload = payload as PurchaseOrderFormData;
+        details.push({ key: "Vendor", value: poPayload.vendorName });
+        details.push({ key: "PO Date", value: new Date(poPayload.poDate).toLocaleDateString() });
+        details.push({ key: "Currency", value: poPayload.currency });
+        details.push({ key: "Delivery Address", value: poPayload.deliveryAddress });
+        if(poPayload.paymentTerms) details.push({ key: "Payment Terms", value: poPayload.paymentTerms });
+        details.push({ key: "Items", value: (
+          <ul className="list-disc pl-5">
+            {poPayload.items.map((item, idx) => (
+              <li key={idx}>{item.quantity} x {item.itemName} @ {CURRENCY_SYMBOLS[poPayload.currency as Currency]}{item.unitPrice.toLocaleString()}</li>
+            ))}
+          </ul>
+        )});
+        break;
+      case "Sale Order":
+        const soPayload = payload as SaleOrderFormData;
+        details.push({ key: "Customer", value: soPayload.customerName });
+        details.push({ key: "SO Date", value: new Date(soPayload.soDate).toLocaleDateString() });
+        details.push({ key: "Currency", value: soPayload.currency });
+        details.push({ key: "Shipping Address", value: soPayload.shippingAddress });
+        details.push({ key: "Billing Address", value: soPayload.billingAddress });
+         details.push({ key: "Items", value: (
+          <ul className="list-disc pl-5">
+            {soPayload.items.map((item, idx) => (
+              <li key={idx}>{item.quantity} x {item.itemName} @ {CURRENCY_SYMBOLS[soPayload.currency as Currency]}{item.unitPrice.toLocaleString()}</li>
+            ))}
+          </ul>
+        )});
+        break;
+      default:
+        details.push({ key: "Details", value: "No specific details available for this request type." });
+    }
+
+    return details.map(detail => (
+      <div key={detail.key} className="text-muted-foreground">
+        <span className="capitalize font-medium text-foreground">{detail.key}: </span>{typeof detail.value === 'string' || typeof detail.value === 'number' ? detail.value : <>{detail.value}</>}
+      </div>
+    ));
   };
+  
+  const getRequestTypeIcon = (requestType: RequestType) => {
+    switch (requestType) {
+      case "Material Movement": return <Truck className="w-5 h-5 mr-2 text-primary" />;
+      case "Scrap Request": return <Recycle className="w-5 h-5 mr-2 text-primary" />;
+      case "Work Permit": return <ShieldCheck className="w-5 h-5 mr-2 text-primary" />;
+      case "Purchase Order": return <ShoppingCart className="w-5 h-5 mr-2 text-primary" />;
+      case "Sale Order": return <Tags className="w-5 h-5 mr-2 text-primary" />;
+      default: return <Package className="w-5 h-5 mr-2 text-primary" />;
+    }
+  };
+
 
   return (
     <div className="space-y-8">
@@ -154,12 +262,12 @@ export default function ApprovalsDashboardPage() {
               <LayoutGrid className="w-4 h-4 mr-2" />
               Grid View
             </Button>
-            <Button variant="outline" size="sm"><Filter className="w-4 h-4 mr-2" />Filter Requests</Button>
+            {/* <Button variant="outline" size="sm"><Filter className="w-4 h-4 mr-2" />Filter Requests</Button> */}
           </div>
         }
       />
 
-      {approvals.length === 0 ? (
+      {userVisibleApprovals.length === 0 ? (
         <Card className="shadow-lg">
           <CardContent className="p-6 text-center">
             <Check className="w-16 h-16 mx-auto text-primary mb-4" />
@@ -171,36 +279,35 @@ export default function ApprovalsDashboardPage() {
         <>
           {viewMode === 'card' && (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {approvals.map((item) => (
-                <Card key={item.id} className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+              {userVisibleApprovals.map((item) => (
+                <Card key={item.id} className="shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col">
                   <CardHeader>
                     <div className="flex justify-between items-start">
-                      <CardTitle className="text-xl font-headline">{item.type}</CardTitle>
-                      <Badge variant={item.status.startsWith("Pending") ? "secondary" : "default"} className="capitalize">
-                        {item.status.toLowerCase()}
+                       <div className="flex items-center">
+                        {getRequestTypeIcon(item.requestType)}
+                        <CardTitle className="text-xl font-headline">{item.requestType}</CardTitle>
+                       </div>
+                      <Badge variant="secondary" className="capitalize">
+                        {item.currentStepName.toLowerCase()}
                       </Badge>
                     </div>
                     <CardDescription>Request ID: {item.id}</CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-3 text-sm">
+                  <CardContent className="space-y-3 text-sm flex-grow">
                     <div className="flex items-center">
                       <User className="w-4 h-4 mr-2 text-muted-foreground" />
-                      <span className="font-medium text-foreground">Requester:</span>&nbsp;{item.requester}
-                    </div>
-                    <div className="flex items-center">
-                      <Briefcase className="w-4 h-4 mr-2 text-muted-foreground" />
-                      <span className="font-medium text-foreground">Department:</span>&nbsp;{item.department}
+                      <span className="font-medium text-foreground">Requester:</span>&nbsp;{item.requesterName} ({item.requesterDepartment})
                     </div>
                     <div className="flex items-center">
                       <CalendarDays className="w-4 h-4 mr-2 text-muted-foreground" />
-                      <span className="font-medium text-foreground">Date:</span>&nbsp;{item.date}
+                      <span className="font-medium text-foreground">Submitted:</span>&nbsp;{new Date(item.submissionDate).toLocaleDateString()}
                     </div>
-                    <div className="pt-2 border-t">
+                    <div className="pt-2 mt-2 border-t">
                       <h4 className="font-semibold mb-1 text-foreground">Details:</h4>
-                      {renderApprovalDetails(item.details)}
+                      {renderRequestPayloadDetails(item.payload, item.requestType)}
                     </div>
                   </CardContent>
-                  <CardFooter className="flex gap-2">
+                  <CardFooter className="flex gap-2 mt-auto pt-4 border-t">
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button variant="outline" className="w-full border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive">
@@ -228,23 +335,22 @@ export default function ApprovalsDashboardPage() {
                       <TableHead>Type</TableHead>
                       <TableHead>Requester</TableHead>
                       <TableHead>Department</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Status</TableHead>
-                      {/* Optionally add a details column or expand row for details in grid view */}
+                      <TableHead>Submitted</TableHead>
+                      <TableHead>Current Step</TableHead>
                       <TableHead className="text-right pr-4">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {approvals.map((item) => (
+                    {userVisibleApprovals.map((item) => (
                       <TableRow key={item.id}>
                         <TableCell className="font-medium">{item.id}</TableCell>
-                        <TableCell>{item.type}</TableCell>
-                        <TableCell>{item.requester}</TableCell>
-                        <TableCell>{item.department}</TableCell>
-                        <TableCell>{item.date}</TableCell>
+                        <TableCell>{item.requestType}</TableCell>
+                        <TableCell>{item.requesterName}</TableCell>
+                        <TableCell>{item.requesterDepartment}</TableCell>
+                        <TableCell>{new Date(item.submissionDate).toLocaleDateString()}</TableCell>
                         <TableCell>
-                          <Badge variant={item.status.startsWith("Pending") ? "secondary" : "default"} className="capitalize">
-                            {item.status.toLowerCase()}
+                          <Badge variant="secondary" className="capitalize">
+                            {item.currentStepName.toLowerCase()}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right pr-4">
@@ -274,3 +380,5 @@ export default function ApprovalsDashboardPage() {
     </div>
   );
 }
+
+    
