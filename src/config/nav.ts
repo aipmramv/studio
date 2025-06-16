@@ -5,7 +5,7 @@ import {
   LogOut, Settings, ShieldCheck, Database, Package, Building, Briefcase, 
   ClipboardCheck, ShoppingCart, Tags, PlusCircle, FileSignature, Warehouse, 
   Store, PackagePlus, PackageMinus, Undo2, SearchCheck, Workflow, SlidersHorizontal, GitFork,
-  Users, Mail, UserCog, Layers // Added Layers for All Requests
+  Users, Mail, UserCog, Layers
 } from 'lucide-react';
 
 export interface NavItem {
@@ -28,14 +28,14 @@ export const mainNavItems: NavItem[] = [
     description: "Pending approvals and overview.",
   },
   {
-    title: 'All Requests', // New "All Requests" page
+    title: 'All Requests',
     href: '/all-requests',
-    icon: Layers,
+    icon: Layers, // Using Layers icon for All Requests
     description: "View all requests and their status.",
   },
   {
     title: 'Requests',
-    href: '/material-movement/new', 
+    href: '/material-movement/new', // Points to the first child as a default
     icon: ClipboardCheck, 
     description: "Manage all types of requests.",
     items: [
@@ -93,7 +93,7 @@ export const mainNavItems: NavItem[] = [
   },
   {
     title: 'Logistics',
-    href: '/delivery-note/generate', 
+    href: '/delivery-note/generate', // Points to the first child
     icon: Package, 
     description: "Manage delivery and stores operations.",
     items: [
@@ -109,7 +109,7 @@ export const mainNavItems: NavItem[] = [
       },
       {
         title: 'Stores',
-        href: '/stores/manage', 
+        href: '/stores/manage', // Default to Manage Stores
         icon: Warehouse,
         description: "Manage store operations.",
         items: [
