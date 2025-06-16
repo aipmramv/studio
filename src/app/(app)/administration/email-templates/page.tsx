@@ -93,7 +93,7 @@ export default function EmailTemplatesPage() {
           <DialogHeader>
             <DialogTitle>{editingTemplate ? "Edit" : "Add"} Email Template: {editingTemplate?.name}</DialogTitle>
             <DialogDescription>
-              Modify the content of this email template. Use placeholders like {{variableName}}.
+              Modify the content of this email template. Use placeholders like {'{{variableName}}'}.
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
