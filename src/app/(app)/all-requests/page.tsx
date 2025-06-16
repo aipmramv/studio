@@ -8,11 +8,34 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Truck, Recycle, ShieldCheck, ShoppingCart, Tags, Package } from "lucide-react";
-import { type RequestType, type Currency, CURRENCY_SYMBOLS } from "@/lib/constants";
-import { type MaterialMovementFormData, type ScrapMovementFormData, type WorkPermitFormData, type PurchaseOrderFormData, type SaleOrderFormData } from "@/lib/schemas";
+import { Eye, Truck, Recycle, ShieldCheck, ShoppingCart, Tags, Package, CalendarDays, User, MessageSquare, Bell, ChevronsUp, Send, Info, History } from "lucide-react";
+import { type RequestType, type Currency, CURRENCY_SYMBOLS, type UserRole, type UserAction } from "@/lib/constants";
+import { type MaterialMovementFormData, type ScrapMovementFormData, type WorkPermitFormData, type PurchaseOrderFormData, type SaleOrderFormData, type OrderItem } from "@/lib/schemas";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 type RequestPayload = MaterialMovementFormData | ScrapMovementFormData | WorkPermitFormData | PurchaseOrderFormData | SaleOrderFormData;
+
+interface ApprovalHistoryItem {
+  stepId: string;
+  stepName: string;
+  action: UserAction | "submitted" | "commented" | "reminded" | "escalated" | "system_auto_proceed";
+  actor: string; // User name or "System"
+  timestamp: string; // ISO Date string
+  comment?: string;
+}
 
 interface ApprovalItem {
   id: string;
@@ -23,51 +46,64 @@ interface ApprovalItem {
   currentStepId: string;
   currentStepName: string;
   payload: RequestPayload;
+  history: ApprovalHistoryItem[];
 }
 
-// Using a slightly expanded version of mockApprovalsData from dashboard for variety
 const mockAllRequestsData: ApprovalItem[] = [
   {
     id: "MM001", requestType: "Material Movement", requesterName: "Alice Smith", requesterDepartment: "Production", submissionDate: "2024-07-28T10:00:00Z",
     currentStepId: "mm_dept_head", currentStepName: "Department Head Approval",
     payload: { materialType: "Raw Material", source: "Warehouse A", destination: "Production Line 1", quantity: 100, currency: "INR", value: 150000, isReturnable: "no", vehicleNumber:"MH12AB1234" } as MaterialMovementFormData,
+    history: [
+      { stepId: "submission", stepName: "Submitted", actor: "Alice Smith", action: "submitted", timestamp: "2024-07-28T10:00:00Z", comment: "Initial submission for urgent production requirement." },
+      { stepId: "mm_dept_head", stepName: "Pending Dept. Head", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-28T10:01:00Z" },
+    ]
   },
   {
     id: "SM002", requestType: "Scrap Request", requesterName: "Bob Johnson", requesterDepartment: "Maintenance", submissionDate: "2024-07-27T14:30:00Z",
     currentStepId: "sm_finance_clearance", currentStepName: "Finance Clearance",
-    payload: { scrapType: "E-waste", description: "Old monitors and keyboards", quantity: 10, weight: 50 } as ScrapMovementFormData,
+    payload: { scrapType: "E-waste", description: "Old monitors and keyboards, non-functional", quantity: 10, weight: 50 } as ScrapMovementFormData,
+    history: [
+      { stepId: "submission", stepName: "Submitted", actor: "Bob Johnson", action: "submitted", timestamp: "2024-07-27T14:30:00Z" },
+      { stepId: "sm_initial_review", stepName: "Initial Review", actor: "Maintenance Lead", action: "approve", timestamp: "2024-07-27T15:00:00Z", comment: "Looks OK." },
+      { stepId: "sm_finance_clearance", stepName: "Pending Finance", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-27T15:01:00Z" },
+    ]
   },
   {
     id: "WP003", requestType: "Work Permit", requesterName: "Carol White", requesterDepartment: "IT", submissionDate: "2024-07-29T09:15:00Z",
     currentStepId: "wp_safety_review", currentStepName: "Safety Team Review",
-    payload: { building: "KOSMO", activityType: "Server Maintenance", activityDetails: "Routine server maintenance in DC room 3" } as WorkPermitFormData,
+    payload: { building: "KOSMO", activityType: "Server Maintenance", activityDetails: "Routine server maintenance in DC room 3. Includes rack mounting and cable management." } as WorkPermitFormData,
+    history: [
+      { stepId: "submission", stepName: "Submitted", actor: "Carol White", action: "submitted", timestamp: "2024-07-29T09:15:00Z" },
+    ]
   },
   {
     id: "PO004", requestType: "Purchase Order", requesterName: "David Brown", requesterDepartment: "Logistics", submissionDate: "2024-07-29T11:00:00Z",
-    currentStepId: "po_dept_head", currentStepName: "Dept. Head Approval", 
-    payload: { vendorName: "Tech Solutions Inc.", poDate: new Date("2024-07-29"), currency: "EUR", items: [{itemName: "Laptop Model X", quantity: 5, unitPrice: 1200}], deliveryAddress: "Main Office", paymentTerms: "Net 30" } as PurchaseOrderFormData,
+    currentStepId: "po_dept_head", currentStepName: "Dept. Head Approval",
+    payload: { vendorName: "Tech Solutions Inc.", poDate: new Date("2024-07-29"), currency: "EUR", items: [{itemName: "Laptop Model X", quantity: 5, unitPrice: 1200}, {itemName: "Docking Station", quantity: 5, unitPrice: 150}], deliveryAddress: "Main Office, R&D Block", paymentTerms: "Net 30" } as PurchaseOrderFormData,
+     history: [
+      { stepId: "submission", stepName: "Submitted", actor: "David Brown", action: "submitted", timestamp: "2024-07-29T11:00:00Z" },
+    ]
   },
    {
     id: "SO005", requestType: "Sale Order", requesterName: "Eve Green", requesterDepartment: "Sales", submissionDate: "2024-07-30T11:00:00Z",
-    currentStepId: "so_manager_approval", currentStepName: "Sales Manager Approval", 
-    payload: { customerName: "Client ABC Corp", soDate: new Date("2024-07-30"), currency: "INR", items: [{itemName: "Software License", quantity: 10, unitPrice: 5000}], shippingAddress: "Client HQ", billingAddress: "Client HQ" } as SaleOrderFormData,
-  },
-   {
-    id: "MM006", requestType: "Material Movement", requesterName: "Frank Black", requesterDepartment: "Stores", submissionDate: "2024-07-30T15:00:00Z",
-    currentStepId: "mm_dispatch_approval", currentStepName: "Dispatch Team Approval",
-    payload: { materialType: "Finished Goods", source: "Assembly Line Z", destination: "Shipping Dock", quantity: 250, currency: "INR", value: 750000, isReturnable: "no" } as MaterialMovementFormData,
+    currentStepId: "so_manager_approval", currentStepName: "Sales Manager Approval",
+    payload: { customerName: "Client ABC Corp", soDate: new Date("2024-07-30"), currency: "INR", items: [{itemName: "Software License - Annual", quantity: 10, unitPrice: 5000}], shippingAddress: "Client HQ, Tower B, Floor 5", billingAddress: "Client HQ, Accounts Dept." } as SaleOrderFormData,
+     history: [
+      { stepId: "submission", stepName: "Submitted", actor: "Eve Green", action: "submitted", timestamp: "2024-07-30T11:00:00Z" },
+    ]
   },
 ];
 
-
-const getRequestTypeIcon = (requestType: RequestType) => {
+const getRequestTypeIcon = (requestType: RequestType, className?: string) => {
+  const props = { className: cn("w-4 h-4 mr-2 text-muted-foreground", className) };
   switch (requestType) {
-    case "Material Movement": return <Truck className="w-4 h-4 mr-2 text-muted-foreground" />;
-    case "Scrap Request": return <Recycle className="w-4 h-4 mr-2 text-muted-foreground" />;
-    case "Work Permit": return <ShieldCheck className="w-4 h-4 mr-2 text-muted-foreground" />;
-    case "Purchase Order": return <ShoppingCart className="w-4 h-4 mr-2 text-muted-foreground" />;
-    case "Sale Order": return <Tags className="w-4 h-4 mr-2 text-muted-foreground" />;
-    default: return <Package className="w-4 h-4 mr-2 text-muted-foreground" />;
+    case "Material Movement": return <Truck {...props} />;
+    case "Scrap Request": return <Recycle {...props} />;
+    case "Work Permit": return <ShieldCheck {...props} />;
+    case "Purchase Order": return <ShoppingCart {...props} />;
+    case "Sale Order": return <Tags {...props} />;
+    default: return <Package {...props} />;
   }
 };
 
@@ -96,8 +132,131 @@ const renderRequestSummary = (item: ApprovalItem): string => {
   }
 };
 
+const renderRequestPayloadDetailsDialog = (payload: RequestPayload, requestType: RequestType) => {
+    const details: {key: string, value: string | number | undefined | React.ReactNode }[] = [];
+    switch (requestType) {
+      case "Material Movement":
+        const mmPayload = payload as MaterialMovementFormData;
+        details.push({ key: "Material Type", value: mmPayload.materialType });
+        details.push({ key: "Source", value: mmPayload.source });
+        details.push({ key: "Destination", value: mmPayload.destination });
+        details.push({ key: "Quantity", value: mmPayload.quantity });
+        details.push({ key: "Value", value: `${CURRENCY_SYMBOLS[mmPayload.currency as Currency]}${mmPayload.value.toLocaleString()}` });
+        details.push({ key: "Returnable", value: mmPayload.isReturnable });
+        if (mmPayload.vehicleNumber) details.push({ key: "Vehicle No.", value: mmPayload.vehicleNumber });
+        break;
+      case "Scrap Request":
+        const smPayload = payload as ScrapMovementFormData;
+        details.push({ key: "Scrap Type", value: smPayload.scrapType });
+        details.push({ key: "Description", value: <p className="whitespace-pre-wrap">{smPayload.description}</p> });
+        details.push({ key: "Quantity", value: smPayload.quantity });
+        details.push({ key: "Weight", value: `${smPayload.weight} (units)` });
+        break;
+      case "Work Permit":
+        const wpPayload = payload as WorkPermitFormData;
+        details.push({ key: "Building", value: wpPayload.building });
+        details.push({ key: "Activity Type", value: wpPayload.activityType });
+        details.push({ key: "Activity Details", value: <p className="whitespace-pre-wrap">{wpPayload.activityDetails}</p> });
+        break;
+      case "Purchase Order":
+        const poPayload = payload as PurchaseOrderFormData;
+        const poCurrencySymbol = CURRENCY_SYMBOLS[poPayload.currency as Currency];
+        details.push({ key: "Vendor", value: poPayload.vendorName });
+        details.push({ key: "PO Date", value: new Date(poPayload.poDate).toLocaleDateString() });
+        details.push({ key: "Currency", value: `${poPayload.currency} (${poCurrencySymbol})` });
+        details.push({ key: "Delivery Address", value: poPayload.deliveryAddress });
+        if(poPayload.paymentTerms) details.push({ key: "Payment Terms", value: poPayload.paymentTerms });
+        details.push({ key: "Items", value: (
+          <Table className="mt-2 text-xs">
+            <TableHeader><TableRow><TableHead>Item</TableHead><TableHead>Qty</TableHead><TableHead className="text-right">Price</TableHead><TableHead className="text-right">Total</TableHead></TableRow></TableHeader>
+            <TableBody>
+            {poPayload.items.map((item, idx) => (
+              <TableRow key={idx}><TableCell>{item.itemName}</TableCell><TableCell>{item.quantity}</TableCell><TableCell className="text-right">{poCurrencySymbol}{item.unitPrice.toLocaleString()}</TableCell><TableCell className="text-right">{poCurrencySymbol}{(item.quantity * item.unitPrice).toLocaleString()}</TableCell></TableRow>
+            ))}
+            </TableBody>
+             <TableFooter><TableRow><TableCell colSpan={3} className="text-right font-bold">Grand Total</TableCell><TableCell className="text-right font-bold">{poCurrencySymbol}{poPayload.items.reduce((sum, i) => sum + (i.quantity * i.unitPrice), 0).toLocaleString()}</TableCell></TableRow></TableFooter>
+          </Table>
+        )});
+        break;
+      case "Sale Order":
+        const soPayload = payload as SaleOrderFormData;
+        const soCurrencySymbol = CURRENCY_SYMBOLS[soPayload.currency as Currency];
+        details.push({ key: "Customer", value: soPayload.customerName });
+        details.push({ key: "SO Date", value: new Date(soPayload.soDate).toLocaleDateString() });
+        details.push({ key: "Currency", value: `${soPayload.currency} (${soCurrencySymbol})` });
+        details.push({ key: "Shipping Address", value: soPayload.shippingAddress });
+        details.push({ key: "Billing Address", value: soPayload.billingAddress });
+         details.push({ key: "Items", value: (
+            <Table className="mt-2 text-xs">
+            <TableHeader><TableRow><TableHead>Item</TableHead><TableHead>Qty</TableHead><TableHead className="text-right">Price</TableHead><TableHead className="text-right">Total</TableHead></TableRow></TableHeader>
+            <TableBody>
+            {soPayload.items.map((item, idx) => (
+              <TableRow key={idx}><TableCell>{item.itemName}</TableCell><TableCell>{item.quantity}</TableCell><TableCell className="text-right">{soCurrencySymbol}{item.unitPrice.toLocaleString()}</TableCell><TableCell className="text-right">{soCurrencySymbol}{(item.quantity * item.unitPrice).toLocaleString()}</TableCell></TableRow>
+            ))}
+            </TableBody>
+            <TableFooter><TableRow><TableCell colSpan={3} className="text-right font-bold">Grand Total</TableCell><TableCell className="text-right font-bold">{soCurrencySymbol}{soPayload.items.reduce((sum, i) => sum + (i.quantity * i.unitPrice), 0).toLocaleString()}</TableCell></TableRow></TableFooter>
+          </Table>
+        )});
+        break;
+      default:
+        details.push({ key: "Details", value: "No specific details available for this request type." });
+    }
+    return details.map(detail => (
+      <div key={detail.key} className="text-sm text-muted-foreground mb-1">
+        <span className="capitalize font-medium text-foreground">{detail.key}: </span>{typeof detail.value === 'string' || typeof detail.value === 'number' ? detail.value : <div className="mt-1">{detail.value}</div>}
+      </div>
+    ));
+  };
+
+
 export default function AllRequestsPage() {
   const [requests, setRequests] = React.useState<ApprovalItem[]>(mockAllRequestsData);
+  const [selectedRequest, setSelectedRequest] = React.useState<ApprovalItem | null>(null);
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = React.useState(false);
+  const [newComment, setNewComment] = React.useState("");
+  const { toast } = useToast();
+
+  const handleViewDetails = (item: ApprovalItem) => {
+    setSelectedRequest(item);
+    setIsDetailDialogOpen(true);
+  };
+
+  const handleAddComment = () => {
+    if (!selectedRequest || !newComment.trim()) {
+      toast({ title: "Cannot add empty comment", variant: "destructive" });
+      return;
+    }
+    // Mock action: Add comment to history (in a real app, this would be a backend call)
+    const updatedRequest = {
+      ...selectedRequest,
+      history: [
+        ...selectedRequest.history,
+        {
+          stepId: "comment",
+          stepName: "Comment Added",
+          actor: "Current User (Mock)", // Replace with actual user
+          action: "commented",
+          timestamp: new Date().toISOString(),
+          comment: newComment,
+        },
+      ],
+    };
+    setSelectedRequest(updatedRequest);
+    setRequests(prev => prev.map(r => r.id === updatedRequest.id ? updatedRequest : r));
+    setNewComment("");
+    toast({ title: "Comment Added", description: `Comment added to request ${selectedRequest.id}.` });
+  };
+
+  const handleRemind = () => {
+    if (!selectedRequest) return;
+    toast({ title: "Reminder Sent (Mock)", description: `A reminder has been sent for request ${selectedRequest.id}.`});
+  };
+  
+  const handleEscalate = () => {
+    if (!selectedRequest) return;
+    toast({ title: "Request Escalated (Mock)", description: `Request ${selectedRequest.id} has been escalated.`});
+  };
+
 
   return (
     <div className="space-y-8">
@@ -109,7 +268,7 @@ export default function AllRequestsPage() {
         <CardHeader>
           <CardTitle>Request Overview</CardTitle>
           <CardDescription>
-            This table shows all types of requests. Future enhancements could include filtering and sorting.
+            This table shows all types of requests. Click 'View' for detailed information and actions.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -145,8 +304,8 @@ export default function AllRequestsPage() {
                       {renderRequestSummary(item)}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" title="View Details (Not Implemented)" disabled>
-                        <Eye className="w-4 h-4" />
+                      <Button variant="outline" size="sm" onClick={() => handleViewDetails(item)}>
+                        <Eye className="w-4 h-4 mr-1" /> View
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -159,6 +318,92 @@ export default function AllRequestsPage() {
           )}
         </CardContent>
       </Card>
+
+      {selectedRequest && (
+        <Dialog open={isDetailDialogOpen} onOpenChange={(isOpen) => {
+          setIsDetailDialogOpen(isOpen);
+          if (!isOpen) setSelectedRequest(null); setNewComment("");
+        }}>
+          <DialogContent className="sm:max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center">
+                {getRequestTypeIcon(selectedRequest.requestType, "w-6 h-6 mr-2 text-primary")}
+                Request Details: {selectedRequest.id}
+                <Badge variant="outline" className="ml-auto capitalize">{selectedRequest.requestType}</Badge>
+              </DialogTitle>
+              <DialogDescription>
+                Detailed information and approval timeline for request {selectedRequest.id}.
+              </DialogDescription>
+            </DialogHeader>
+            <ScrollArea className="max-h-[calc(100vh-20rem)] pr-6"> {/* Adjusted max height */}
+              <div className="space-y-4 py-4">
+                <Card>
+                  <CardHeader><CardTitle className="text-lg flex items-center"><Info className="w-5 h-5 mr-2 text-primary"/>Basic Information</CardTitle></CardHeader>
+                  <CardContent className="space-y-1 text-sm">
+                    <p><strong>Requester:</strong> {selectedRequest.requesterName} ({selectedRequest.requesterDepartment})</p>
+                    <p><strong>Submitted:</strong> {new Date(selectedRequest.submissionDate).toLocaleString()}</p>
+                    <p><strong>Current Step:</strong> {selectedRequest.currentStepName}</p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader><CardTitle className="text-lg flex items-center"><Package className="w-5 h-5 mr-2 text-primary"/>Payload Details</CardTitle></CardHeader>
+                  <CardContent>
+                    {renderRequestPayloadDetailsDialog(selectedRequest.payload, selectedRequest.requestType)}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader><CardTitle className="text-lg flex items-center"><History className="w-5 h-5 mr-2 text-primary"/>Approval Timeline</CardTitle></CardHeader>
+                  <CardContent>
+                    {selectedRequest.history.length > 0 ? (
+                      <ul className="space-y-3">
+                        {selectedRequest.history.map((entry, index) => (
+                          <li key={index} className="p-3 rounded-md border bg-background text-sm">
+                            <p className="font-semibold">{entry.stepName} - <span className="capitalize font-normal">{entry.action.replace("_", " ")}</span></p>
+                            <p className="text-xs text-muted-foreground">By: {entry.actor} on {new Date(entry.timestamp).toLocaleString()}</p>
+                            {entry.comment && <p className="mt-1 italic text-muted-foreground">"{entry.comment}"</p>}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">No history available yet.</p>
+                    )}
+                  </CardContent>
+                </Card>
+                
+                <Separator />
+
+                <div className="space-y-3">
+                    <h4 className="text-md font-semibold">Actions & Comments</h4>
+                    <Textarea
+                        placeholder="Add a comment..."
+                        value={newComment}
+                        onChange={(e) => setNewComment(e.target.value)}
+                        className="min-h-[80px]"
+                    />
+                    <Button onClick={handleAddComment} size="sm" disabled={!newComment.trim()}>
+                        <MessageSquare className="w-4 h-4 mr-2" /> Add Comment
+                    </Button>
+                    <div className="flex gap-2 mt-2">
+                        <Button onClick={handleRemind} variant="outline" size="sm">
+                            <Bell className="w-4 h-4 mr-2" /> Remind Assignee
+                        </Button>
+                        <Button onClick={handleEscalate} variant="outline" size="sm" className="text-destructive border-destructive hover:bg-destructive/10 hover:text-destructive">
+                            <ChevronsUp className="w-4 h-4 mr-2" /> Escalate
+                        </Button>
+                    </div>
+                </div>
+              </div>
+            </ScrollArea>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline">Close</Button>
+              </DialogClose>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
