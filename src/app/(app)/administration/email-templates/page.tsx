@@ -15,16 +15,15 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogClose,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { EmailTemplateSchema, type EmailTemplateFormData } from "@/lib/schemas";
 import { useToast } from "@/hooks/use-toast";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
 interface EmailTemplate extends EmailTemplateFormData {}
 
@@ -43,6 +42,7 @@ export default function EmailTemplatesPage() {
 
   const form = useForm<EmailTemplateFormData>({
     resolver: zodResolver(EmailTemplateSchema),
+    defaultValues: { id: "", name: "", subject: "", body: "" },
   });
 
   const openEditDialog = (template: EmailTemplate) => {
@@ -82,7 +82,13 @@ export default function EmailTemplatesPage() {
         }
       />
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <Dialog open={isDialogOpen} onOpenChange={(isOpen) => {
+        setIsDialogOpen(isOpen);
+        if (!isOpen) {
+          form.reset();
+          setEditingTemplate(null);
+        }
+      }}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>{editingTemplate ? "Edit" : "Add"} Email Template: {editingTemplate?.name}</DialogTitle>
@@ -90,50 +96,58 @@ export default function EmailTemplatesPage() {
               Modify the content of this email template. Use placeholders like {{variableName}}.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4 py-4">
-            <FormField
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4 py-4">
+              <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Template Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Request Approved Notification" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                  )}
+              />
+              <FormField
+                  control={form.control}
+                  name="subject"
+                  render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email Subject</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Request {{requestId}} Status Update" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                  )}
+              />
+              <FormField
+                  control={form.control}
+                  name="body"
+                  render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email Body</FormLabel>
+                        <FormControl>
+                          <Textarea placeholder="Enter email content here..." {...field} rows={10} className="min-h-[200px]" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                  )}
+              />
+              <FormField
                 control={form.control}
-                name="name"
-                render={({ field }) => (
-                    <div className="space-y-1">
-                    <Label htmlFor="templateName">Template Name</Label>
-                    <Input id="templateName" placeholder="e.g., Request Approved Notification" {...field} />
-                    {form.formState.errors.name && <p className="text-sm text-destructive">{form.formState.errors.name.message}</p>}
-                    </div>
-                )}
-            />
-            <FormField
-                control={form.control}
-                name="subject"
-                render={({ field }) => (
-                    <div className="space-y-1">
-                    <Label htmlFor="templateSubject">Email Subject</Label>
-                    <Input id="templateSubject" placeholder="e.g., Request {{requestId}} Status Update" {...field} />
-                    {form.formState.errors.subject && <p className="text-sm text-destructive">{form.formState.errors.subject.message}</p>}
-                    </div>
-                )}
-            />
-            <FormField
-                control={form.control}
-                name="body"
-                render={({ field }) => (
-                    <div className="space-y-1">
-                    <Label htmlFor="templateBody">Email Body</Label>
-                    <Textarea id="templateBody" placeholder="Enter email content here..." {...field} rows={10} className="min-h-[200px]" />
-                    {form.formState.errors.body && <p className="text-sm text-destructive">{form.formState.errors.body.message}</p>}
-                    </div>
-                )}
-            />
-             <FormField
-              control={form.control}
-              name="id"
-              render={({ field }) => (<Input type="hidden" {...field} />)}
-            />
-            <DialogFooter>
-              <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
-              <Button type="submit"><Save className="w-4 h-4 mr-2" /> {editingTemplate ? "Save Changes" : "Add Template"}</Button>
-            </DialogFooter>
-          </form>
+                name="id"
+                render={({ field }) => (<Input type="hidden" {...field} />)}
+              />
+              <DialogFooter>
+                <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                <Button type="submit"><Save className="w-4 h-4 mr-2" /> {editingTemplate ? "Save Changes" : "Add Template"}</Button>
+              </DialogFooter>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
 

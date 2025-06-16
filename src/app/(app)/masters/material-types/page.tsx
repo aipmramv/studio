@@ -16,7 +16,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogClose,
 } from "@/components/ui/dialog";
 import {
@@ -30,11 +29,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MaterialTypeSchema, type MaterialTypeFormData } from "@/lib/schemas";
 import { useToast } from "@/hooks/use-toast";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
 interface MaterialTypeItem {
   id: string;
@@ -52,6 +51,9 @@ export default function MaterialTypesMasterPage() {
 
   const form = useForm<MaterialTypeFormData>({
     resolver: zodResolver(MaterialTypeSchema),
+    defaultValues: {
+        name: "",
+    }
   });
 
   const openAddDialog = () => {
@@ -110,14 +112,20 @@ export default function MaterialTypesMasterPage() {
               Are you sure you want to delete material type "{typeToDelete.name}"? This action cannot be undone.
             </AlertDialogDescription>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel onClick={() => setTypeToDelete(null)}>Cancel</AlertDialogCancel>
               <AlertDialogAction onClick={executeDelete} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
       )}
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <Dialog open={isDialogOpen} onOpenChange={(isOpen) => {
+        setIsDialogOpen(isOpen);
+        if (!isOpen) {
+          form.reset();
+          setEditingType(null);
+        }
+      }}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>{editingType ? "Edit" : "Add New"} Material Type</DialogTitle>
@@ -125,23 +133,27 @@ export default function MaterialTypesMasterPage() {
               {editingType ? "Modify the name of this material type." : "Enter the name for the new material type."}
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4 py-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <div className="space-y-1">
-                  <Label htmlFor="typeName">Material Type Name</Label>
-                  <Input id="typeName" placeholder="e.g., Raw Component X" {...field} />
-                  {form.formState.errors.name && <p className="text-sm text-destructive">{form.formState.errors.name.message}</p>}
-                </div>
-              )}
-            />
-            <DialogFooter>
-              <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
-              <Button type="submit"><Save className="w-4 h-4 mr-2" /> {editingType ? "Save Changes" : "Add Type"}</Button>
-            </DialogFooter>
-          </form>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4 py-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Material Type Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., Raw Component X" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <DialogFooter>
+                <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                <Button type="submit"><Save className="w-4 h-4 mr-2" /> {editingType ? "Save Changes" : "Add Type"}</Button>
+              </DialogFooter>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
 
@@ -184,3 +196,4 @@ export default function MaterialTypesMasterPage() {
     </div>
   );
 }
+

@@ -6,7 +6,7 @@ import * as React from "react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Edit, Trash2, Workflow as WorkflowIcon, Users, ArrowRight, Save, Copy, CheckSquare, Square } from "lucide-react";
+import { PlusCircle, Edit, Trash2, Workflow as WorkflowIcon, Save } from "lucide-react";
 import { MOCK_WORKFLOW_TEMPLATES, type WorkflowTemplate, type WorkflowStep, REQUEST_TYPES, USER_ROLES } from "@/lib/constants";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -30,7 +30,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogClose,
 } from "@/components/ui/dialog";
 import {
@@ -44,14 +43,15 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useForm, Controller, useFieldArray } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { WorkflowTemplateSchema, WorkflowStepSchema, type WorkflowTemplateFormData, type WorkflowStepFormData } from "@/lib/schemas";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+
 
 export default function WorkflowConfigurationPage() {
   const [workflowTemplates, setWorkflowTemplates] = React.useState<WorkflowTemplate[]>(MOCK_WORKFLOW_TEMPLATES);
@@ -66,11 +66,12 @@ export default function WorkflowConfigurationPage() {
 
   const templateForm = useForm<WorkflowTemplateFormData>({
     resolver: zodResolver(WorkflowTemplateSchema),
+    defaultValues: { id: "", name: "", requestType: undefined, initialStepId: "" },
   });
 
   const stepForm = useForm<WorkflowStepFormData>({
     resolver: zodResolver(WorkflowStepSchema),
-    defaultValues: { assignedRoles: [] }
+    defaultValues: { id: "", name: "", assignedRoles: [], nextStepId: "", rejectionLeadsToStepId: "" }
   });
 
   const openAddTemplateDialog = () => {
@@ -125,10 +126,10 @@ export default function WorkflowConfigurationPage() {
 
   const handleTemplateFormSubmit = (data: WorkflowTemplateFormData) => {
     if (editingTemplate) {
-      setWorkflowTemplates(prev => prev.map(t => t.id === editingTemplate.id ? { ...t, ...data } : t));
+      setWorkflowTemplates(prev => prev.map(t => t.id === editingTemplate.id ? { ...t, ...data, steps: t.steps } : t)); // Keep existing steps
       toast({ title: "Template Updated", description: `Workflow template ${data.name} updated.` });
     } else {
-      const newTemplate: WorkflowTemplate = { ...data, steps: [] };
+      const newTemplate: WorkflowTemplate = { ...data, steps: [] }; // New templates start with no steps
       setWorkflowTemplates(prev => [...prev, newTemplate]);
       toast({ title: "Template Added", description: `Workflow template ${data.name} added.` });
     }
@@ -190,6 +191,7 @@ export default function WorkflowConfigurationPage() {
               <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
               <AlertDialogDescription>
                 Are you sure you want to delete this {itemToDelete.type}? This action cannot be undone.
+                {itemToDelete.type === 'template' && ' Deleting a template will also delete all its steps.'}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -200,7 +202,13 @@ export default function WorkflowConfigurationPage() {
         </AlertDialog>
       )}
 
-      <Dialog open={isTemplateDialogOpen} onOpenChange={setIsTemplateDialogOpen}>
+      <Dialog open={isTemplateDialogOpen} onOpenChange={(isOpen) => {
+        setIsTemplateDialogOpen(isOpen);
+        if (!isOpen) {
+          templateForm.reset();
+          setEditingTemplate(null);
+        }
+      }}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>{editingTemplate ? "Edit" : "Add New"} Workflow Template</DialogTitle>
@@ -208,71 +216,86 @@ export default function WorkflowConfigurationPage() {
               {editingTemplate ? "Modify the details of this workflow template." : "Create a new workflow template to define an approval process."}
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={templateForm.handleSubmit(handleTemplateFormSubmit)} className="space-y-4 py-4">
-            <FormField
-              control={templateForm.control}
-              name="name"
-              render={({ field }) => (
-                <div className="space-y-1">
-                  <Label htmlFor="templateName">Template Name</Label>
-                  <Input id="templateName" placeholder="e.g., High Value PO Approval" {...field} />
-                  {templateForm.formState.errors.name && <p className="text-sm text-destructive">{templateForm.formState.errors.name.message}</p>}
-                </div>
-              )}
-            />
-            <FormField
-              control={templateForm.control}
-              name="requestType"
-              render={({ field }) => (
-                <div className="space-y-1">
-                  <Label htmlFor="requestType">Request Type</Label>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <SelectTrigger id="requestType">
-                      <SelectValue placeholder="Select request type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {REQUEST_TYPES.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                  {templateForm.formState.errors.requestType && <p className="text-sm text-destructive">{templateForm.formState.errors.requestType.message}</p>}
-                </div>
-              )}
-            />
-            <FormField
-              control={templateForm.control}
-              name="initialStepId"
-              render={({ field }) => (
-                <div className="space-y-1">
-                  <Label htmlFor="initialStepId">Initial Step ID</Label>
-                  <Select onValueChange={field.onChange} value={field.value} disabled={!editingTemplate || editingTemplate.steps.length === 0}>
-                    <SelectTrigger id="initialStepId">
-                      <SelectValue placeholder="Select initial step (after adding steps)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                       {editingTemplate?.steps.map(step => <SelectItem key={step.id} value={step.id}>{step.name} ({step.id})</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground">Set this after adding steps to the template. Must match one of the step IDs.</p>
-                  {templateForm.formState.errors.initialStepId && <p className="text-sm text-destructive">{templateForm.formState.errors.initialStepId.message}</p>}
-                </div>
-              )}
-            />
-             <FormField
-              control={templateForm.control}
-              name="id"
-              render={({ field }) => (<Input type="hidden" {...field} />)}
-            />
-            <DialogFooter>
-              <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
-              <Button type="submit">
-                <Save className="w-4 h-4 mr-2" /> {editingTemplate ? "Save Changes" : "Create Template"}
-              </Button>
-            </DialogFooter>
-          </form>
+          <Form {...templateForm}>
+            <form onSubmit={templateForm.handleSubmit(handleTemplateFormSubmit)} className="space-y-4 py-4">
+              <FormField
+                control={templateForm.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Template Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., High Value PO Approval" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={templateForm.control}
+                name="requestType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Request Type</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger><SelectValue placeholder="Select request type" /></SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {REQUEST_TYPES.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={templateForm.control}
+                name="initialStepId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Initial Step</FormLabel>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      value={field.value} 
+                      disabled={!editingTemplate?.steps.length && !currentTemplateForStep?.steps.length}
+                    >
+                      <FormControl>
+                        <SelectTrigger><SelectValue placeholder="Select initial step (after adding steps)" /></SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                         {(editingTemplate || currentTemplateForStep)?.steps.map(step => <SelectItem key={step.id} value={step.id}>{step.name} ({step.id})</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">Set this after adding steps to the template. Must match one of the step IDs.</p>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={templateForm.control}
+                name="id"
+                render={({ field }) => (<Input type="hidden" {...field} />)}
+              />
+              <DialogFooter>
+                <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                <Button type="submit">
+                  <Save className="w-4 h-4 mr-2" /> {editingTemplate ? "Save Changes" : "Create Template"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isStepDialogOpen} onOpenChange={setIsStepDialogOpen}>
+      <Dialog open={isStepDialogOpen} onOpenChange={(isOpen) => {
+          setIsStepDialogOpen(isOpen);
+          if(!isOpen) {
+            stepForm.reset();
+            setEditingStep(null);
+            setCurrentTemplateForStep(null);
+          }
+        }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{editingStep ? "Edit" : "Add New"} Workflow Step</DialogTitle>
@@ -280,105 +303,125 @@ export default function WorkflowConfigurationPage() {
               Define the details for this step in the workflow: {currentTemplateForStep?.name}.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={stepForm.handleSubmit(handleStepFormSubmit)} className="space-y-4 py-4">
-            <FormField
-              control={stepForm.control}
-              name="name"
-              render={({ field }) => (
-                <div className="space-y-1">
-                  <Label htmlFor="stepName">Step Name</Label>
-                  <Input id="stepName" placeholder="e.g., Finance Review" {...field} />
-                   {stepForm.formState.errors.name && <p className="text-sm text-destructive">{stepForm.formState.errors.name.message}</p>}
-                </div>
-              )}
-            />
-            <FormField
-              control={stepForm.control}
-              name="id"
-              render={({ field }) => (
-                <div className="space-y-1">
-                  <Label htmlFor="stepId">Step ID</Label>
-                  <Input id="stepId" placeholder="e.g., finance_review (unique)" {...field} disabled={!!editingStep} />
-                  <p className="text-xs text-muted-foreground">Unique identifier for this step. Cannot be changed after creation.</p>
-                  {stepForm.formState.errors.id && <p className="text-sm text-destructive">{stepForm.formState.errors.id.message}</p>}
-                </div>
-              )}
-            />
-            <div className="space-y-2">
-              <Label>Assigned Roles</Label>
-              <ScrollArea className="h-32 border rounded-md">
-                <div className="p-4 space-y-2">
-                {USER_ROLES.map(role => (
-                  <FormField
-                    key={role}
-                    control={stepForm.control}
-                    name="assignedRoles"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value?.includes(role)}
-                            onCheckedChange={(checked) => {
-                              return checked
-                                ? field.onChange([...(field.value || []), role])
-                                : field.onChange(
-                                    (field.value || []).filter(
-                                      (value) => value !== role
-                                    )
-                                  )
-                            }}
-                          />
-                        </FormControl>
-                        <FormLabel className="font-normal text-sm">
-                          {role.charAt(0).toUpperCase() + role.slice(1).replace(/_/g, ' ')}
-                        </FormLabel>
-                      </FormItem>
-                    )}
-                  />
-                ))}
-                </div>
-              </ScrollArea>
-              {stepForm.formState.errors.assignedRoles && <p className="text-sm text-destructive">{stepForm.formState.errors.assignedRoles.message}</p>}
-            </div>
-             <FormField
-              control={stepForm.control}
-              name="nextStepId"
-              render={({ field }) => (
-                <div className="space-y-1">
-                  <Label htmlFor="nextStepId">Next Step (on Approve)</Label>
-                  <Select onValueChange={field.onChange} value={field.value} >
-                    <SelectTrigger id="nextStepId"><SelectValue placeholder="Select next step or leave blank if final" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">None (Final Approval)</SelectItem>
-                      {currentTemplateForStep?.steps.filter(s => s.id !== editingStep?.id).map(s => <SelectItem key={s.id} value={s.id}>{s.name} ({s.id})</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            />
-            <FormField
-              control={stepForm.control}
-              name="rejectionLeadsToStepId"
-              render={({ field }) => (
-                <div className="space-y-1">
-                  <Label htmlFor="rejectionLeadsToStepId">Next Step (on Reject)</Label>
-                  <Select onValueChange={field.onChange} value={field.value} >
-                    <SelectTrigger id="rejectionLeadsToStepId"><SelectValue placeholder="Select step for rejection flow or leave blank" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">None (Ends Workflow or Reverts to Requester)</SelectItem>
-                       {currentTemplateForStep?.steps.filter(s => s.id !== editingStep?.id).map(s => <SelectItem key={s.id} value={s.id}>{s.name} ({s.id})</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            />
-            <DialogFooter>
-               <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
-              <Button type="submit">
-                <Save className="w-4 h-4 mr-2" /> {editingStep ? "Save Changes" : "Add Step"}
-              </Button>
-            </DialogFooter>
-          </form>
+          <Form {...stepForm}>
+            <form onSubmit={stepForm.handleSubmit(handleStepFormSubmit)} className="space-y-4 py-4">
+              <FormField
+                control={stepForm.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Step Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., Finance Review" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={stepForm.control}
+                name="id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Step ID</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., finance_review (unique)" {...field} disabled={!!editingStep} />
+                    </FormControl>
+                    <p className="text-xs text-muted-foreground">Unique identifier for this step. Cannot be changed after creation.</p>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={stepForm.control}
+                name="assignedRoles"
+                render={() => (
+                  <FormItem>
+                    <FormLabel>Assigned Roles</FormLabel>
+                    <ScrollArea className="h-32 border rounded-md">
+                      <div className="p-4 space-y-2">
+                      {USER_ROLES.map(role => (
+                        <FormField
+                          key={role}
+                          control={stepForm.control}
+                          name="assignedRoles"
+                          render={({ field }) => {
+                            return (
+                              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                                <FormControl>
+                                  <Checkbox
+                                    checked={field.value?.includes(role)}
+                                    onCheckedChange={(checked) => {
+                                      return checked
+                                        ? field.onChange([...(field.value || []), role])
+                                        : field.onChange(
+                                            (field.value || []).filter(
+                                              (value) => value !== role
+                                            )
+                                          )
+                                    }}
+                                  />
+                                </FormControl>
+                                <FormLabel className="font-normal text-sm">
+                                  {role.charAt(0).toUpperCase() + role.slice(1).replace(/_/g, ' ')}
+                                </FormLabel>
+                              </FormItem>
+                            )
+                          }}
+                        />
+                      ))}
+                      </div>
+                    </ScrollArea>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={stepForm.control}
+                name="nextStepId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Next Step (on Approve)</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value || ""} >
+                      <FormControl>
+                        <SelectTrigger><SelectValue placeholder="Select next step or leave blank if final" /></SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="">None (Final Approval)</SelectItem>
+                        {currentTemplateForStep?.steps.filter(s => s.id !== editingStep?.id).map(s => <SelectItem key={s.id} value={s.id}>{s.name} ({s.id})</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                     <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={stepForm.control}
+                name="rejectionLeadsToStepId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Next Step (on Reject)</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value || ""} >
+                      <FormControl>
+                        <SelectTrigger><SelectValue placeholder="Select step for rejection flow or leave blank" /></SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="">None (Ends Workflow or Reverts to Requester)</SelectItem>
+                        {currentTemplateForStep?.steps.filter(s => s.id !== editingStep?.id).map(s => <SelectItem key={s.id} value={s.id}>{s.name} ({s.id})</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <DialogFooter>
+                <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                <Button type="submit">
+                  <Save className="w-4 h-4 mr-2" /> {editingStep ? "Save Changes" : "Add Step"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
 
@@ -420,7 +463,7 @@ export default function WorkflowConfigurationPage() {
                     </Button>
                 </div>
                 {template.steps.length > 0 ? (
-                  <Accordion type="single" collapsible className="w-full">
+                  <Accordion type="single" collapsible className="w-full" defaultValue={template.steps[0]?.id}>
                     {template.steps.map((step, index) => (
                        <AccordionItem value={step.id} key={step.id} className="mb-2 border rounded-md">
                         <AccordionTrigger className="px-4 py-3 hover:bg-accent/50 rounded-t-md">
@@ -428,7 +471,7 @@ export default function WorkflowConfigurationPage() {
                             <div className="flex items-center text-base font-medium">
                                 <span className="mr-2 text-primary">{index + 1}.</span> {step.name} {template.initialStepId === step.id && <Badge variant="default" className="ml-2">Initial</Badge>}
                             </div>
-                            <div className="flex gap-1 mr-2"> {/* Added mr-2 to prevent overlap with accordion icon */}
+                            <div className="flex gap-1 mr-2">
                                 <Button variant="ghost" size="icon" className="w-7 h-7" onClick={(e) => { e.stopPropagation(); openEditStepDialog(step, template); }}>
                                     <Edit className="w-3.5 h-3.5" />
                                 </Button>
@@ -458,3 +501,4 @@ export default function WorkflowConfigurationPage() {
     </div>
   );
 }
+

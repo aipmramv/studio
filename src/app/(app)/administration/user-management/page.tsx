@@ -20,13 +20,13 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { InviteUserSchema, type InviteUserFormData } from "@/lib/schemas";
 import { USER_ROLES, DEPARTMENTS, type UserRole } from "@/lib/constants";
 import { useToast } from "@/hooks/use-toast";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
 interface MockUser {
   id: string;
@@ -55,20 +55,19 @@ export default function UserManagementPage() {
     defaultValues: { email: "", role: "requester" },
   });
   
-  // Mock form for editing user (department and role)
   const editUserForm = useForm<{ department: string, role: UserRole }>({
+    // resolver: zodResolver(SomeSchemaForEditUser), // If you create a schema
     defaultValues: { department: "", role: "requester"}
   });
 
 
   const handleInviteUserSubmit = (data: InviteUserFormData) => {
     console.log("Invite User Data:", data);
-    // Mock: Add to users list
     const newUser: MockUser = { 
       id: `user_${Date.now()}`, 
-      name: data.email.split('@')[0], // Simple name generation
+      name: data.email.split('@')[0] || "New User", 
       email: data.email, 
-      department: "Unassigned", // Default department
+      department: "Unassigned", 
       role: data.role 
     };
     setUsers(prev => [...prev, newUser]);
@@ -79,7 +78,6 @@ export default function UserManagementPage() {
 
   const handleSyncSsoUsers = () => {
     toast({ title: "Syncing SSO Users...", description: "This is a mock action. In a real app, this would sync with your SSO provider." });
-    // Simulate adding a new user from SSO
     setTimeout(() => {
       const ssoUser: MockUser = { 
         id: `sso_user_${Date.now()}`, 
@@ -123,102 +121,123 @@ export default function UserManagementPage() {
           <Button onClick={handleSyncSsoUsers}>
             <RefreshCw className="w-4 h-4 mr-2" /> Sync SSO Users
           </Button>
-          <DialogTrigger asChild>
-            <Button variant="outline" onClick={() => setIsInviteDialogOpen(true)}>
-              <Send className="w-4 h-4 mr-2" /> Invite New User
-            </Button>
-          </DialogTrigger>
+          <Button variant="outline" onClick={() => setIsInviteDialogOpen(true)}>
+            <Send className="w-4 h-4 mr-2" /> Invite New User
+          </Button>
         </CardContent>
       </Card>
 
-      <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
+      <Dialog open={isInviteDialogOpen} onOpenChange={(isOpen) => {
+        setIsInviteDialogOpen(isOpen);
+        if (!isOpen) inviteForm.reset();
+      }}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Invite New User</DialogTitle>
             <DialogDescription>Send an invitation to a new user to join the platform.</DialogDescription>
           </DialogHeader>
-          <form onSubmit={inviteForm.handleSubmit(handleInviteUserSubmit)} className="space-y-4 py-4">
-            <FormField
-              control={inviteForm.control}
-              name="email"
-              render={({ field }) => (
-                <div className="space-y-1">
-                  <Label htmlFor="inviteEmail">Email Address</Label>
-                  <Input id="inviteEmail" type="email" placeholder="user@example.com" {...field} />
-                  {inviteForm.formState.errors.email && <p className="text-sm text-destructive">{inviteForm.formState.errors.email.message}</p>}
-                </div>
-              )}
-            />
-            <FormField
-              control={inviteForm.control}
-              name="role"
-              render={({ field }) => (
-                <div className="space-y-1">
-                  <Label htmlFor="inviteRole">Assign Role</Label>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <SelectTrigger id="inviteRole"><SelectValue placeholder="Select role" /></SelectTrigger>
-                    <SelectContent>
-                      {USER_ROLES.map(role => <SelectItem key={role} value={role}>{role.charAt(0).toUpperCase() + role.slice(1).replace(/_/g, ' ')}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                   {inviteForm.formState.errors.role && <p className="text-sm text-destructive">{inviteForm.formState.errors.role.message}</p>}
-                </div>
-              )}
-            />
-            <DialogFooter>
-              <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
-              <Button type="submit"><Send className="w-4 h-4 mr-2" /> Send Invitation</Button>
-            </DialogFooter>
-          </form>
+          <Form {...inviteForm}>
+            <form onSubmit={inviteForm.handleSubmit(handleInviteUserSubmit)} className="space-y-4 py-4">
+              <FormField
+                control={inviteForm.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email Address</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="user@example.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={inviteForm.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Assign Role</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger><SelectValue placeholder="Select role" /></SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {USER_ROLES.map(role => <SelectItem key={role} value={role}>{role.charAt(0).toUpperCase() + role.slice(1).replace(/_/g, ' ')}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <DialogFooter>
+                <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                <Button type="submit"><Send className="w-4 h-4 mr-2" /> Send Invitation</Button>
+              </DialogFooter>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isEditUserDialogOpen} onOpenChange={setIsEditUserDialogOpen}>
+      <Dialog open={isEditUserDialogOpen} onOpenChange={(isOpen) => {
+        setIsEditUserDialogOpen(isOpen);
+        if (!isOpen) {
+          setEditingUser(null);
+          editUserForm.reset();
+        }
+      }}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Edit User: {editingUser?.name}</DialogTitle>
             <DialogDescription>Update department and role for this user.</DialogDescription>
           </DialogHeader>
-          <form onSubmit={editUserForm.handleSubmit(handleEditUserSubmit)} className="space-y-4 py-4">
-             <div className="space-y-1">
-              <Label>Email: {editingUser?.email}</Label>
-            </div>
-            <FormField
-                control={editUserForm.control}
-                name="department"
-                render={({ field }) => (
-                    <div className="space-y-1">
-                    <Label htmlFor="editUserDepartment">Department</Label>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <SelectTrigger id="editUserDepartment"><SelectValue placeholder="Select department" /></SelectTrigger>
-                        <SelectContent>
-                        {DEPARTMENTS.map(dept => <SelectItem key={dept} value={dept}>{dept}</SelectItem>)}
-                        <SelectItem value="Unassigned">Unassigned</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    </div>
-                )}
-            />
-            <FormField
-                control={editUserForm.control}
-                name="role"
-                render={({ field }) => (
-                    <div className="space-y-1">
-                    <Label htmlFor="editUserRole">Role</Label>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <SelectTrigger id="editUserRole"><SelectValue placeholder="Select role" /></SelectTrigger>
-                        <SelectContent>
-                        {USER_ROLES.map(role => <SelectItem key={role} value={role}>{role.charAt(0).toUpperCase() + role.slice(1).replace(/_/g, ' ')}</SelectItem>)}
-                        </SelectContent>
-                    </Select>
-                    </div>
-                )}
-            />
-            <DialogFooter>
-              <DialogClose asChild><Button variant="outline" onClick={() => setEditingUser(null)}>Cancel</Button></DialogClose>
-              <Button type="submit">Save Changes</Button>
-            </DialogFooter>
-          </form>
+          <Form {...editUserForm}>
+            <form onSubmit={editUserForm.handleSubmit(handleEditUserSubmit)} className="space-y-4 py-4">
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Email: {editingUser?.email}</p>
+              </div>
+              <FormField
+                  control={editUserForm.control}
+                  name="department"
+                  render={({ field }) => (
+                      <FormItem>
+                      <FormLabel>Department</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger><SelectValue placeholder="Select department" /></SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                          {DEPARTMENTS.map(dept => <SelectItem key={dept} value={dept}>{dept}</SelectItem>)}
+                          <SelectItem value="Unassigned">Unassigned</SelectItem>
+                          </SelectContent>
+                      </Select>
+                      <FormMessage />
+                      </FormItem>
+                  )}
+              />
+              <FormField
+                  control={editUserForm.control}
+                  name="role"
+                  render={({ field }) => (
+                      <FormItem>
+                      <FormLabel>Role</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger><SelectValue placeholder="Select role" /></SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                          {USER_ROLES.map(role => <SelectItem key={role} value={role}>{role.charAt(0).toUpperCase() + role.slice(1).replace(/_/g, ' ')}</SelectItem>)}
+                          </SelectContent>
+                      </Select>
+                      <FormMessage />
+                      </FormItem>
+                  )}
+              />
+              <DialogFooter>
+                <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                <Button type="submit">Save Changes</Button>
+              </DialogFooter>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
 
@@ -267,3 +286,4 @@ export default function UserManagementPage() {
     </div>
   );
 }
+
