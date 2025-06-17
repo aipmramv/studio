@@ -167,7 +167,6 @@ export default function MonthlyBudgetReportPage() {
                                 variant="link" 
                                 className="p-0 h-auto text-foreground hover:text-primary"
                                 onClick={() => handleActualAmountClick(row)}
-                                disabled={!row.fullRecord.userBreakdown || row.fullRecord.userBreakdown.length === 0}
                             >
                                 {row.actualAmount.toLocaleString('en-IN', formattingOptions)}
                             </Button>
@@ -191,7 +190,7 @@ export default function MonthlyBudgetReportPage() {
                         </TableRow>
                       ))}
                     </TableBody>
-                    <TableFooter className="bg-muted/50">
+                    <TableFooter>
                       <TableRow className="font-semibold">
                         <TableCell>Total / Average</TableCell>
                         <TableCell className="text-right">{totals.forecasted.toLocaleString('en-IN', formattingOptions)}</TableCell>
@@ -230,7 +229,12 @@ export default function MonthlyBudgetReportPage() {
       </Card>
 
       {selectedMonthDataForDrilldown && (
-        <Dialog open={isDrilldownModalOpen} onOpenChange={setIsDrilldownModalOpen}>
+        <Dialog open={isDrilldownModalOpen} onOpenChange={(isOpen) => {
+            setIsDrilldownModalOpen(isOpen);
+            if (!isOpen) {
+                setSelectedMonthDataForDrilldown(null); // Clear data when closing
+            }
+        }}>
           <DialogContent className="sm:max-w-lg">
             <DialogHeader>
               <DialogTitle className="flex items-center">
@@ -282,3 +286,4 @@ export default function MonthlyBudgetReportPage() {
     </div>
   );
 }
+
