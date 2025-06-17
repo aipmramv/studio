@@ -138,7 +138,7 @@ const renderRequestSummary = (item: ApprovalItem): string => {
   switch (requestType) {
     case "Material Movement":
       const mm = payload as MaterialMovementFormData;
-      return `${mm.quantity} x ${mm.materialType} from ${mm.source} to ${mm.destination}. Value: ${mm.value.toLocaleString('en-IN', formattingOptions)}`;
+      return `Move ${mm.quantity} x ${mm.materialType} from ${mm.source} to ${mm.destination}. Value: ${mm.value.toLocaleString('en-IN', formattingOptions)}`;
     case "Scrap Request":
       const sm = payload as ScrapMovementFormData;
       return `${sm.quantity} units of ${sm.scrapType} (${sm.weight} units weight). Desc: ${sm.description.substring(0,50)}...`;
@@ -511,7 +511,7 @@ export default function AllRequestsPage() {
             <div className="flex-1">
               <CardTitle>Request Overview</CardTitle>
               <CardDescription>
-                This table shows all types of requests. Click 'View' for detailed information and actions.
+                This table shows all types of requests. Click an ID or 'View' for detailed information and actions.
               </CardDescription>
             </div>
              <Popover>
@@ -607,7 +607,11 @@ export default function AllRequestsPage() {
                 <TableBody>
                   {paginatedRequests.map((item) => (
                     <TableRow key={item.id}>
-                      <TableCell className="font-medium">{item.id}</TableCell>
+                      <TableCell>
+                        <Button variant="link" size="sm" className="p-0 h-auto font-medium" onClick={() => handleViewDetails(item)}>
+                          {item.id}
+                        </Button>
+                      </TableCell>
                       <TableCell className="flex items-center">
                         {getRequestTypeIcon(item.requestType)}
                         {item.requestType}
@@ -764,5 +768,3 @@ export default function AllRequestsPage() {
     </div>
   );
 }
-
-    
