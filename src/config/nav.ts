@@ -6,7 +6,7 @@ import {
   ClipboardCheck, ShoppingCart, Tags, PlusCircle, Warehouse,
   Store, PackagePlus, PackageMinus, Undo2, SearchCheck, SlidersHorizontal, GitFork,
   Users, Mail, UserCog, Layers, FileArchive, DollarSignIcon, PackageSearch,
-  Building2, Users2, TagIcon, ScaleIcon, Landmark
+  Building2, Users2, TagIcon, ScaleIcon, Landmark, AreaChart
 } from 'lucide-react';
 
 export interface NavItem {
@@ -129,6 +129,13 @@ export const mainNavItems: NavItem[] = [
         roles: ['admin', 'mm_team', 'department_head', 'finance_team'],
       },
       {
+        title: 'Monthly Budget Report',
+        href: '/reports/monthly-budget-report',
+        icon: AreaChart, 
+        description: "Track monthly budget forecast vs actuals.",
+        roles: ['admin', 'department_head', 'finance_team'],
+      },
+      {
         title: 'Audit Logs',
         href: '/administration/audit-logs',
         icon: FileArchive,
@@ -209,3 +216,5 @@ export const userNavItems: NavItem[] = [
         description: "Sign out of your account."
     }
 ];
+
+    

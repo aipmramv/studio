@@ -199,4 +199,58 @@ export const MOCK_DEPARTMENT_BUDGETS: DepartmentBudget[] = [
   { id: "DB003", department: "Maintenance", year: "2024-2025", q1Budget: 150000, q2Budget: 160000, q3Budget: 140000, q4Budget: 180000 },
   { id: "DB004", department: "Production", year: "2024-2025", q1Budget: 1000000, q2Budget: 1100000, q3Budget: 950000, q4Budget: 1200000 },
   { id: "DB005", department: "R&D", year: "2023-2024", q1Budget: 450000, q2Budget: 500000, q3Budget: 430000, q4Budget: 550000 },
+  { id: "DB006", department: "Finance", year: "2024-2025", q1Budget: 100000, q2Budget: 100000, q3Budget: 100000, q4Budget: 100000 },
+  { id: "DB007", department: "Sales", year: "2024-2025", q1Budget: 300000, q2Budget: 320000, q3Budget: 280000, q4Budget: 350000 },
 ];
+
+export const MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] as const;
+export type FiscalMonthName = typeof MONTHS_SHORT[number]; // Using short names for display
+
+export interface MonthlyBudgetRecord {
+  id: string;
+  department: Department;
+  year: FiscalYear;
+  monthIndex: number; // 0 for April, 1 for May, ..., 11 for March (to align with typical Indian fiscal year starting April)
+  forecastedAmount: number;
+  actualAmount: number;
+}
+
+// Helper to get month name from fiscal month index (0=Apr, 1=May, ..., 11=Mar)
+export const getFiscalMonthName = (monthIndex: number): string => {
+  const fiscalYearMonths = ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar"];
+  return fiscalYearMonths[monthIndex] || "Invalid Month";
+};
+
+
+export const MOCK_MONTHLY_BUDGET_DATA: MonthlyBudgetRecord[] = [
+  // R&D 2024-2025
+  { id: "MB001", department: "R&D", year: "2024-2025", monthIndex: 0, forecastedAmount: 160000, actualAmount: 155000 }, // Apr
+  { id: "MB002", department: "R&D", year: "2024-2025", monthIndex: 1, forecastedAmount: 170000, actualAmount: 175000 }, // May
+  { id: "MB003", department: "R&D", year: "2024-2025", monthIndex: 2, forecastedAmount: 170000, actualAmount: 165000 }, // Jun (Q1 total: 500k)
+  { id: "MB004", department: "R&D", year: "2024-2025", monthIndex: 3, forecastedAmount: 180000, actualAmount: 182000 }, // Jul
+  { id: "MB005", department: "R&D", year: "2024-2025", monthIndex: 4, forecastedAmount: 180000, actualAmount: 0 },    // Aug (No actuals yet)
+  { id: "MB006", department: "R&D", year: "2024-2025", monthIndex: 5, forecastedAmount: 190000, actualAmount: 0 },    // Sep (No actuals yet, Q2 total: 550k)
+  // IT 2024-2025
+  { id: "MB007", department: "IT", year: "2024-2025", monthIndex: 0, forecastedAmount: 60000, actualAmount: 58000 },  // Apr
+  { id: "MB008", department: "IT", year: "2024-2025", monthIndex: 1, forecastedAmount: 70000, actualAmount: 72000 },  // May
+  { id: "MB009", department: "IT", year: "2024-2025", monthIndex: 2, forecastedAmount: 70000, actualAmount: 65000 },  // Jun (Q1 total: 200k)
+  // Finance 2024-2025
+  { id: "MB010", department: "Finance", year: "2024-2025", monthIndex: 0, forecastedAmount: 30000, actualAmount: 28000 }, // Apr
+  { id: "MB011", department: "Finance", year: "2024-2025", monthIndex: 1, forecastedAmount: 35000, actualAmount: 33000 }, // May
+  { id: "MB012", department: "Finance", year: "2024-2025", monthIndex: 2, forecastedAmount: 35000, actualAmount: 38000 }, // Jun (Q1 total: 100k)
+  // R&D 2023-2024 (Past year example)
+  { id: "MB013", department: "R&D", year: "2023-2024", monthIndex: 0, forecastedAmount: 150000, actualAmount: 145000 }, // Apr
+  { id: "MB014", department: "R&D", year: "2023-2024", monthIndex: 1, forecastedAmount: 150000, actualAmount: 152000 }, // May
+  { id: "MB015", department: "R&D", year: "2023-2024", monthIndex: 2, forecastedAmount: 150000, actualAmount: 148000 }, // Jun
+  { id: "MB016", department: "R&D", year: "2023-2024", monthIndex: 3, forecastedAmount: 160000, actualAmount: 158000 }, // Jul
+  { id: "MB017", department: "R&D", year: "2023-2024", monthIndex: 4, forecastedAmount: 170000, actualAmount: 171000 }, // Aug
+  { id: "MB018", department: "R&D", year: "2023-2024", monthIndex: 5, forecastedAmount: 170000, actualAmount: 169000 }, // Sep
+  { id: "MB019", department: "R&D", year: "2023-2024", monthIndex: 6, forecastedAmount: 140000, actualAmount: 138000 }, // Oct
+  { id: "MB020", department: "R&D", year: "2023-2024", monthIndex: 7, forecastedAmount: 140000, actualAmount: 142000 }, // Nov
+  { id: "MB021", department: "R&D", year: "2023-2024", monthIndex: 8, forecastedAmount: 150000, actualAmount: 149000 }, // Dec
+  { id: "MB022", department: "R&D", year: "2023-2024", monthIndex: 9, forecastedAmount: 180000, actualAmount: 178000 }, // Jan
+  { id: "MB023", department: "R&D", year: "2023-2024", monthIndex: 10, forecastedAmount: 180000, actualAmount: 181000 }, // Feb
+  { id: "MB024", department: "R&D", year: "2023-2024", monthIndex: 11, forecastedAmount: 190000, actualAmount: 188000 }, // Mar
+];
+
+    
