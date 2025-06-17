@@ -33,12 +33,13 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  TableFooter,
 } from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
+  DialogFooter as UIDialogFooter,
   DialogHeader,
   DialogTitle,
   DialogClose,
@@ -98,7 +99,7 @@ const mockApprovalsData: ApprovalItem[] = [
   {
     id: "WP003", requestType: "Work Permit", requesterName: "Carol White", requesterDepartment: "IT", submissionDate: "2024-07-29T09:15:00Z",
     currentStepId: "wp_safety_review", currentStepName: "Safety Team Review", currentAssignees: ["safety", "admin"], workflowTemplateId: "work_permit_default",
-    payload: { building: "KOSMO", activityType: "Electrical Work (LV/MV/HV)", activityDetails: "Routine server maintenance in DC room 3", specificAreaOrEquipment: "DC Room 3", permitValidity: new Date() } as WorkPermitFormData,
+    payload: { building: "KOSMO Building", activityType: "Electrical Work (LV/MV/HV)", activityDetails: "Routine server maintenance in DC room 3", specificAreaOrEquipment: "DC Room 3", permitValidity: new Date() } as WorkPermitFormData,
     history: [
         { stepId: "submission", stepName:"Submitted", actor: "Carol White", action: "submitted", timestamp: "2024-07-29T09:15:00Z" },
         { stepId: "wp_safety_review", stepName: "Pending Safety Review", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-29T09:16:00Z" },
@@ -183,11 +184,11 @@ const renderRequestPayloadDetailsDialog = (payload: RequestPayload, requestType:
               );
             })}
             </TableBody>
-             <UICardFooter className="p-0"><TableRow><TableCell colSpan={5} className="text-right font-bold">Grand Total</TableCell><TableCell className="text-right font-bold">{poPayload.items.reduce((sum, i) => {
+             <TableFooter><TableRow><TableCell colSpan={5} className="text-right font-bold">Grand Total</TableCell><TableCell className="text-right font-bold">{poPayload.items.reduce((sum, i) => {
                 const itemTotal = (i.quantity || 0) * (i.unitPrice || 0);
                 const itemGst = itemTotal * ((i.gstPercentage || 0) / 100);
                 return sum + itemTotal + itemGst;
-             }, 0).toLocaleString('en-IN', formattingOptions)}</TableCell></TableRow></UICardFooter>
+             }, 0).toLocaleString('en-IN', formattingOptions)}</TableCell></TableRow></TableFooter>
           </Table>
         )});
         if(poPayload.remarks) details.push({ key: "Remarks", value: <p className="whitespace-pre-wrap">{poPayload.remarks}</p> });
@@ -218,11 +219,11 @@ const renderRequestPayloadDetailsDialog = (payload: RequestPayload, requestType:
               );
             })}
             </TableBody>
-            <UICardFooter className="p-0"><TableRow><TableCell colSpan={5} className="text-right font-bold">Grand Total</TableCell><TableCell className="text-right font-bold">{soPayload.items.reduce((sum, i) => {
+            <TableFooter><TableRow><TableCell colSpan={5} className="text-right font-bold">Grand Total</TableCell><TableCell className="text-right font-bold">{soPayload.items.reduce((sum, i) => {
                 const itemTotal = (i.quantity || 0) * (i.unitPrice || 0);
                 const itemGst = itemTotal * ((i.gstPercentage || 0) / 100);
                 return sum + itemTotal + itemGst;
-            }, 0).toLocaleString('en-IN', formattingOptions)}</TableCell></TableRow></UICardFooter>
+            }, 0).toLocaleString('en-IN', formattingOptions)}</TableCell></TableRow></TableFooter>
           </Table>
         )});
         if(soPayload.remarks) details.push({ key: "Remarks", value: <p className="whitespace-pre-wrap">{soPayload.remarks}</p> });
@@ -722,11 +723,11 @@ export default function ApprovalsDashboardPage() {
                 </div>
               </div>
             </ScrollArea>
-            <DialogFooter>
+            <UIDialogFooter>
               <DialogClose asChild>
                 <Button variant="outline">Close</Button>
               </DialogClose>
-            </DialogFooter>
+            </UIDialogFooter>
           </DialogContent>
         </Dialog>
       )}

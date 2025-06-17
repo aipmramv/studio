@@ -6,7 +6,7 @@ import * as React from "react";
 import { format } from "date-fns";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Card, CardContent, CardDescription, CardFooter as UICardFooter, CardHeader, CardTitle } from "@/components/ui/card"; 
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption, TableFooter } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye, Truck, Recycle, ShieldCheck, ShoppingCart, Tags, Package, CalendarDays, User, MessageSquare, Bell, ChevronsUp, Send, Info, History, CheckCircle, CircleDot, Circle, Workflow as WorkflowIcon, Clock, Search, Filter as FilterIcon, ChevronsLeft, ChevronsRight, X } from "lucide-react";
@@ -16,7 +16,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
+  DialogFooter as UIDialogFooter,
   DialogHeader,
   DialogTitle,
   DialogClose,
@@ -81,7 +81,7 @@ const mockAllRequestsData: ApprovalItem[] = [
   {
     id: "WP003", requestType: "Work Permit", requesterName: "Carol White", requesterDepartment: "IT", submissionDate: "2024-07-29T09:15:00Z",
     currentStepId: "wp_maintenance_review", currentStepName: "Maintenance Team Review", workflowTemplateId: "work_permit_default",
-    payload: { activityType: "Electrical Work (LV/MV/HV)", building: "KOSMO", activityDetails: "Routine server maintenance in DC room 3. Includes rack mounting and cable management.", specificAreaOrEquipment: "DC Room 3, Rack A5", permitValidity: new Date("2024-08-05") } as WorkPermitFormData,
+    payload: { activityType: "Electrical Work (LV/MV/HV)", building: "KOSMO Building", activityDetails: "Routine server maintenance in DC room 3. Includes rack mounting and cable management.", specificAreaOrEquipment: "DC Room 3, Rack A5", permitValidity: new Date("2024-08-05") } as WorkPermitFormData,
     history: [
       { stepId: "submission", stepName: "Submitted", actor: "Carol White", action: "submitted", timestamp: "2024-07-29T09:15:00Z" },
       { stepId: "wp_safety_review", stepName: "Safety Team Review", actor: "Safety Officer", action: "approve", timestamp: "2024-07-29T14:00:00Z", comment: "Safety protocols confirmed." },
@@ -222,11 +222,11 @@ const renderRequestPayloadDetailsDialog = (payload: RequestPayload, requestType:
               );
             })}
             </TableBody>
-             <UICardFooter className="p-0"><TableRow><TableCell colSpan={5} className="text-right font-bold">Grand Total</TableCell><TableCell className="text-right font-bold">{poPayload.items.reduce((sum, i) => {
+             <TableFooter><TableRow><TableCell colSpan={5} className="text-right font-bold">Grand Total</TableCell><TableCell className="text-right font-bold">{poPayload.items.reduce((sum, i) => {
                 const itemTotal = (i.quantity || 0) * (i.unitPrice || 0);
                 const itemGst = itemTotal * ((i.gstPercentage || 0) / 100);
                 return sum + itemTotal + itemGst;
-             }, 0).toLocaleString('en-IN', formattingOptions)}</TableCell></TableRow></UICardFooter>
+             }, 0).toLocaleString('en-IN', formattingOptions)}</TableCell></TableRow></TableFooter>
           </Table>
         )});
         if(poPayload.remarks) details.push({ key: "Remarks", value: <p className="whitespace-pre-wrap">{poPayload.remarks}</p> });
@@ -257,11 +257,11 @@ const renderRequestPayloadDetailsDialog = (payload: RequestPayload, requestType:
               );
             })}
             </TableBody>
-            <UICardFooter className="p-0"><TableRow><TableCell colSpan={5} className="text-right font-bold">Grand Total</TableCell><TableCell className="text-right font-bold">{soPayload.items.reduce((sum, i) => {
+            <TableFooter><TableRow><TableCell colSpan={5} className="text-right font-bold">Grand Total</TableCell><TableCell className="text-right font-bold">{soPayload.items.reduce((sum, i) => {
                 const itemTotal = (i.quantity || 0) * (i.unitPrice || 0);
                 const itemGst = itemTotal * ((i.gstPercentage || 0) / 100);
                 return sum + itemTotal + itemGst;
-            }, 0).toLocaleString('en-IN', formattingOptions)}</TableCell></TableRow></UICardFooter>
+            }, 0).toLocaleString('en-IN', formattingOptions)}</TableCell></TableRow></TableFooter>
           </Table>
         )});
         if(soPayload.remarks) details.push({ key: "Remarks", value: <p className="whitespace-pre-wrap">{soPayload.remarks}</p> });
@@ -757,11 +757,11 @@ export default function AllRequestsPage() {
                 </div>
               </div>
             </ScrollArea>
-            <DialogFooter>
+            <UIDialogFooter>
               <DialogClose asChild>
                 <Button variant="outline">Close</Button>
               </DialogClose>
-            </DialogFooter>
+            </UIDialogFooter>
           </DialogContent>
         </Dialog>
       )}
