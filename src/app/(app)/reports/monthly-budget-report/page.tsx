@@ -91,7 +91,7 @@ export default function MonthlyBudgetReportPage() {
     ? (totalVarianceAmount / totals.forecasted) * 100
     : (totals.actual > 0 ? Infinity : 0);
 
-  const handleActualAmountClick = (rowData: ReportDataRow) => {
+  const handleMonthClick = (rowData: ReportDataRow) => {
     setSelectedMonthDataForDrilldown(rowData.fullRecord);
     setIsDrilldownModalOpen(true);
   };
@@ -101,7 +101,7 @@ export default function MonthlyBudgetReportPage() {
     <div className="space-y-8">
       <PageHeader
         title="Monthly Budget Forecast vs Actuals"
-        description="Track and analyze departmental budget performance on a monthly basis. Click on an actual amount to see user-wise breakdown."
+        description="Track and analyze departmental budget performance on a monthly basis. Click on a month name to see user-wise breakdown."
       />
 
       <Card className="shadow-lg">
@@ -160,21 +160,23 @@ export default function MonthlyBudgetReportPage() {
                     <TableBody>
                       {reportData.map((row) => (
                         <TableRow key={row.monthName}>
-                          <TableCell className="font-medium">{row.monthName}</TableCell>
-                          <TableCell className="text-right">{row.forecastedAmount.toLocaleString('en-IN', formattingOptions)}</TableCell>
-                          <TableCell className="text-right">
-                            <Button 
+                          <TableCell className="font-medium">
+                             <Button 
                                 variant="link" 
                                 className="p-0 h-auto text-foreground hover:text-primary"
-                                onClick={() => handleActualAmountClick(row)}
+                                onClick={() => handleMonthClick(row)}
                             >
-                                {row.actualAmount.toLocaleString('en-IN', formattingOptions)}
+                                {row.monthName}
                             </Button>
+                          </TableCell>
+                          <TableCell className="text-right">{row.forecastedAmount.toLocaleString('en-IN', formattingOptions)}</TableCell>
+                          <TableCell className="text-right">
+                            {row.actualAmount.toLocaleString('en-IN', formattingOptions)}
                           </TableCell>
                           <TableCell 
                             className={cn(
                               "text-right",
-                              row.varianceAmount < 0 ? "text-destructive" : "text-green-600"
+                              row.varianceAmount > 0 ? "text-destructive" : row.varianceAmount < 0 ? "text-green-600" : "text-foreground"
                             )}
                           >
                             {row.varianceAmount.toLocaleString('en-IN', formattingOptions)}
@@ -182,7 +184,7 @@ export default function MonthlyBudgetReportPage() {
                           <TableCell 
                              className={cn(
                               "text-right",
-                              row.variancePercentage < 0 ? "text-destructive" : "text-green-600"
+                               row.variancePercentage > 0 ? "text-destructive" : row.variancePercentage < 0 ? "text-green-600" : "text-foreground"
                             )}
                           >
                             {isFinite(row.variancePercentage) ? `${row.variancePercentage.toFixed(2)}%` : (row.actualAmount > 0 ? "New Spend" : "N/A")}
@@ -198,7 +200,7 @@ export default function MonthlyBudgetReportPage() {
                         <TableCell 
                           className={cn(
                             "text-right",
-                            totalVarianceAmount < 0 ? "text-destructive" : "text-green-600"
+                            totalVarianceAmount > 0 ? "text-destructive" : totalVarianceAmount < 0 ? "text-green-600" : "text-foreground"
                           )}
                         >
                           {totalVarianceAmount.toLocaleString('en-IN', formattingOptions)}
@@ -206,7 +208,7 @@ export default function MonthlyBudgetReportPage() {
                         <TableCell 
                           className={cn(
                             "text-right",
-                             totalVariancePercentage < 0 ? "text-destructive" : "text-green-600"
+                             totalVariancePercentage > 0 ? "text-destructive" : totalVariancePercentage < 0 ? "text-green-600" : "text-foreground"
                           )}
                         >
                           {isFinite(totalVariancePercentage) ? `${totalVariancePercentage.toFixed(2)}%` : (totals.actual > 0 ? "New Spend" : "N/A")}
