@@ -176,3 +176,27 @@ export const MOCK_UNITS_OF_MEASUREMENT = [
   { id: "UOM007", name: "Packs", abbreviation: "PAK" },
 ] as const;
 export type MockUom = typeof MOCK_UNITS_OF_MEASUREMENT[number];
+
+export const FISCAL_YEARS = ["2023-2024", "2024-2025", "2025-2026"] as const;
+export type FiscalYear = typeof FISCAL_YEARS[number];
+
+export const QUARTERS = ["Q1 (Apr-Jun)", "Q2 (Jul-Sep)", "Q3 (Oct-Dec)", "Q4 (Jan-Mar)", "Full Year"] as const;
+export type Quarter = typeof QUARTERS[number];
+
+export interface DepartmentBudget {
+  id: string;
+  department: Department;
+  year: FiscalYear;
+  q1Budget: number;
+  q2Budget: number;
+  q3Budget: number;
+  q4Budget: number;
+}
+
+export const MOCK_DEPARTMENT_BUDGETS: DepartmentBudget[] = [
+  { id: "DB001", department: "R&D", year: "2024-2025", q1Budget: 500000, q2Budget: 550000, q3Budget: 480000, q4Budget: 600000 },
+  { id: "DB002", department: "IT", year: "2024-2025", q1Budget: 200000, q2Budget: 220000, q3Budget: 190000, q4Budget: 250000 },
+  { id: "DB003", department: "Maintenance", year: "2024-2025", q1Budget: 150000, q2Budget: 160000, q3Budget: 140000, q4Budget: 180000 },
+  { id: "DB004", department: "Production", year: "2024-2025", q1Budget: 1000000, q2Budget: 1100000, q3Budget: 950000, q4Budget: 1200000 },
+  { id: "DB005", department: "R&D", year: "2023-2024", q1Budget: 450000, q2Budget: 500000, q3Budget: 430000, q4Budget: 550000 },
+];

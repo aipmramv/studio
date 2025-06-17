@@ -6,7 +6,7 @@ import {
   ClipboardCheck, ShoppingCart, Tags, PlusCircle, Warehouse,
   Store, PackagePlus, PackageMinus, Undo2, SearchCheck, SlidersHorizontal, GitFork,
   Users, Mail, UserCog, Layers, FileArchive, DollarSignIcon, PackageSearch,
-  Building2, Users2, TagIcon, ScaleIcon
+  Building2, Users2, TagIcon, ScaleIcon, Landmark
 } from 'lucide-react';
 
 export interface NavItem {
@@ -150,6 +150,7 @@ export const mainNavItems: NavItem[] = [
       { title: 'Departments', href: '/masters/departments', icon: Briefcase, description: "Manage departments." },
       { title: 'Activity Types', href: '/masters/activity-types', icon: ClipboardCheck, description: "Manage work permit activity types." },
       { title: 'Cost Centers', href: '/masters/cost-centers', icon: DollarSignIcon, description: "Manage cost centers." },
+      { title: 'Department Budgets', href: '/masters/department-budgets', icon: Landmark, description: "Manage department quarterly budgets.", roles:['admin'] },
       { title: 'Vendors', href: '/masters/vendors', icon: Building2, description: "Manage vendor master data." },
       { title: 'Customers', href: '/masters/customers', icon: Users2, description: "Manage customer master data." },
       { title: 'HSN/SAC Codes', href: '/masters/hsn-sac-codes', icon: TagIcon, description: "Manage HSN/SAC codes." },

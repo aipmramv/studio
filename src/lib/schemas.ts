@@ -1,6 +1,6 @@
 
 import { z } from 'zod';
-import { MATERIAL_TYPES, SCRAP_TYPES, STORE_LOCATIONS, ACTIVITY_TYPES_WORK_PERMIT, USER_ROLES, DEPARTMENTS, REQUEST_TYPES, COST_CENTERS } from './constants';
+import { MATERIAL_TYPES, SCRAP_TYPES, STORE_LOCATIONS, ACTIVITY_TYPES_WORK_PERMIT, USER_ROLES, DEPARTMENTS, REQUEST_TYPES, COST_CENTERS, FISCAL_YEARS, QUARTERS } from './constants';
 
 export const LoginSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -149,9 +149,8 @@ export const CostCenterSchema = z.object({
 });
 export type CostCenterFormData = z.infer<typeof CostCenterSchema>;
 
-// New Master Schemas
 export const VendorSchema = z.object({
-  id: z.string().optional(), // Optional for new entries, set by system
+  id: z.string().optional(), 
   name: z.string().min(1, "Vendor name is required."),
   contactPerson: z.string().optional(),
   email: z.string().email("Invalid email address.").optional().or(z.literal('')),
@@ -193,3 +192,14 @@ export const StoreLocationSchema = z.object({
   manager: z.string().optional(),
 });
 export type StoreLocationFormData = z.infer<typeof StoreLocationSchema>;
+
+export const DepartmentBudgetSchema = z.object({
+  id: z.string().optional(),
+  department: z.enum(DEPARTMENTS, { required_error: "Department is required." }),
+  year: z.enum(FISCAL_YEARS, { required_error: "Fiscal year is required." }),
+  q1Budget: z.coerce.number().min(0, "Budget must be a non-negative number."),
+  q2Budget: z.coerce.number().min(0, "Budget must be a non-negative number."),
+  q3Budget: z.coerce.number().min(0, "Budget must be a non-negative number."),
+  q4Budget: z.coerce.number().min(0, "Budget must be a non-negative number."),
+});
+export type DepartmentBudgetFormData = z.infer<typeof DepartmentBudgetSchema>;
