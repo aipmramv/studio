@@ -1,5 +1,7 @@
 
-// src/app/(app)/stores/manage/page.tsx
+// This file is being replaced by /src/app/(app)/masters/store-locations/page.tsx
+// Content will be removed as the functionality is moved.
+
 "use client";
 
 import * as React from "react";
@@ -25,66 +27,23 @@ const mockStores: StoreLocation[] = [
 ];
 
 
-export default function ManageStoresPage() {
-  const [stores, setStores] = React.useState<StoreLocation[]>(mockStores);
-  // In a real app, CRUD operations for stores would be handled here.
-
+export default function ManageStoresPage_DEPRECATED() {
+  // This component is deprecated and its functionality moved to /masters/store-locations
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Manage Stores"
-        description="Create, view, and manage store locations within the organization."
-        actions={
-          <Button>
-            <PlusCircle className="w-4 h-4 mr-2" /> Add New Store
-          </Button>
-        }
+        title="Manage Stores (DEPRECATED)"
+        description="This page has been moved to Masters > Store Locations."
       />
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle>Store Locations</CardTitle>
-          <CardDescription>List of all configured stores. You can add new stores or manage existing ones.</CardDescription>
+          <CardTitle>Functionality Moved</CardTitle>
+          <CardDescription>Please use the 'Store Locations' page under the 'Masters' section in the navigation menu.</CardDescription>
         </CardHeader>
         <CardContent>
-          {stores.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Store ID</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Manager</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {stores.map((store) => (
-                  <TableRow key={store.id}>
-                    <TableCell className="font-medium">{store.id}</TableCell>
-                    <TableCell>{store.name}</TableCell>
-                    <TableCell className="flex items-center"><MapPin className="w-4 h-4 mr-2 text-muted-foreground" />{store.location}</TableCell>
-                    <TableCell><Badge variant="outline">{store.type}</Badge></TableCell>
-                    <TableCell>{store.manager || "N/A"}</TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" title="Edit Store">
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" title="Delete Store" className="text-destructive hover:text-destructive/80">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-              <TableCaption>{stores.length} store location(s) found.</TableCaption>
-            </Table>
-          ) : (
-            <p className="text-center text-muted-foreground py-4">No store locations configured yet. Click "Add New Store" to begin.</p>
-          )}
+            <p className="text-destructive">This page is no longer active.</p>
         </CardContent>
       </Card>
     </div>
   );
 }
-

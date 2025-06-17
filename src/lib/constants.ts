@@ -16,20 +16,20 @@ export const BUILDING_TYPES = ["KOSMO", "Test Tower", "Admin Block", "Warehouse 
 export type BuildingType = typeof BUILDING_TYPES[number];
 
 export const STORE_LOCATIONS = ["Central Warehouse Alpha", "Electronics Sub-Store", "Maintenance Store", "Dispatch Area", "Production Line Store 1", "Quality Lab Store", "Receiving Bay"] as const;
-export type StoreLocation = typeof STORE_LOCATIONS[number];
+export type StoreLocationType = typeof STORE_LOCATIONS[number]; // Renamed to avoid conflict with interface if any
 
 export const DEPARTMENTS = ["Production", "Maintenance", "Logistics", "Quality Assurance", "IT", "HR", "Finance", "R&D", "Safety & Environment", "Sales", "Facility Management"] as const;
 export type Department = typeof DEPARTMENTS[number];
 
 
 export const ACTIVITY_TYPES_WORK_PERMIT = [
-  "Civil Works (Excavation, Construction)", 
-  "Electrical Work (LV/MV/HV)", 
-  "Equipment Installation/Modification", 
+  "Civil Works (Excavation, Construction)",
+  "Electrical Work (LV/MV/HV)",
+  "Equipment Installation/Modification",
   "Equipment Maintenance/Repair",
   "Safety-Critical System Testing",
-  "Hot Work (Welding, Grinding)", 
-  "Confined Space Entry", 
+  "Hot Work (Welding, Grinding)",
+  "Confined Space Entry",
   "Working at Height",
   "Chemical Handling",
   "General Maintenance/Inspection",
@@ -43,17 +43,17 @@ export const REQUEST_TYPES = ["Purchase Order", "Sale Order", "Material Movement
 export type RequestType = typeof REQUEST_TYPES[number];
 
 export interface WorkflowStep {
-  id: string; 
-  name: string; 
-  assignedRoles: UserRole[]; 
-  nextStepId?: string; 
-  rejectionLeadsToStepId?: string; 
+  id: string;
+  name: string;
+  assignedRoles: UserRole[];
+  nextStepId?: string;
+  rejectionLeadsToStepId?: string;
 }
 
 export interface WorkflowTemplate {
-  id: string; 
+  id: string;
   requestType: RequestType;
-  name: string; 
+  name: string;
   steps: WorkflowStep[];
   initialStepId: string;
 }
@@ -66,20 +66,20 @@ export const MOCK_WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
     name: "Standard Material Movement Workflow",
     initialStepId: "mm_dept_head",
     steps: [
-      { id: "mm_dept_head", name: "Department Head Approval", assignedRoles: ["department_head"], nextStepId: "mm_finance_check" },
-      { id: "mm_finance_check", name: "Finance Check (High Value)", assignedRoles: ["finance_team"], nextStepId: "mm_dispatch_approval" },
-      { id: "mm_dispatch_approval", name: "Dispatch Team Approval", assignedRoles: ["dispatch_team"] },
+      { id: "mm_dept_head", name: "Department Head Approval", assignedRoles: ["department_head", "admin"], nextStepId: "mm_finance_check" },
+      { id: "mm_finance_check", name: "Finance Check (If Value > X)", assignedRoles: ["finance_team", "admin"], nextStepId: "mm_dispatch_approval", rejectionLeadsToStepId: "mm_dept_head" },
+      { id: "mm_dispatch_approval", name: "Dispatch Team Approval", assignedRoles: ["dispatch_team", "admin"] },
     ],
   },
   {
-    id: "work_permit_default", 
+    id: "work_permit_default",
     requestType: "Work Permit",
     name: "Standard Work Permit Workflow",
     initialStepId: "wp_safety_review",
     steps: [
-      { id: "wp_safety_review", name: "Safety Team Review", assignedRoles: ["safety"], nextStepId: "wp_maintenance_review" },
-      { id: "wp_maintenance_review", name: "Maintenance Team Review", assignedRoles: ["maintenance_team"], nextStepId: "wp_facility_head" },
-      { id: "wp_facility_head", name: "Facility Head Approval", assignedRoles: ["facility_team", "department_head"] },
+      { id: "wp_safety_review", name: "Safety Team Review", assignedRoles: ["safety", "admin"], nextStepId: "wp_maintenance_review", rejectionLeadsToStepId: "wp_safety_review"},
+      { id: "wp_maintenance_review", name: "Maintenance Team Review", assignedRoles: ["maintenance_team", "admin"], nextStepId: "wp_facility_head", rejectionLeadsToStepId: "wp_safety_review" },
+      { id: "wp_facility_head", name: "Facility Head Approval", assignedRoles: ["facility_team", "department_head", "admin"] },
     ],
   },
   {
@@ -88,8 +88,8 @@ export const MOCK_WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
     name: "Standard Purchase Order Workflow",
     initialStepId: "po_dept_head",
     steps: [
-      { id: "po_dept_head", name: "Dept. Head Approval", assignedRoles: ["department_head"], nextStepId: "po_finance" },
-      { id: "po_finance", name: "Finance Approval", assignedRoles: ["finance_team"] },
+      { id: "po_dept_head", name: "Dept. Head Approval", assignedRoles: ["department_head", "admin"], nextStepId: "po_finance", rejectionLeadsToStepId: "po_dept_head" },
+      { id: "po_finance", name: "Finance Approval", assignedRoles: ["finance_team", "admin"] },
     ]
   },
   {
@@ -98,9 +98,9 @@ export const MOCK_WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
     name: "Standard Scrap Disposal Workflow",
     initialStepId: "sm_supervisor_approval",
     steps: [
-      { id: "sm_supervisor_approval", name: "Supervisor Approval", assignedRoles: ["department_head"], nextStepId: "sm_ehs_clearance" },
-      { id: "sm_ehs_clearance", name: "EHS Clearance", assignedRoles: ["safety"], nextStepId: "sm_gate_pass" },
-      { id: "sm_gate_pass", name: "Gate Pass Issue", assignedRoles: ["dispatch_team"] },
+      { id: "sm_supervisor_approval", name: "Supervisor Approval", assignedRoles: ["department_head", "admin"], nextStepId: "sm_ehs_clearance", rejectionLeadsToStepId: "sm_supervisor_approval" },
+      { id: "sm_ehs_clearance", name: "EHS Clearance", assignedRoles: ["safety", "admin"], nextStepId: "sm_gate_pass", rejectionLeadsToStepId: "sm_supervisor_approval" },
+      { id: "sm_gate_pass", name: "Gate Pass Issue", assignedRoles: ["dispatch_team", "admin"] },
     ],
   },
   {
@@ -109,9 +109,9 @@ export const MOCK_WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
     name: "Standard Sale Order Workflow",
     initialStepId: "so_manager_approval",
     steps: [
-      { id: "so_manager_approval", name: "Sales Manager Approval", assignedRoles: ["department_head"], nextStepId: "so_finance_review" },
-      { id: "so_finance_review", name: "Finance Review", assignedRoles: ["finance_team"], nextStepId: "so_dispatch_prep" },
-      { id: "so_dispatch_prep", name: "Dispatch Preparation", assignedRoles: ["dispatch_team"] },
+      { id: "so_manager_approval", name: "Sales Manager Approval", assignedRoles: ["department_head", "admin"], nextStepId: "so_finance_review", rejectionLeadsToStepId: "so_manager_approval" },
+      { id: "so_finance_review", name: "Finance Review", assignedRoles: ["finance_team", "admin"], nextStepId: "so_dispatch_prep", rejectionLeadsToStepId: "so_manager_approval" },
+      { id: "so_dispatch_prep", name: "Dispatch Preparation", assignedRoles: ["dispatch_team", "admin"] },
     ],
   }
 ];
@@ -129,4 +129,37 @@ export const COST_CENTERS = [
   "CC_IT_001_Infra",
   "CC_MAINT_001_General"
 ] as const;
-export type CostCenter = typeof COST_CENTERS[number];
+export type CostCenterType = typeof COST_CENTERS[number];
+
+export const MOCK_VENDORS = [
+  { id: "VEND001", name: "Tech Solutions Inc.", contactPerson: "Mr. Sharma", email: "sales@techsolutions.com", phone: "9876543210", category: "IT Equipment" },
+  { id: "VEND002", name: "Industrial Supplies Co.", contactPerson: "Ms. Priya", email: "info@industrialsupplies.co", phone: "8765432109", category: "Raw Materials" },
+  { id: "VEND003", name: "Office Essentials Ltd.", contactPerson: "Mr. Kumar", email: "support@officeessentials.com", phone: "7654321098", category: "Stationery" },
+] as const;
+export type MockVendor = typeof MOCK_VENDORS[number];
+
+export const MOCK_CUSTOMERS = [
+  { id: "CUST001", name: "Global Corp", contactPerson: "Ms. Lee", email: "procurement@globalcorp.com", phone: "1234567890", industry: "Manufacturing" },
+  { id: "CUST002", name: "Innovate Labs", contactPerson: "Dr. Singh", email: "purchasing@innovatelabs.org", phone: "2345678901", industry: "Research" },
+  { id: "CUST003", name: "Local Services Ltd.", contactPerson: "Mr. Patel", email: "accounts@localservices.net", phone: "3456789012", industry: "Services" },
+] as const;
+export type MockCustomer = typeof MOCK_CUSTOMERS[number];
+
+export const MOCK_HSN_SAC_CODES = [
+  { id: "HSN001", code: "84713010", description: "Laptops, personal computers", type: "HSN" },
+  { id: "HSN002", code: "84718000", description: "Other units of ADP machines", type: "HSN" },
+  { id: "SAC001", code: "997331", description: "Licensing services for the right to use computer software", type: "SAC" },
+  { id: "SAC002", code: "998313", description: "Management consulting and management services", type: "SAC" },
+] as const;
+export type MockHsnSacCode = typeof MOCK_HSN_SAC_CODES[number];
+
+export const MOCK_UNITS_OF_MEASUREMENT = [
+  { id: "UOM001", name: "Pieces", abbreviation: "PCS" },
+  { id: "UOM002", name: "Kilograms", abbreviation: "KG" },
+  { id: "UOM003", name: "Liters", abbreviation: "LTR" },
+  { id: "UOM004", name: "Units", abbreviation: "UNT" },
+  { id: "UOM005", name: "Meters", abbreviation: "MTR" },
+  { id: "UOM006", name: "Kits", abbreviation: "KIT" },
+  { id: "UOM007", name: "Packs", abbreviation: "PAK" },
+] as const;
+export type MockUom = typeof MOCK_UNITS_OF_MEASUREMENT[number];

@@ -5,12 +5,13 @@ import {
   LogOut, Settings, ShieldCheck, Database, Package, Building, Briefcase,
   ClipboardCheck, ShoppingCart, Tags, PlusCircle, Warehouse,
   Store, PackagePlus, PackageMinus, Undo2, SearchCheck, SlidersHorizontal, GitFork,
-  Users, Mail, UserCog, Layers, FileArchive, DollarSignIcon, PackageSearch
+  Users, Mail, UserCog, Layers, FileArchive, DollarSignIcon, PackageSearch,
+  Building2, Users2, TagIcon, ScaleIcon // Added new icons for masters
 } from 'lucide-react';
 
 export interface NavItem {
   title: string;
-  href: string; 
+  href: string;
   icon: LucideIcon;
   disabled?: boolean;
   external?: boolean;
@@ -35,13 +36,13 @@ export const mainNavItems: NavItem[] = [
   },
   {
     title: 'Requests',
-    href: '/material-movement/new', 
+    href: '/material-movement/new',
     icon: ClipboardCheck,
     description: "Manage all types of requests.",
     items: [
       {
         title: 'Material Movement',
-        href: '/material-movement/new', 
+        href: '/material-movement/new',
         icon: Truck,
         description: "Log and track material movements.",
         items: [
@@ -50,8 +51,8 @@ export const mainNavItems: NavItem[] = [
         ]
       },
       {
-        title: 'Scrap Disposal', 
-        href: '/scrap-movement/new', 
+        title: 'Scrap Disposal',
+        href: '/scrap-movement/new',
         icon: Recycle,
         description: "Log and track scrap disposals.",
         items: [
@@ -61,7 +62,7 @@ export const mainNavItems: NavItem[] = [
       },
       {
         title: 'Work Permit',
-        href: '/work-permit/new', 
+        href: '/work-permit/new',
         icon: ShieldCheck,
         description: "Request and manage work permits.",
         items: [
@@ -71,7 +72,7 @@ export const mainNavItems: NavItem[] = [
       },
       {
         title: 'Purchase Order',
-        href: '/purchase-order/new', 
+        href: '/purchase-order/new',
         icon: ShoppingCart,
         description: "Manage Purchase Orders.",
         items: [
@@ -81,7 +82,7 @@ export const mainNavItems: NavItem[] = [
       },
       {
         title: 'Sale Order',
-        href: '/sale-order/new', 
+        href: '/sale-order/new',
         icon: Tags,
         description: "Manage Sale Orders.",
         items: [
@@ -102,12 +103,11 @@ export const mainNavItems: NavItem[] = [
     ]
   },
   {
-    title: 'Stores Management', 
-    href: '/stores/manage',
+    title: 'Stores Management',
+    href: '/stores/inventory-summary', // Updated default href
     icon: Warehouse,
     description: "Manage store operations, inventory, and audits.",
     items: [
-      { title: 'Manage Stores', href: '/stores/manage', icon: Store, description: "Manage store locations." },
       { title: 'Material Receipt', href: '/stores/material-receipt', icon: PackagePlus, description: "Record material receipts." },
       { title: 'Material Issue', href: '/stores/material-issue', icon: PackageMinus, description: "Record material issues." },
       { title: 'Material Return', href: '/stores/material-returns', icon: Undo2, description: "Record material returns." },
@@ -115,11 +115,11 @@ export const mainNavItems: NavItem[] = [
     ]
   },
   {
-    title: 'Analytics & Reports', 
+    title: 'Analytics & Reports',
     href: '/kpi-dashboard',
     icon: BarChart3,
     description: "View key performance indicators and audit logs.",
-    roles: ['admin', 'mm_team', 'department_head', 'finance_team'], 
+    roles: ['admin', 'mm_team', 'department_head', 'finance_team'],
     items: [
       {
         title: 'KPI Dashboard',
@@ -129,19 +129,39 @@ export const mainNavItems: NavItem[] = [
         roles: ['admin', 'mm_team', 'department_head', 'finance_team'],
       },
       {
-        title: 'Audit Logs', 
+        title: 'Audit Logs',
         href: '/administration/audit-logs',
-        icon: FileArchive, 
+        icon: FileArchive,
         description: "View system audit logs.",
         roles: ['admin'],
       }
     ]
   },
   {
+    title: 'Masters',
+    href: '/masters/material-types', // Default to first item or a dedicated overview
+    icon: Database,
+    description: "Manage application master data.",
+    roles: ['admin'], // Typically admin-only
+    items: [
+      { title: 'Material Types', href: '/masters/material-types', icon: Package, description: "Manage material types." },
+      { title: 'Scrap Categories', href: '/masters/scrap-types', icon: Recycle, description: "Manage scrap types." },
+      { title: 'Building Types', href: '/masters/building-types', icon: Building, description: "Manage building types." },
+      { title: 'Departments', href: '/masters/departments', icon: Briefcase, description: "Manage departments." },
+      { title: 'Activity Types', href: '/masters/activity-types', icon: ClipboardCheck, description: "Manage work permit activity types." },
+      { title: 'Cost Centers', href: '/masters/cost-centers', icon: DollarSignIcon, description: "Manage cost centers." },
+      { title: 'Store Locations', href: '/masters/store-locations', icon: Store, description: "Manage store locations." },
+      { title: 'Vendors', href: '/masters/vendors', icon: Building2, description: "Manage vendor master data." },
+      { title: 'Customers', href: '/masters/customers', icon: Users2, description: "Manage customer master data." },
+      { title: 'HSN/SAC Codes', href: '/masters/hsn-sac-codes', icon: TagIcon, description: "Manage HSN/SAC codes." },
+      { title: 'Units of Measurement', href: '/masters/uom', icon: ScaleIcon, description: "Manage UOMs." },
+    ]
+  },
+  {
     title: 'Administration',
     href: '/administration/workflows',
     icon: SlidersHorizontal,
-    description: "Manage application settings and metadata.",
+    description: "Manage application settings.",
     roles: ['admin'],
     items: [
       {
@@ -165,21 +185,6 @@ export const mainNavItems: NavItem[] = [
         description: "Configure email notifications.",
         roles: ['admin'],
       },
-      {
-        title: 'Masters',
-        href: '/masters/material-types',
-        icon: Database,
-        description: "Manage application metadata.",
-        roles: ['admin'],
-        items: [
-          { title: 'Material Types', href: '/masters/material-types', icon: Package, description: "Manage material types." },
-          { title: 'Scrap Categories', href: '/masters/scrap-types', icon: Recycle, description: "Manage scrap types." }, 
-          { title: 'Building Types', href: '/masters/building-types', icon: Building, description: "Manage building types." },
-          { title: 'Departments', href: '/masters/departments', icon: Briefcase, description: "Manage departments." },
-          { title: 'Activity Types', href: '/masters/activity-types', icon: ClipboardCheck, description: "Manage work permit activity types." },
-          { title: 'Cost Centers', href: '/masters/cost-centers', icon: DollarSignIcon, description: "Manage cost centers." }, 
-        ]
-      },
     ]
   }
 ];
@@ -199,7 +204,7 @@ export const userNavItems: NavItem[] = [
     },
     {
         title: "Logout",
-        href: "/logout", 
+        href: "/logout",
         icon: LogOut,
         description: "Sign out of your account."
     }

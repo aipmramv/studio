@@ -1,6 +1,6 @@
 
 import { z } from 'zod';
-import { MATERIAL_TYPES, SCRAP_TYPES, BUILDING_TYPES, ACTIVITY_TYPES_WORK_PERMIT, USER_ROLES, DEPARTMENTS, REQUEST_TYPES, COST_CENTERS } from './constants';
+import { MATERIAL_TYPES, SCRAP_TYPES, BUILDING_TYPES, ACTIVITY_TYPES_WORK_PERMIT, USER_ROLES, DEPARTMENTS, REQUEST_TYPES, COST_CENTERS, STORE_LOCATIONS } from './constants';
 
 export const LoginSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -45,7 +45,7 @@ export const WorkPermitSchema = z.object({
   activityType: z.enum(ACTIVITY_TYPES_WORK_PERMIT, { required_error: "Activity type is required." }),
   activityDetails: z.string().min(10, "Please provide more details about the activity (min 10 characters).").max(1000, "Activity details cannot exceed 1000 characters."),
   specificAreaOrEquipment: z.string().min(1, "Specific area/equipment details are required.").max(200, "Too long."),
-  permitValidity: z.date({required_error: "Permit validity date is required."}).optional(), // Made optional based on typical usage
+  permitValidity: z.date({required_error: "Permit validity date is required."}).optional(),
 });
 export type WorkPermitFormData = z.infer<typeof WorkPermitSchema>;
 
@@ -55,7 +55,7 @@ export const ApprovalSchema = z.object({
 export type ApprovalFormData = z.infer<typeof ApprovalSchema>;
 
 const OrderItemSchema = z.object({
-  itemName: z.string().min(1, "Item name/description is required."), 
+  itemName: z.string().min(1, "Item name/description is required."),
   quantity: z.coerce.number().min(1, "Quantity must be at least 1."),
   unitPrice: z.coerce.number().min(0, "Unit price cannot be negative."),
   hsnSacCode: z.string().optional(),
@@ -108,7 +108,7 @@ export type RequestPayload =
 
 
 export const WorkflowStepSchema = z.object({
-  id: z.string().min(1, "Step ID is required."), 
+  id: z.string().min(1, "Step ID is required."),
   name: z.string().min(1, "Step name is required."),
   assignedRoles: z.array(z.enum(USER_ROLES)).min(1, "At least one role must be assigned."),
   nextStepId: z.string().optional().or(z.literal("")),
@@ -117,7 +117,7 @@ export const WorkflowStepSchema = z.object({
 export type WorkflowStepFormData = z.infer<typeof WorkflowStepSchema>;
 
 export const WorkflowTemplateSchema = z.object({
-  id: z.string().min(1, "Template ID is required."), 
+  id: z.string().min(1, "Template ID is required."),
   name: z.string().min(1, "Workflow name is required."),
   requestType: z.enum(REQUEST_TYPES, { required_error: "Request type is required." }),
   initialStepId: z.string().min(1, "An initial step must be defined for the workflow.").or(z.literal("")),
@@ -140,11 +140,56 @@ export const EmailTemplateSchema = z.object({
   name: z.string().min(1, "Template name is required."),
   subject: z.string().min(1, "Subject is required."),
   body: z.string().min(1, "Body is required."),
-  triggerEvent: z.string().optional(), // For "Custom notification rules per workflow step"
+  triggerEvent: z.string().optional(),
 });
 export type EmailTemplateFormData = z.infer<typeof EmailTemplateSchema>;
 
 export const CostCenterSchema = z.object({
-  name: z.string().min(1, "Cost center name is required."),
+  name: z.string().min(1, "Cost center name/ID is required."),
 });
 export type CostCenterFormData = z.infer<typeof CostCenterSchema>;
+
+// New Master Schemas
+export const VendorSchema = z.object({
+  id: z.string().optional(), // Optional for new entries, set by system
+  name: z.string().min(1, "Vendor name is required."),
+  contactPerson: z.string().optional(),
+  email: z.string().email("Invalid email address.").optional().or(z.literal('')),
+  phone: z.string().optional(),
+  category: z.string().min(1, "Vendor category is required."),
+});
+export type VendorFormData = z.infer<typeof VendorSchema>;
+
+export const CustomerSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(1, "Customer name is required."),
+  contactPerson: z.string().optional(),
+  email: z.string().email("Invalid email address.").optional().or(z.literal('')),
+  phone: z.string().optional(),
+  industry: z.string().min(1, "Industry is required."),
+});
+export type CustomerFormData = z.infer<typeof CustomerSchema>;
+
+export const HsnSacCodeSchema = z.object({
+  id: z.string().optional(),
+  code: z.string().min(1, "HSN/SAC code is required."),
+  description: z.string().min(1, "Description is required."),
+  type: z.enum(["HSN", "SAC"], { required_error: "Type (HSN/SAC) is required."}),
+});
+export type HsnSacCodeFormData = z.infer<typeof HsnSacCodeSchema>;
+
+export const UomSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(1, "Unit name is required."),
+  abbreviation: z.string().min(1, "Abbreviation is required.").max(5, "Abbreviation too long."),
+});
+export type UomFormData = z.infer<typeof UomSchema>;
+
+export const StoreLocationSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(1, "Store name is required."),
+  location: z.string().min(1, "Location description is required."),
+  type: z.enum(["Main Warehouse", "Sub-Store", "Production Floor", "Quality Lab", "Dispatch Area", "Receiving Bay"], { required_error: "Store type is required."}),
+  manager: z.string().optional(),
+});
+export type StoreLocationFormData = z.infer<typeof StoreLocationSchema>;
