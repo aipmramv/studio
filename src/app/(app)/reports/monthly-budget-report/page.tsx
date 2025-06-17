@@ -8,18 +8,30 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from "@/components/ui/table";
-import { AreaChart, Briefcase, CalendarDays } from "lucide-react";
+import { AreaChart, Briefcase, CalendarDays, Users as UsersIcon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { DEPARTMENTS, FISCAL_YEARS, MOCK_MONTHLY_BUDGET_DATA, getFiscalMonthName, type Department, type FiscalYear, type MonthlyBudgetRecord } from "@/lib/constants";
 import { MonthlyBudgetChart } from "@/components/charts/MonthlyBudgetChart";
 import { cn } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ReportDataRow {
+  monthIndex: number; // Keep original monthIndex for linking back to full record
   monthName: string;
   forecastedAmount: number;
   actualAmount: number;
   varianceAmount: number;
   variancePercentage: number;
+  fullRecord: MonthlyBudgetRecord; // Store the full record for drilldown
 }
 
 export default function MonthlyBudgetReportPage() {
@@ -30,7 +42,10 @@ export default function MonthlyBudgetReportPage() {
     : (user?.role === 'admin' ? DEPARTMENTS[0] : undefined);
 
   const [selectedDepartment, setSelectedDepartment] = React.useState<Department | undefined>(initialDepartment);
-  const [selectedYear, setSelectedYear] = React.useState<FiscalYear>(FISCAL_YEARS[FISCAL_YEARS.length - 1]); // Default to latest year
+  const [selectedYear, setSelectedYear] = React.useState<FiscalYear>(FISCAL_YEARS[FISCAL_YEARS.length - 1]); 
+  const [selectedMonthDataForDrilldown, setSelectedMonthDataForDrilldown] = React.useState<MonthlyBudgetRecord | null>(null);
+  const [isDrilldownModalOpen, setIsDrilldownModalOpen] = React.useState(false);
+
 
   const formattingOptions = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
 
@@ -39,18 +54,20 @@ export default function MonthlyBudgetReportPage() {
 
     return MOCK_MONTHLY_BUDGET_DATA
       .filter(item => item.department === selectedDepartment && item.year === selectedYear)
-      .sort((a, b) => a.monthIndex - b.monthIndex) // Ensure months are in fiscal order
+      .sort((a, b) => a.monthIndex - b.monthIndex)
       .map(item => {
         const varianceAmount = item.actualAmount - item.forecastedAmount;
         const variancePercentage = item.forecastedAmount !== 0 
           ? (varianceAmount / item.forecastedAmount) * 100 
-          : (item.actualAmount > 0 ? Infinity : 0); // Handle division by zero for forecast
+          : (item.actualAmount > 0 ? Infinity : 0); 
         return {
+          monthIndex: item.monthIndex,
           monthName: getFiscalMonthName(item.monthIndex),
           forecastedAmount: item.forecastedAmount,
           actualAmount: item.actualAmount,
           varianceAmount: varianceAmount,
           variancePercentage: variancePercentage,
+          fullRecord: item, // Store the full record
         };
       });
   }, [selectedDepartment, selectedYear]);
@@ -74,11 +91,17 @@ export default function MonthlyBudgetReportPage() {
     ? (totalVarianceAmount / totals.forecasted) * 100
     : (totals.actual > 0 ? Infinity : 0);
 
+  const handleActualAmountClick = (rowData: ReportDataRow) => {
+    setSelectedMonthDataForDrilldown(rowData.fullRecord);
+    setIsDrilldownModalOpen(true);
+  };
+
+
   return (
     <div className="space-y-8">
       <PageHeader
         title="Monthly Budget Forecast vs Actuals"
-        description="Track and analyze departmental budget performance on a monthly basis."
+        description="Track and analyze departmental budget performance on a monthly basis. Click on an actual amount to see user-wise breakdown."
       />
 
       <Card className="shadow-lg">
@@ -139,7 +162,16 @@ export default function MonthlyBudgetReportPage() {
                         <TableRow key={row.monthName}>
                           <TableCell className="font-medium">{row.monthName}</TableCell>
                           <TableCell className="text-right">{row.forecastedAmount.toLocaleString('en-IN', formattingOptions)}</TableCell>
-                          <TableCell className="text-right">{row.actualAmount.toLocaleString('en-IN', formattingOptions)}</TableCell>
+                          <TableCell className="text-right">
+                            <Button 
+                                variant="link" 
+                                className="p-0 h-auto text-foreground hover:text-primary"
+                                onClick={() => handleActualAmountClick(row)}
+                                disabled={!row.fullRecord.userBreakdown || row.fullRecord.userBreakdown.length === 0}
+                            >
+                                {row.actualAmount.toLocaleString('en-IN', formattingOptions)}
+                            </Button>
+                          </TableCell>
                           <TableCell 
                             className={cn(
                               "text-right",
@@ -196,6 +228,57 @@ export default function MonthlyBudgetReportPage() {
           )}
         </CardContent>
       </Card>
+
+      {selectedMonthDataForDrilldown && (
+        <Dialog open={isDrilldownModalOpen} onOpenChange={setIsDrilldownModalOpen}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="flex items-center">
+                <UsersIcon className="w-5 h-5 mr-2 text-primary" />
+                User-wise Actuals: {getFiscalMonthName(selectedMonthDataForDrilldown.monthIndex)} - {selectedMonthDataForDrilldown.department} ({selectedMonthDataForDrilldown.year})
+              </DialogTitle>
+              <DialogDescription>
+                Breakdown of actual expenditure by user for the selected month.
+              </DialogDescription>
+            </DialogHeader>
+            <ScrollArea className="max-h-[60vh] pr-6 py-4">
+              {(selectedMonthDataForDrilldown.userBreakdown && selectedMonthDataForDrilldown.userBreakdown.length > 0) ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>User Name</TableHead>
+                      <TableHead className="text-right">Actual Amount</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {selectedMonthDataForDrilldown.userBreakdown.map((item, index) => (
+                      <TableRow key={item.userId + index}>
+                        <TableCell className="font-medium">{item.userName}</TableCell>
+                        <TableCell className="text-right">{item.actualAmount.toLocaleString('en-IN', formattingOptions)}</TableCell>
+                      </TableRow>
+                    ))}
+                     <TableRow className="font-semibold bg-muted/50">
+                        <TableCell>Total for Month</TableCell>
+                        <TableCell className="text-right">
+                          {selectedMonthDataForDrilldown.actualAmount.toLocaleString('en-IN', formattingOptions)}
+                        </TableCell>
+                      </TableRow>
+                  </TableBody>
+                </Table>
+              ) : (
+                <p className="text-center text-muted-foreground py-4">
+                  No user-wise breakdown data available for this month.
+                </p>
+              )}
+            </ScrollArea>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline">Close</Button>
+              </DialogClose>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }

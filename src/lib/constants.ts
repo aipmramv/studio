@@ -204,18 +204,24 @@ export const MOCK_DEPARTMENT_BUDGETS: DepartmentBudget[] = [
 ];
 
 export const MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] as const;
-export type FiscalMonthName = typeof MONTHS_SHORT[number]; // Using short names for display
+export type FiscalMonthName = typeof MONTHS_SHORT[number];
+
+interface UserExpenditure {
+  userId: string;
+  userName: string;
+  actualAmount: number;
+}
 
 export interface MonthlyBudgetRecord {
   id: string;
   department: Department;
   year: FiscalYear;
-  monthIndex: number; // 0 for April, 1 for May, ..., 11 for March (to align with typical Indian fiscal year starting April)
+  monthIndex: number; 
   forecastedAmount: number;
   actualAmount: number;
+  userBreakdown?: UserExpenditure[];
 }
 
-// Helper to get month name from fiscal month index (0=Apr, 1=May, ..., 11=Mar)
 export const getFiscalMonthName = (monthIndex: number): string => {
   const fiscalYearMonths = ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar"];
   return fiscalYearMonths[monthIndex] || "Invalid Month";
@@ -223,23 +229,59 @@ export const getFiscalMonthName = (monthIndex: number): string => {
 
 
 export const MOCK_MONTHLY_BUDGET_DATA: MonthlyBudgetRecord[] = [
-  // R&D 2024-2025
-  { id: "MB001", department: "R&D", year: "2024-2025", monthIndex: 0, forecastedAmount: 160000, actualAmount: 155000 }, // Apr
-  { id: "MB002", department: "R&D", year: "2024-2025", monthIndex: 1, forecastedAmount: 170000, actualAmount: 175000 }, // May
-  { id: "MB003", department: "R&D", year: "2024-2025", monthIndex: 2, forecastedAmount: 170000, actualAmount: 165000 }, // Jun (Q1 total: 500k)
-  { id: "MB004", department: "R&D", year: "2024-2025", monthIndex: 3, forecastedAmount: 180000, actualAmount: 182000 }, // Jul
+  { 
+    id: "MB001", department: "R&D", year: "2024-2025", monthIndex: 0, forecastedAmount: 160000, actualAmount: 155000, // Apr
+    userBreakdown: [
+      { userId: "user1", userName: "Alice Admin", actualAmount: 75000 },
+      { userId: "user2", userName: "Bob Approver", actualAmount: 50000 },
+      { userId: "user3", userName: "Charlie Requester", actualAmount: 30000 },
+    ]
+  },
+  { 
+    id: "MB002", department: "R&D", year: "2024-2025", monthIndex: 1, forecastedAmount: 170000, actualAmount: 175000, // May
+    userBreakdown: [
+      { userId: "user1", userName: "Alice Admin", actualAmount: 80000 },
+      { userId: "user3", userName: "Charlie Requester", actualAmount: 95000 },
+    ]
+  },
+  { id: "MB003", department: "R&D", year: "2024-2025", monthIndex: 2, forecastedAmount: 170000, actualAmount: 165000 }, // Jun (Q1 total: 500k) - No user breakdown for this one
+  { 
+    id: "MB004", department: "R&D", year: "2024-2025", monthIndex: 3, forecastedAmount: 180000, actualAmount: 182000, // Jul
+     userBreakdown: [
+      { userId: "user2", userName: "Bob Approver", actualAmount: 100000 },
+      { userId: "user4", userName: "David DRE", actualAmount: 82000 },
+    ]
+  },
   { id: "MB005", department: "R&D", year: "2024-2025", monthIndex: 4, forecastedAmount: 180000, actualAmount: 0 },    // Aug (No actuals yet)
   { id: "MB006", department: "R&D", year: "2024-2025", monthIndex: 5, forecastedAmount: 190000, actualAmount: 0 },    // Sep (No actuals yet, Q2 total: 550k)
-  // IT 2024-2025
-  { id: "MB007", department: "IT", year: "2024-2025", monthIndex: 0, forecastedAmount: 60000, actualAmount: 58000 },  // Apr
+  
+  { 
+    id: "MB007", department: "IT", year: "2024-2025", monthIndex: 0, forecastedAmount: 60000, actualAmount: 58000,  // Apr
+    userBreakdown: [
+      { userId: "it_user1", userName: "IT Support L1", actualAmount: 30000 },
+      { userId: "it_user2", userName: "IT Infra Head", actualAmount: 28000 },
+    ]
+  },
   { id: "MB008", department: "IT", year: "2024-2025", monthIndex: 1, forecastedAmount: 70000, actualAmount: 72000 },  // May
   { id: "MB009", department: "IT", year: "2024-2025", monthIndex: 2, forecastedAmount: 70000, actualAmount: 65000 },  // Jun (Q1 total: 200k)
-  // Finance 2024-2025
+  
   { id: "MB010", department: "Finance", year: "2024-2025", monthIndex: 0, forecastedAmount: 30000, actualAmount: 28000 }, // Apr
-  { id: "MB011", department: "Finance", year: "2024-2025", monthIndex: 1, forecastedAmount: 35000, actualAmount: 33000 }, // May
+  { 
+    id: "MB011", department: "Finance", year: "2024-2025", monthIndex: 1, forecastedAmount: 35000, actualAmount: 33000, // May
+    userBreakdown: [
+      { userId: "fin_user1", userName: "Finance Exec", actualAmount: 33000 },
+    ]
+  },
   { id: "MB012", department: "Finance", year: "2024-2025", monthIndex: 2, forecastedAmount: 35000, actualAmount: 38000 }, // Jun (Q1 total: 100k)
+  
   // R&D 2023-2024 (Past year example)
-  { id: "MB013", department: "R&D", year: "2023-2024", monthIndex: 0, forecastedAmount: 150000, actualAmount: 145000 }, // Apr
+  { 
+    id: "MB013", department: "R&D", year: "2023-2024", monthIndex: 0, forecastedAmount: 150000, actualAmount: 145000, // Apr
+    userBreakdown: [
+      { userId: "user1_old", userName: "Old Alice", actualAmount: 70000 },
+      { userId: "user2_old", userName: "Old Bob", actualAmount: 75000 },
+    ]
+  },
   { id: "MB014", department: "R&D", year: "2023-2024", monthIndex: 1, forecastedAmount: 150000, actualAmount: 152000 }, // May
   { id: "MB015", department: "R&D", year: "2023-2024", monthIndex: 2, forecastedAmount: 150000, actualAmount: 148000 }, // Jun
   { id: "MB016", department: "R&D", year: "2023-2024", monthIndex: 3, forecastedAmount: 160000, actualAmount: 158000 }, // Jul
