@@ -21,7 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { WorkPermitSchema, type WorkPermitFormData } from "@/lib/schemas";
-import { BUILDING_TYPES, ACTIVITY_TYPES_WORK_PERMIT } from "@/lib/constants";
+import { STORE_LOCATIONS, ACTIVITY_TYPES_WORK_PERMIT } from "@/lib/constants";
 import { FileUpload } from "@/components/ui/file-upload";
 import { AiComplianceCheck } from "@/components/features/AiComplianceCheck";
 import { useToast } from "@/hooks/use-toast";
@@ -76,12 +76,12 @@ export function WorkPermitForm() {
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select building" />
+                          <SelectValue placeholder="Select building/location" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {BUILDING_TYPES.map((type) => (
-                          <SelectItem key={type} value={type}>{type}</SelectItem>
+                        {STORE_LOCATIONS.map((location) => (
+                          <SelectItem key={location} value={location}>{location}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>

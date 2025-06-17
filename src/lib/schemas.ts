@@ -1,6 +1,6 @@
 
 import { z } from 'zod';
-import { MATERIAL_TYPES, SCRAP_TYPES, BUILDING_TYPES, ACTIVITY_TYPES_WORK_PERMIT, USER_ROLES, DEPARTMENTS, REQUEST_TYPES, COST_CENTERS, STORE_LOCATIONS } from './constants';
+import { MATERIAL_TYPES, SCRAP_TYPES, STORE_LOCATIONS, ACTIVITY_TYPES_WORK_PERMIT, USER_ROLES, DEPARTMENTS, REQUEST_TYPES, COST_CENTERS } from './constants';
 
 export const LoginSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -41,7 +41,7 @@ export type ScrapMovementFormData = z.infer<typeof ScrapMovementSchema>;
 
 
 export const WorkPermitSchema = z.object({
-  building: z.enum(BUILDING_TYPES, { required_error: "Building is required." }),
+  building: z.enum(STORE_LOCATIONS, { required_error: "Building/Location is required." }),
   activityType: z.enum(ACTIVITY_TYPES_WORK_PERMIT, { required_error: "Activity type is required." }),
   activityDetails: z.string().min(10, "Please provide more details about the activity (min 10 characters).").max(1000, "Activity details cannot exceed 1000 characters."),
   specificAreaOrEquipment: z.string().min(1, "Specific area/equipment details are required.").max(200, "Too long."),

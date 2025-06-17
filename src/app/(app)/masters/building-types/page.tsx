@@ -4,53 +4,26 @@
 
 import * as React from "react";
 import { PageHeader } from "@/components/shared/PageHeader";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { BUILDING_TYPES } from "@/lib/constants";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-export default function BuildingTypesMasterPage() {
-  const [buildingTypes, setBuildingTypes] = React.useState(BUILDING_TYPES);
-
+export default function BuildingTypesMasterPage_DEPRECATED() {
+  // This component is deprecated and its functionality moved to /masters/store-locations
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Building Types Master"
-        description="Manage building and location types."
-        actions={
-          <Button>
-            <PlusCircle className="w-4 h-4 mr-2" /> Add New Building Type
-          </Button>
-        }
+        title="Building Types Master (DEPRECATED)"
+        description="This page has been consolidated into 'Store Locations' master."
       />
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle>Existing Building Types</CardTitle>
+          <CardTitle>Functionality Moved</CardTitle>
+          <CardDescription>
+            The concept of 'Building Types' has been merged with 'Store Locations'. 
+            Please manage all locations and their types under the 'Store Locations' page in the 'Masters' section.
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          {buildingTypes.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {buildingTypes.map((type) => (
-                  <TableRow key={type}>
-                    <TableCell className="font-medium">{type}</TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm" disabled>Edit</Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <p className="text-muted-foreground">No building types found.</p>
-          )}
+            <p className="text-destructive">This page is no longer actively used and can be removed.</p>
         </CardContent>
       </Card>
     </div>

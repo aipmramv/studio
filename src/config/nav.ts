@@ -6,7 +6,7 @@ import {
   ClipboardCheck, ShoppingCart, Tags, PlusCircle, Warehouse,
   Store, PackagePlus, PackageMinus, Undo2, SearchCheck, SlidersHorizontal, GitFork,
   Users, Mail, UserCog, Layers, FileArchive, DollarSignIcon, PackageSearch,
-  Building2, Users2, TagIcon, ScaleIcon // Added new icons for masters
+  Building2, Users2, TagIcon, ScaleIcon
 } from 'lucide-react';
 
 export interface NavItem {
@@ -104,7 +104,7 @@ export const mainNavItems: NavItem[] = [
   },
   {
     title: 'Stores Management',
-    href: '/stores/inventory-summary', // Updated default href
+    href: '/stores/inventory-summary',
     icon: Warehouse,
     description: "Manage store operations, inventory, and audits.",
     items: [
@@ -139,18 +139,17 @@ export const mainNavItems: NavItem[] = [
   },
   {
     title: 'Masters',
-    href: '/masters/material-types', // Default to first item or a dedicated overview
+    href: '/masters/material-types', 
     icon: Database,
     description: "Manage application master data.",
-    roles: ['admin'], // Typically admin-only
+    roles: ['admin'],
     items: [
       { title: 'Material Types', href: '/masters/material-types', icon: Package, description: "Manage material types." },
       { title: 'Scrap Categories', href: '/masters/scrap-types', icon: Recycle, description: "Manage scrap types." },
-      { title: 'Building Types', href: '/masters/building-types', icon: Building, description: "Manage building types." },
+      { title: 'Store Locations', href: '/masters/store-locations', icon: Store, description: "Manage store locations." },
       { title: 'Departments', href: '/masters/departments', icon: Briefcase, description: "Manage departments." },
       { title: 'Activity Types', href: '/masters/activity-types', icon: ClipboardCheck, description: "Manage work permit activity types." },
       { title: 'Cost Centers', href: '/masters/cost-centers', icon: DollarSignIcon, description: "Manage cost centers." },
-      { title: 'Store Locations', href: '/masters/store-locations', icon: Store, description: "Manage store locations." },
       { title: 'Vendors', href: '/masters/vendors', icon: Building2, description: "Manage vendor master data." },
       { title: 'Customers', href: '/masters/customers', icon: Users2, description: "Manage customer master data." },
       { title: 'HSN/SAC Codes', href: '/masters/hsn-sac-codes', icon: TagIcon, description: "Manage HSN/SAC codes." },

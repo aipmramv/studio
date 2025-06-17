@@ -12,11 +12,24 @@ export type MaterialCategory = typeof MATERIAL_CATEGORIES[number];
 export const SCRAP_TYPES = ["Plastic", "E-waste", "Metal Ferrous", "Metal Non-Ferrous", "Paper", "Wood", "Chemical", "Other"] as const;
 export type ScrapType = typeof SCRAP_TYPES[number];
 
-export const BUILDING_TYPES = ["KOSMO", "Test Tower", "Admin Block", "Warehouse A", "Warehouse B", "Production Hall X", "Utility Building", "Main Gate", "Scrap Yard"] as const;
-export type BuildingType = typeof BUILDING_TYPES[number];
-
-export const STORE_LOCATIONS = ["Central Warehouse Alpha", "Electronics Sub-Store", "Maintenance Store", "Dispatch Area", "Production Line Store 1", "Quality Lab Store", "Receiving Bay"] as const;
-export type StoreLocationType = typeof STORE_LOCATIONS[number]; // Renamed to avoid conflict with interface if any
+export const STORE_LOCATIONS = [
+  "Central Warehouse Alpha", 
+  "Electronics Sub-Store", 
+  "Maintenance Store", 
+  "Dispatch Area", 
+  "Production Line Store 1", 
+  "Quality Lab Store", 
+  "Receiving Bay",
+  "KOSMO Building",
+  "Test Tower",
+  "Admin Block",
+  "Warehouse B",
+  "Production Hall X",
+  "Utility Building",
+  "Main Gate",
+  "Scrap Yard"
+] as const;
+export type StoreLocationType = typeof STORE_LOCATIONS[number];
 
 export const DEPARTMENTS = ["Production", "Maintenance", "Logistics", "Quality Assurance", "IT", "HR", "Finance", "R&D", "Safety & Environment", "Sales", "Facility Management"] as const;
 export type Department = typeof DEPARTMENTS[number];
