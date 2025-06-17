@@ -7,7 +7,7 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from "@/components/ui/table";
 import { AreaChart, Briefcase, CalendarDays, Users as UsersIcon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { DEPARTMENTS, FISCAL_YEARS, MOCK_MONTHLY_BUDGET_DATA, getFiscalMonthName, type Department, type FiscalYear, type MonthlyBudgetRecord } from "@/lib/constants";
@@ -17,7 +17,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
+  DialogFooter as UIDialogFooter,
   DialogHeader,
   DialogTitle,
   DialogClose,
@@ -191,7 +191,7 @@ export default function MonthlyBudgetReportPage() {
                         </TableRow>
                       ))}
                     </TableBody>
-                     <TableCaption className="bg-muted/50 py-2 px-4">
+                    <TableFooter className="bg-muted/50">
                       <TableRow className="font-semibold">
                         <TableCell>Total / Average</TableCell>
                         <TableCell className="text-right">{totals.forecasted.toLocaleString('en-IN', formattingOptions)}</TableCell>
@@ -213,7 +213,7 @@ export default function MonthlyBudgetReportPage() {
                           {isFinite(totalVariancePercentage) ? `${totalVariancePercentage.toFixed(2)}%` : (totals.actual > 0 ? "New Spend" : "N/A")}
                         </TableCell>
                       </TableRow>
-                    </TableCaption>
+                    </TableFooter>
                   </Table>
                 </div>
               </div>
@@ -271,16 +271,14 @@ export default function MonthlyBudgetReportPage() {
                 </p>
               )}
             </ScrollArea>
-            <DialogFooter>
+            <UIDialogFooter>
               <DialogClose asChild>
                 <Button variant="outline">Close</Button>
               </DialogClose>
-            </DialogFooter>
+            </UIDialogFooter>
           </DialogContent>
         </Dialog>
       )}
     </div>
   );
 }
-
-    
