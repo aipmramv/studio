@@ -23,7 +23,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { WorkPermitSchema, type WorkPermitFormData } from "@/lib/schemas";
 import { STORE_LOCATIONS, ACTIVITY_TYPES_WORK_PERMIT } from "@/lib/constants";
 import { FileUpload } from "@/components/ui/file-upload";
-import { AiComplianceCheck } from "@/components/features/AiComplianceCheck";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "../ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -57,7 +56,7 @@ export function WorkPermitForm() {
   }
 
   return (
-    <Card className="w-full shadow-xl">
+    <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center text-2xl font-headline">
           <FileText className="w-6 h-6 mr-2 text-primary" /> Request Work Permit
@@ -191,8 +190,6 @@ export function WorkPermitForm() {
               </div>
             </div>
             
-            <AiComplianceCheck formData={form.getValues()} />
-
             <CardFooter className="px-0 pt-6">
               <Button type="submit" className="w-full md:w-auto" disabled={form.formState.isSubmitting}>
                 {form.formState.isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Submitting...</> : <><Send className="w-4 h-4 mr-2" /> Submit Request</>}

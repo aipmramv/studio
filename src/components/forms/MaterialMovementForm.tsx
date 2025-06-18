@@ -24,7 +24,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { MaterialMovementSchema, type MaterialMovementFormData } from "@/lib/schemas";
 import { MATERIAL_TYPES, DEPARTMENTS } from "@/lib/constants";
 import { FileUpload } from "@/components/ui/file-upload";
-import { AiComplianceCheck } from "@/components/features/AiComplianceCheck";
 import { useToast } from "@/hooks/use-toast";
 
 export function MaterialMovementForm() {
@@ -72,7 +71,7 @@ export function MaterialMovementForm() {
   }
 
   return (
-    <Card className="w-full shadow-xl">
+    <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center text-2xl font-headline">
           <Package className="w-6 h-6 mr-2 text-primary" /> Log Material Movement
@@ -237,8 +236,6 @@ export function MaterialMovementForm() {
               </div>
             </div>
             
-            <AiComplianceCheck formData={form.getValues()} />
-
             <CardFooter className="px-0 pt-6">
               <Button type="submit" className="w-full md:w-auto" disabled={form.formState.isSubmitting}>
                 {form.formState.isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Submitting...</> : <><Send className="w-4 h-4 mr-2" /> Submit Request</>}

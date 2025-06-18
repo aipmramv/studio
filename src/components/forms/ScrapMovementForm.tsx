@@ -1,3 +1,4 @@
+
 // src/components/forms/ScrapMovementForm.tsx
 "use client";
 
@@ -22,7 +23,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { ScrapMovementSchema, type ScrapMovementFormData } from "@/lib/schemas";
 import { SCRAP_TYPES } from "@/lib/constants";
 import { FileUpload } from "@/components/ui/file-upload";
-import { AiComplianceCheck } from "@/components/features/AiComplianceCheck";
 import { useToast } from "@/hooks/use-toast";
 
 export function ScrapMovementForm() {
@@ -50,7 +50,7 @@ export function ScrapMovementForm() {
   }
 
   return (
-    <Card className="w-full shadow-xl">
+    <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center text-2xl font-headline">
           <PackageSearch className="w-6 h-6 mr-2 text-primary" /> Log Scrap Movement
@@ -137,8 +137,6 @@ export function ScrapMovementForm() {
               </div>
             </div>
             
-            <AiComplianceCheck formData={form.getValues()} />
-
             <CardFooter className="px-0 pt-6">
               <Button type="submit" className="w-full md:w-auto" disabled={form.formState.isSubmitting}>
                 {form.formState.isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Submitting...</> : <><Send className="w-4 h-4 mr-2" /> Submit Request</>}
