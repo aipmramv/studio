@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import Link from "next/link";
 import { useRouter } from "next/navigation"; // Use next/navigation for App Router
-import { AtSign, Lock, LogIn } from "lucide-react";
+import { AtSign, Lock, LogIn, Briefcase } from "lucide-react"; // Added Briefcase for KONE SSO example
 
 import { Button } from "@/components/ui/button";
 import {
@@ -21,6 +21,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { LoginSchema, type LoginFormData } from "@/lib/schemas";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth"; // Mock auth hook
+import { KoneLogo } from "@/components/shared/KoneLogo"; // Import KONE Logo
 
 export function LoginForm() {
   const router = useRouter();
@@ -52,17 +53,17 @@ export function LoginForm() {
     }
   }
 
-  async function handleMicrosoftLogin() {
+  async function handleKoneSsoLogin() {
     try {
       await login(); // Mock login doesn't need specific params for SSO
       toast({
         title: "Login Successful",
-        description: "Signed in with Microsoft (mocked).",
+        description: "Signed in with KONE SSO (mocked).",
       });
       router.push("/dashboard");
     } catch (error) {
       toast({
-        title: "Microsoft Login Failed",
+        title: "KONE SSO Login Failed",
         description: (error as Error).message || "An unexpected error occurred.",
         variant: "destructive",
       });
@@ -70,10 +71,11 @@ export function LoginForm() {
   }
 
   return (
-    <Card className="w-full max-w-md shadow-2xl">
+    <Card className="w-full max-w-md"> {/* Removed shadow-2xl for KONE's flatter design */}
       <CardHeader className="text-center">
+        <KoneLogo className="h-12 w-auto mx-auto mb-6" /> {/* KONE Logo Added */}
         <CardTitle className="text-3xl font-bold font-headline">R&D Stores Flow Login</CardTitle>
-        <CardDescription>Enter your credentials or sign in with Microsoft.</CardDescription>
+        <CardDescription>Enter your credentials or sign in with KONE SSO.</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -121,9 +123,9 @@ export function LoginForm() {
           </div>
         </div>
 
-        <Button variant="outline" className="w-full" onClick={handleMicrosoftLogin} disabled={loading}>
-           {/* Using a generic icon or text as direct Microsoft logo might not be in lucide */}
-          Sign in with Microsoft
+        <Button variant="outline" className="w-full flex items-center justify-center gap-2" onClick={handleKoneSsoLogin} disabled={loading}>
+           <Briefcase className="w-4 h-4" /> {/* Example icon for SSO */}
+          Sign in with KONE SSO
         </Button>
 
       </CardContent>
