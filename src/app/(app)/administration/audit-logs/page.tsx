@@ -205,7 +205,7 @@ export default function AuditLogsPage() {
                         <SelectValue placeholder="All Actions" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Actions</SelectItem>
+                        {/* <SelectItem value="">All Actions</SelectItem> Removed to fix error */}
                         {distinctActions.map(action => (
                           <SelectItem key={action} value={action}>{action}</SelectItem>
                         ))}
@@ -219,7 +219,7 @@ export default function AuditLogsPage() {
                         <SelectValue placeholder="All Entities" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Entities</SelectItem>
+                        {/* <SelectItem value="">All Entities</SelectItem> Removed to fix error */}
                          {distinctEntityTypes.map(type => (
                           <SelectItem key={type} value={type}>{type}</SelectItem>
                         ))}

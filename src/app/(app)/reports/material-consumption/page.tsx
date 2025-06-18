@@ -118,7 +118,7 @@ export default function MaterialConsumptionReportPage() {
                   <SelectValue placeholder="All Material Types" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Material Types</SelectItem>
+                  {/* <SelectItem value="">All Material Types</SelectItem> Removed to fix error */}
                   {MATERIAL_TYPES.map(type => <SelectItem key={type} value={type}><TagIcon className="inline w-3 h-3 mr-1 text-muted-foreground"/>{type}</SelectItem>)}
                 </SelectContent>
               </Select>
@@ -127,7 +127,7 @@ export default function MaterialConsumptionReportPage() {
                   <SelectValue placeholder="All Stores" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Stores</SelectItem>
+                  {/* <SelectItem value="">All Stores</SelectItem> Removed to fix error */}
                   {STORE_LOCATIONS.map(loc => <SelectItem key={loc} value={loc}><WarehouseIcon className="inline w-3 h-3 mr-1 text-muted-foreground"/>{loc}</SelectItem>)}
                 </SelectContent>
               </Select>
@@ -136,7 +136,7 @@ export default function MaterialConsumptionReportPage() {
                   <SelectValue placeholder="All Departments" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Departments</SelectItem>
+                  {/* <SelectItem value="">All Departments</SelectItem> Removed to fix error */}
                   {DEPARTMENTS.map(dept => <SelectItem key={dept} value={dept}><BriefcaseIcon className="inline w-3 h-3 mr-1 text-muted-foreground"/>{dept}</SelectItem>)}
                 </SelectContent>
               </Select>

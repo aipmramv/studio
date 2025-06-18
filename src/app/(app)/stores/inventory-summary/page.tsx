@@ -162,7 +162,7 @@ export default function InventorySummaryPage() {
                         <SelectValue placeholder="All Locations" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Locations</SelectItem>
+                        {/* <SelectItem value="">All Locations</SelectItem> Removed to fix error */}
                         {distinctStoreLocations.map(loc => (
                           <SelectItem key={loc} value={loc}>{loc}</SelectItem>
                         ))}
@@ -176,7 +176,7 @@ export default function InventorySummaryPage() {
                         <SelectValue placeholder="All Categories" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Categories</SelectItem>
+                        {/* <SelectItem value="">All Categories</SelectItem> Removed to fix error */}
                         {distinctMaterialCategories.map(cat => (
                           <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                         ))}
@@ -190,7 +190,7 @@ export default function InventorySummaryPage() {
                         <SelectValue placeholder="All Statuses" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Statuses</SelectItem>
+                        {/* <SelectItem value="">All Statuses</SelectItem> Removed to fix error */}
                         {availabilityStatuses.map(status => (
                           <SelectItem key={status} value={status}>{status}</SelectItem>
                         ))}
