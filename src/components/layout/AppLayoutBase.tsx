@@ -41,7 +41,12 @@ export function AppLayoutBase({ children }: AppLayoutBaseProps) {
             <div className="flex items-center justify-between">
               <Button variant="link" className="p-0 h-auto" asChild>
                 <Link href="/dashboard" className="flex items-center gap-2 text-sidebar-foreground hover:text-sidebar-primary-foreground transition-colors">
-                  <KoneLogo className="h-8 w-auto" /> {/* KONE Logo replaces Workflow icon */}
+                  <KoneLogo 
+                    className="h-8 w-auto" 
+                    blockColor="hsl(var(--primary-foreground))" // White
+                    textColor="hsl(var(--primary))"           // KONE Blue
+                    separatorColor="hsl(var(--primary))"      // KONE Blue
+                  />
                   <h1 className="text-xl font-bold font-headline group-data-[collapsible=icon]:hidden">R&D Stores Flow</h1>
                 </Link>
               </Button>
