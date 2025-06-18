@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption, TableFooter } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Truck, Recycle, ShieldCheck, ShoppingCart, Tags, Package, CalendarDays, User, MessageSquare, Bell, ChevronsUp, Send, Info, History, CheckCircle, CircleDot, Circle, Workflow as WorkflowIcon, Clock, Search, Filter as FilterIcon, ChevronsLeft, ChevronsRight, X, FileText, FileSpreadsheet } from "lucide-react";
+import { Eye, Truck, Recycle, ShieldCheck, ShoppingCart, Tags, Package, CalendarDays, User, MessageSquare, Bell, ChevronsUp, Send, Info, History, CheckCircle, CircleDot, Circle, Workflow as WorkflowIcon, Clock, Search, Filter as FilterIcon, ChevronsLeft, ChevronsRight, X, FileText, FileSpreadsheet, Printer } from "lucide-react";
 import { type RequestType, type UserRole, type UserAction, MOCK_WORKFLOW_TEMPLATES, type WorkflowTemplate, type WorkflowStep, DEPARTMENTS } from "@/lib/constants";
 import { type MaterialMovementFormData, type ScrapMovementFormData, type WorkPermitFormData, type PurchaseOrderFormData, type SaleOrderFormData, type OrderItem } from "@/lib/schemas";
 import {
@@ -86,6 +86,17 @@ const mockAllRequestsData: ApprovalItem[] = [
       { stepId: "submission", stepName: "Submitted", actor: "Carol White", action: "submitted", timestamp: "2024-07-29T09:15:00Z" },
       { stepId: "wp_safety_review", stepName: "Safety Team Review", actor: "Safety Officer", action: "approve", timestamp: "2024-07-29T14:00:00Z", comment: "Safety protocols confirmed." },
       { stepId: "wp_maintenance_review", stepName: "Pending Maintenance Review", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-29T14:01:00Z"}
+    ]
+  },
+  {
+    id: "WP007", requestType: "Work Permit", requesterName: "Gina Facility", requesterDepartment: "Facility Management", submissionDate: "2024-08-02T10:00:00Z",
+    currentStepId: "wp_facility_head", currentStepName: "Permit Issued by Facility Head", workflowTemplateId: "work_permit_default",
+    payload: { activityType: "Civil Works (Excavation, Construction)", building: "Test Tower", activityDetails: "Area preparation for new equipment installation, minor excavation.", specificAreaOrEquipment: "Test Tower, Ground Floor, Bay 3", permitValidity: new Date("2024-08-15") } as WorkPermitFormData,
+    history: [
+      { stepId: "submission", stepName: "Submitted", actor: "Gina Facility", action: "submitted", timestamp: "2024-08-02T10:00:00Z" },
+      { stepId: "wp_safety_review", stepName: "Safety Team Review", actor: "Safety Officer", action: "approve", timestamp: "2024-08-02T14:00:00Z", comment: "All clear." },
+      { stepId: "wp_maintenance_review", stepName: "Maintenance Team Review", actor: "Maintenance Supervisor", action: "approve", timestamp: "2024-08-03T09:00:00Z", comment: "Impact assessed, OK to proceed."},
+      { stepId: "wp_facility_head", stepName: "Permit Issued by Facility Head", actor: "Facility Head", action: "approve", timestamp: "2024-08-03T11:00:00Z", comment: "Permit issued."},
     ]
   },
   {
@@ -215,7 +226,7 @@ const renderRequestPayloadDetailsDialog = (payload: RequestPayload, requestType:
             <TableBody>
             {poPayload.items.map((item, idx) => {
               const itemTotal = (item.quantity || 0) * (item.unitPrice || 0);
-              const itemGst = itemTotal * ((i.gstPercentage || 0) / 100);
+              const itemGst = itemTotal * ((item.gstPercentage || 0) / 100);
               const lineTotal = itemTotal + itemGst;
               return (
               <TableRow key={idx}><TableCell>{item.itemName}</TableCell><TableCell>{item.quantity}</TableCell><TableCell className="text-right">{item.unitPrice.toLocaleString('en-IN', formattingOptions)}</TableCell><TableCell>{item.hsnSacCode || 'N/A'}</TableCell><TableCell className="text-right">{item.gstPercentage ? `${item.gstPercentage}%` : 'N/A'}</TableCell><TableCell className="text-right">{lineTotal.toLocaleString('en-IN', formattingOptions)}</TableCell></TableRow>
@@ -447,9 +458,9 @@ export default function AllRequestsPage() {
                            (request.history.some(h => h.stepId === step.id && (h.action === "system_auto_proceed" || h.action === "submitted")) || currentStepIndex === index );
 
           let icon;
-          let textClass = "text-muted-foreground/80"; // Default for pending
-          let roleClass = "text-muted-foreground/80"; // Default for pending
-          let lineClass = "bg-border"; // Default for pending
+          let textClass = "text-muted-foreground/80";
+          let roleClass = "text-muted-foreground/80";
+          let lineClass = "bg-border";
 
           if (isCompleted) {
             icon = <CheckCircle className="w-5 h-5 text-primary" />;
@@ -689,11 +700,23 @@ export default function AllRequestsPage() {
         }}>
           <DialogContent className="sm:max-w-3xl">
             <DialogHeader>
-              <DialogTitle className="flex items-center">
-                {getRequestTypeIcon(selectedRequest.requestType, "w-6 h-6 mr-2 text-primary")}
-                Request Details: {selectedRequest.id}
-                <Badge variant="outline" className="ml-auto capitalize">{selectedRequest.requestType}</Badge>
-              </DialogTitle>
+              <div className="flex justify-between items-center">
+                <DialogTitle className="flex items-center">
+                  {getRequestTypeIcon(selectedRequest.requestType, "w-6 h-6 mr-2 text-primary")}
+                  Request Details: {selectedRequest.id}
+                </DialogTitle>
+                <div className="flex items-center gap-2">
+                 <Badge variant="outline" className="capitalize">{selectedRequest.requestType}</Badge>
+                  {selectedRequest.requestType === "Work Permit" &&
+                    MOCK_WORKFLOW_TEMPLATES.find(wt => wt.id === selectedRequest.workflowTemplateId)?.steps.find(s => s.id === selectedRequest.currentStepId && !s.nextStepId) && 
+                    (
+                      <Button variant="outline" size="sm" onClick={() => window.print()}>
+                        <Printer className="w-4 h-4 mr-2" /> Print Permit
+                      </Button>
+                    )
+                  }
+                </div>
+              </div>
               <DialogDescription>
                 Detailed information, workflow progress, and approval timeline for request {selectedRequest.id}.
               </DialogDescription>

@@ -7,7 +7,7 @@ import {
   Store, PackagePlus, PackageMinus, Undo2, SearchCheck, SlidersHorizontal, GitFork,
   Users, Mail, UserCog, Layers, FileArchive, DollarSignIcon, PackageSearch,
   Building2, Users2, TagIcon, ScaleIcon, Landmark, AreaChart, PieChart, BarChartHorizontalBig,
-  FileSpreadsheet
+  FileSpreadsheet, FileCheck
 } from 'lucide-react';
 
 export interface NavItem {
@@ -205,6 +205,13 @@ export const mainNavItems: NavItem[] = [
         href: '/administration/email-templates',
         icon: Mail,
         description: "Configure email notifications.",
+        roles: ['admin'],
+      },
+      {
+        title: 'Work Permit Templates',
+        href: '/administration/work-permit-templates',
+        icon: FileCheck,
+        description: "Configure work permit layouts.",
         roles: ['admin'],
       },
     ]
