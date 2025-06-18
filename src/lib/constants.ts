@@ -13,12 +13,12 @@ export const SCRAP_TYPES = ["Plastic", "E-waste", "Metal Ferrous", "Metal Non-Fe
 export type ScrapType = typeof SCRAP_TYPES[number];
 
 export const STORE_LOCATIONS = [
-  "Central Warehouse Alpha", 
-  "Electronics Sub-Store", 
-  "Maintenance Store", 
-  "Dispatch Area", 
-  "Production Line Store 1", 
-  "Quality Lab Store", 
+  "Central Warehouse Alpha",
+  "Electronics Sub-Store",
+  "Maintenance Store",
+  "Dispatch Area",
+  "Production Line Store 1",
+  "Quality Lab Store",
   "Receiving Bay",
   "KOSMO Building",
   "Test Tower",
@@ -54,6 +54,10 @@ export type ActivityTypeWorkPermit = typeof ACTIVITY_TYPES_WORK_PERMIT[number];
 
 export const REQUEST_TYPES = ["Purchase Order", "Sale Order", "Material Movement", "Work Permit", "Scrap Request"] as const;
 export type RequestType = typeof REQUEST_TYPES[number];
+
+export const REQUEST_STATUSES = ["Pending", "Approved", "Rejected", "In Progress", "Completed", "Cancelled"] as const;
+export type RequestStatus = typeof REQUEST_STATUSES[number];
+
 
 export interface WorkflowStep {
   id: string;
@@ -216,7 +220,7 @@ export interface MonthlyBudgetRecord {
   id: string;
   department: Department;
   year: FiscalYear;
-  monthIndex: number; 
+  monthIndex: number;
   forecastedAmount: number;
   actualAmount: number;
   userBreakdown?: UserExpenditure[];
@@ -229,7 +233,7 @@ export const getFiscalMonthName = (monthIndex: number): string => {
 
 
 export const MOCK_MONTHLY_BUDGET_DATA: MonthlyBudgetRecord[] = [
-  { 
+  {
     id: "MB001", department: "R&D", year: "2024-2025", monthIndex: 0, forecastedAmount: 160000, actualAmount: 155000, // Apr
     userBreakdown: [
       { userId: "user1", userName: "Alice Admin", actualAmount: 75000 },
@@ -237,7 +241,7 @@ export const MOCK_MONTHLY_BUDGET_DATA: MonthlyBudgetRecord[] = [
       { userId: "user3", userName: "Charlie Requester", actualAmount: 30000 },
     ]
   },
-  { 
+  {
     id: "MB002", department: "R&D", year: "2024-2025", monthIndex: 1, forecastedAmount: 170000, actualAmount: 175000, // May
     userBreakdown: [
       { userId: "user1", userName: "Alice Admin", actualAmount: 80000 },
@@ -245,7 +249,7 @@ export const MOCK_MONTHLY_BUDGET_DATA: MonthlyBudgetRecord[] = [
     ]
   },
   { id: "MB003", department: "R&D", year: "2024-2025", monthIndex: 2, forecastedAmount: 170000, actualAmount: 165000 }, // Jun (Q1 total: 500k) - No user breakdown for this one
-  { 
+  {
     id: "MB004", department: "R&D", year: "2024-2025", monthIndex: 3, forecastedAmount: 180000, actualAmount: 182000, // Jul
      userBreakdown: [
       { userId: "user2", userName: "Bob Approver", actualAmount: 100000 },
@@ -254,8 +258,8 @@ export const MOCK_MONTHLY_BUDGET_DATA: MonthlyBudgetRecord[] = [
   },
   { id: "MB005", department: "R&D", year: "2024-2025", monthIndex: 4, forecastedAmount: 180000, actualAmount: 0 },    // Aug (No actuals yet)
   { id: "MB006", department: "R&D", year: "2024-2025", monthIndex: 5, forecastedAmount: 190000, actualAmount: 0 },    // Sep (No actuals yet, Q2 total: 550k)
-  
-  { 
+
+  {
     id: "MB007", department: "IT", year: "2024-2025", monthIndex: 0, forecastedAmount: 60000, actualAmount: 58000,  // Apr
     userBreakdown: [
       { userId: "it_user1", userName: "IT Support L1", actualAmount: 30000 },
@@ -264,18 +268,18 @@ export const MOCK_MONTHLY_BUDGET_DATA: MonthlyBudgetRecord[] = [
   },
   { id: "MB008", department: "IT", year: "2024-2025", monthIndex: 1, forecastedAmount: 70000, actualAmount: 72000 },  // May
   { id: "MB009", department: "IT", year: "2024-2025", monthIndex: 2, forecastedAmount: 70000, actualAmount: 65000 },  // Jun (Q1 total: 200k)
-  
+
   { id: "MB010", department: "Finance", year: "2024-2025", monthIndex: 0, forecastedAmount: 30000, actualAmount: 28000 }, // Apr
-  { 
+  {
     id: "MB011", department: "Finance", year: "2024-2025", monthIndex: 1, forecastedAmount: 35000, actualAmount: 33000, // May
     userBreakdown: [
       { userId: "fin_user1", userName: "Finance Exec", actualAmount: 33000 },
     ]
   },
   { id: "MB012", department: "Finance", year: "2024-2025", monthIndex: 2, forecastedAmount: 35000, actualAmount: 38000 }, // Jun (Q1 total: 100k)
-  
+
   // R&D 2023-2024 (Past year example)
-  { 
+  {
     id: "MB013", department: "R&D", year: "2023-2024", monthIndex: 0, forecastedAmount: 150000, actualAmount: 145000, // Apr
     userBreakdown: [
       { userId: "user1_old", userName: "Old Alice", actualAmount: 70000 },
@@ -295,4 +299,42 @@ export const MOCK_MONTHLY_BUDGET_DATA: MonthlyBudgetRecord[] = [
   { id: "MB024", department: "R&D", year: "2023-2024", monthIndex: 11, forecastedAmount: 190000, actualAmount: 188000 }, // Mar
 ];
 
-    
+
+// --- New Constants for Reports ---
+
+export interface RequestStatusSummaryItem {
+  requestType: RequestType;
+  totalSubmitted: number;
+  pending: number;
+  approved: number;
+  rejected: number;
+  inProgress?: number; // Optional, for workflows with multiple steps
+  completed?: number; // Optional, for fully finished workflows
+}
+
+export const MOCK_REQUEST_STATUS_SUMMARY: RequestStatusSummaryItem[] = [
+  { requestType: "Material Movement", totalSubmitted: 50, pending: 5, approved: 40, rejected: 3, inProgress: 2 },
+  { requestType: "Scrap Request", totalSubmitted: 20, pending: 2, approved: 15, rejected: 1, completed: 2 },
+  { requestType: "Work Permit", totalSubmitted: 30, pending: 8, approved: 20, rejected: 2 },
+  { requestType: "Purchase Order", totalSubmitted: 15, pending: 3, approved: 10, rejected: 0, completed: 2 },
+  { requestType: "Sale Order", totalSubmitted: 10, pending: 1, approved: 8, rejected: 1 },
+];
+
+export interface MaterialConsumptionItem {
+  materialId: string;
+  materialName: string;
+  materialCategory: MaterialCategory;
+  quantityIssued: number;
+  unitOfMeasure: string;
+  dateIssued: string; // ISO Date string
+  issuedToDepartment: Department;
+  issuingStore: StoreLocationType;
+}
+
+export const MOCK_MATERIAL_CONSUMPTION: MaterialConsumptionItem[] = [
+  { materialId: "MAT001", materialName: "Steel Rods - 10mm", materialCategory: "Raw Material", quantityIssued: 50, unitOfMeasure: "Pieces", dateIssued: "2024-07-01T10:00:00Z", issuedToDepartment: "Production", issuingStore: "Central Warehouse Alpha" },
+  { materialId: "MAT002", materialName: "Circuit Board XB-2", materialCategory: "Components", quantityIssued: 10, unitOfMeasure: "Units", dateIssued: "2024-07-02T11:00:00Z", issuedToDepartment: "R&D", issuingStore: "Electronics Sub-Store" },
+  { materialId: "MAT003", materialName: "Lubricant Oil Grade 5", materialCategory: "Consumables", quantityIssued: 2, unitOfMeasure: "Liters", dateIssued: "2024-07-03T09:30:00Z", issuedToDepartment: "Maintenance", issuingStore: "Maintenance Store" },
+  { materialId: "MAT001", materialName: "Steel Rods - 10mm", materialCategory: "Raw Material", quantityIssued: 30, unitOfMeasure: "Pieces", dateIssued: "2024-07-05T14:00:00Z", issuedToDepartment: "Production", issuingStore: "Central Warehouse Alpha" },
+  { materialId: "MAT006", materialName: "Copper Wiring - 2.5mm", materialCategory: "Raw Material", quantityIssued: 100, unitOfMeasure: "Meters", dateIssued: "2024-07-08T16:00:00Z", issuedToDepartment: "Facility Management", issuingStore: "Electronics Sub-Store" },
+];

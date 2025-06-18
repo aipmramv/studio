@@ -5,11 +5,11 @@
 import * as React from "react";
 import { format } from "date-fns";
 import { PageHeader } from "@/components/shared/PageHeader";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"; 
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption, TableFooter } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Truck, Recycle, ShieldCheck, ShoppingCart, Tags, Package, CalendarDays, User, MessageSquare, Bell, ChevronsUp, Send, Info, History, CheckCircle, CircleDot, Circle, Workflow as WorkflowIcon, Clock, Search, Filter as FilterIcon, ChevronsLeft, ChevronsRight, X } from "lucide-react";
+import { Eye, Truck, Recycle, ShieldCheck, ShoppingCart, Tags, Package, CalendarDays, User, MessageSquare, Bell, ChevronsUp, Send, Info, History, CheckCircle, CircleDot, Circle, Workflow as WorkflowIcon, Clock, Search, Filter as FilterIcon, ChevronsLeft, ChevronsRight, X, FileText, FileSpreadsheet } from "lucide-react";
 import { type RequestType, type UserRole, type UserAction, MOCK_WORKFLOW_TEMPLATES, type WorkflowTemplate, type WorkflowStep, DEPARTMENTS } from "@/lib/constants";
 import { type MaterialMovementFormData, type ScrapMovementFormData, type WorkPermitFormData, type PurchaseOrderFormData, type SaleOrderFormData, type OrderItem } from "@/lib/schemas";
 import {
@@ -38,8 +38,8 @@ interface ApprovalHistoryItem {
   stepId: string;
   stepName: string;
   action: UserAction | "submitted" | "commented" | "reminded" | "escalated" | "system_auto_proceed";
-  actor: string; 
-  timestamp: string; 
+  actor: string;
+  timestamp: string;
   comment?: string;
 }
 
@@ -51,7 +51,7 @@ interface ApprovalItem {
   submissionDate: string; // ISO Date string
   currentStepId: string;
   currentStepName: string;
-  workflowTemplateId: string; 
+  workflowTemplateId: string;
   payload: RequestPayload;
   history: ApprovalHistoryItem[];
 }
@@ -215,7 +215,7 @@ const renderRequestPayloadDetailsDialog = (payload: RequestPayload, requestType:
             <TableBody>
             {poPayload.items.map((item, idx) => {
               const itemTotal = (item.quantity || 0) * (item.unitPrice || 0);
-              const itemGst = itemTotal * ((item.gstPercentage || 0) / 100);
+              const itemGst = itemTotal * ((i.gstPercentage || 0) / 100);
               const lineTotal = itemTotal + itemGst;
               return (
               <TableRow key={idx}><TableCell>{item.itemName}</TableCell><TableCell>{item.quantity}</TableCell><TableCell className="text-right">{item.unitPrice.toLocaleString('en-IN', formattingOptions)}</TableCell><TableCell>{item.hsnSacCode || 'N/A'}</TableCell><TableCell className="text-right">{item.gstPercentage ? `${item.gstPercentage}%` : 'N/A'}</TableCell><TableCell className="text-right">{lineTotal.toLocaleString('en-IN', formattingOptions)}</TableCell></TableRow>
@@ -311,14 +311,14 @@ export default function AllRequestsPage() {
     }
     if (dateRange?.to) {
       const toDate = new Date(dateRange.to);
-      toDate.setHours(23, 59, 59, 999); 
+      toDate.setHours(23, 59, 59, 999);
       tempRequests = tempRequests.filter(req => new Date(req.submissionDate) <= toDate);
     }
     if (filterRequestType) {
       tempRequests = tempRequests.filter(req => req.requestType === filterRequestType);
     }
     if (filterRequester) {
-      tempRequests = tempRequests.filter(req => 
+      tempRequests = tempRequests.filter(req =>
         req.requesterName.toLowerCase().includes(filterRequester.toLowerCase()) ||
         (req.payload as any).email?.toLowerCase().includes(filterRequester.toLowerCase()) // Assuming email might be in payload
       );
@@ -326,7 +326,7 @@ export default function AllRequestsPage() {
     if (filterStatus) {
       tempRequests = tempRequests.filter(req => req.currentStepName === filterStatus);
     }
-    
+
     if (searchTerm) {
       tempRequests = tempRequests.filter(req =>
         req.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -354,7 +354,7 @@ export default function AllRequestsPage() {
     setIsFiltersApplied(false);
     setCurrentPage(1);
   };
-  
+
   const handleApplyFilters = () => {
     setIsFiltersApplied(true);
     setCurrentPage(1);
@@ -375,9 +375,9 @@ export default function AllRequestsPage() {
       history: [
         ...selectedRequest.history,
         {
-          stepId: selectedRequest.currentStepId, 
+          stepId: selectedRequest.currentStepId,
           stepName: `Comment on: ${selectedRequest.currentStepName}`,
-          actor: "Current User (Mock)", 
+          actor: "Current User (Mock)",
           action: "commented",
           timestamp: new Date().toISOString(),
           comment: newComment,
@@ -410,7 +410,7 @@ export default function AllRequestsPage() {
     setRequests(prev => prev.map(r => r.id === updatedRequest.id ? updatedRequest : r));
     toast({ title: "Reminder Sent (Mock)", description: `A reminder has been sent for request ${selectedRequest.id}.`});
   };
-  
+
   const handleEscalate = () => {
     if (!selectedRequest) return;
      const updatedRequest = {
@@ -437,15 +437,15 @@ export default function AllRequestsPage() {
     if (!workflow) return <p className="text-sm text-muted-foreground">Workflow details not available.</p>;
 
     const currentStepIndex = workflow.steps.findIndex(step => step.id === request.currentStepId);
-    
+
     return (
       <div className="space-y-0">
         {workflow.steps.map((step, index) => {
           const historyForStep = request.history.filter(h => h.stepId === step.id && h.action === "approve");
           const isCompleted = historyForStep.length > 0;
-          const isCurrent = step.id === request.currentStepId && !isCompleted && 
+          const isCurrent = step.id === request.currentStepId && !isCompleted &&
                            (request.history.some(h => h.stepId === step.id && (h.action === "system_auto_proceed" || h.action === "submitted")) || currentStepIndex === index );
-          
+
           let icon;
           let textClass = "text-muted-foreground/80"; // Default for pending
           let roleClass = "text-muted-foreground/80"; // Default for pending
@@ -457,17 +457,17 @@ export default function AllRequestsPage() {
             roleClass = "text-primary";
             lineClass = "bg-primary";
           } else if (isCurrent) {
-            icon = <Clock className="w-5 h-5 text-[hsl(var(--chart-2))] animate-pulse" />; 
+            icon = <Clock className="w-5 h-5 text-[hsl(var(--chart-2))] animate-pulse" />;
             textClass = "text-[hsl(var(--chart-2))] font-semibold";
             roleClass = "text-[hsl(var(--chart-2))]";
             lineClass = "bg-[hsl(var(--chart-2))]";
-          } else { 
+          } else {
             icon = <Circle className="w-5 h-5 text-muted-foreground/60" />;
           }
-          
+
           const isInitialCurrentStep = isCurrent && index === 0 && request.history.every(h => h.stepId === step.id ? (h.action === "system_auto_proceed" || h.action === "submitted") : true);
           if(isInitialCurrentStep && !isCompleted) {
-             lineClass = "bg-[hsl(var(--chart-2))]"; 
+             lineClass = "bg-[hsl(var(--chart-2))]";
           }
 
 
@@ -495,6 +495,13 @@ export default function AllRequestsPage() {
     );
   };
 
+  const handleExport = (format: 'excel' | 'pdf') => {
+    toast({
+      title: `Exporting to ${format.toUpperCase()}...`,
+      description: `Preparing all requests for ${format} export. This is a mock action.`,
+    });
+  };
+
 
   return (
     <div className="space-y-8">
@@ -511,74 +518,82 @@ export default function AllRequestsPage() {
                 This table shows all types of requests. Click an ID or 'View' for detailed information and actions.
               </CardDescription>
             </div>
-             <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline">
-                  <FilterIcon className="w-4 h-4 mr-2" /> Filters {isFiltersApplied && <span className="ml-2 h-2 w-2 rounded-full bg-primary animate-pulse"></span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-80 p-4 space-y-4" align="end">
-                <div>
-                  <label htmlFor="date-range" className="text-sm font-medium">Date Range</label>
-                  <Calendar
-                    id="date-range"
-                    mode="range"
-                    selected={dateRange}
-                    onSelect={setDateRange}
-                    className="rounded-md border p-0 mt-1"
-                    numberOfMonths={1}
-                  />
-                </div>
-                <div>
-                  <label htmlFor="filter-requester" className="text-sm font-medium">Requester Name/Email</label>
-                  <Input 
-                    id="filter-requester"
-                    placeholder="e.g., Alice Smith" 
-                    value={filterRequester}
-                    onChange={(e) => setFilterRequester(e.target.value)}
-                    className="mt-1"
-                  />
-                </div>
-                 <div>
-                  <label htmlFor="filter-request-type" className="text-sm font-medium">Request Type</label>
-                  <Select value={filterRequestType} onValueChange={setFilterRequestType}>
-                    <SelectTrigger id="filter-request-type" className="mt-1">
-                      <SelectValue placeholder="All Types" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {distinctRequestTypes.map(type => (
-                        <SelectItem key={type} value={type}>{type}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                 <div>
-                  <label htmlFor="filter-status" className="text-sm font-medium">Current Status/Step</label>
-                  <Select value={filterStatus} onValueChange={setFilterStatus}>
-                    <SelectTrigger id="filter-status" className="mt-1">
-                      <SelectValue placeholder="All Statuses" />
-                    </SelectTrigger>
-                    <SelectContent>
-                       {distinctStatuses.map(status => (
-                        <SelectItem key={status} value={status}>{status}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex justify-end gap-2 pt-2">
-                  <Button variant="ghost" size="sm" onClick={handleClearFilters}>Clear</Button>
-                  <Button size="sm" onClick={handleApplyFilters}>Apply</Button>
-                </div>
-              </PopoverContent>
-            </Popover>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => handleExport('excel')}>
+                <FileSpreadsheet className="w-4 h-4 mr-2" /> Export Excel
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => handleExport('pdf')}>
+                <FileText className="w-4 h-4 mr-2" /> Export PDF
+              </Button>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline">
+                    <FilterIcon className="w-4 h-4 mr-2" /> Filters {isFiltersApplied && <span className="ml-2 h-2 w-2 rounded-full bg-primary animate-pulse"></span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 p-4 space-y-4" align="end">
+                  <div>
+                    <label htmlFor="date-range" className="text-sm font-medium">Date Range</label>
+                    <Calendar
+                      id="date-range"
+                      mode="range"
+                      selected={dateRange}
+                      onSelect={setDateRange}
+                      className="rounded-md border p-0 mt-1"
+                      numberOfMonths={1}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="filter-requester" className="text-sm font-medium">Requester Name/Email</label>
+                    <Input
+                      id="filter-requester"
+                      placeholder="e.g., Alice Smith"
+                      value={filterRequester}
+                      onChange={(e) => setFilterRequester(e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                   <div>
+                    <label htmlFor="filter-request-type" className="text-sm font-medium">Request Type</label>
+                    <Select value={filterRequestType} onValueChange={setFilterRequestType}>
+                      <SelectTrigger id="filter-request-type" className="mt-1">
+                        <SelectValue placeholder="All Types" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {distinctRequestTypes.map(type => (
+                          <SelectItem key={type} value={type}>{type}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                   <div>
+                    <label htmlFor="filter-status" className="text-sm font-medium">Current Status/Step</label>
+                    <Select value={filterStatus} onValueChange={setFilterStatus}>
+                      <SelectTrigger id="filter-status" className="mt-1">
+                        <SelectValue placeholder="All Statuses" />
+                      </SelectTrigger>
+                      <SelectContent>
+                         {distinctStatuses.map(status => (
+                          <SelectItem key={status} value={status}>{status}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex justify-end gap-2 pt-2">
+                    <Button variant="ghost" size="sm" onClick={handleClearFilters}>Clear</Button>
+                    <Button size="sm" onClick={handleApplyFilters}>Apply</Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-4 mb-6">
             <div className="relative flex-grow">
               <Search className="absolute w-4 h-4 left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input 
-                placeholder="Search by ID, Type, Requester, Status, Summary..." 
+              <Input
+                placeholder="Search by ID, Type, Requester, Status, Summary..."
                 className="pl-10"
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
@@ -668,8 +683,8 @@ export default function AllRequestsPage() {
         <Dialog open={isDetailDialogOpen} onOpenChange={(isOpen) => {
           setIsDetailDialogOpen(isOpen);
           if (!isOpen) {
-            setSelectedRequest(null); 
-            setNewComment(""); 
+            setSelectedRequest(null);
+            setNewComment("");
           }
         }}>
           <DialogContent className="sm:max-w-3xl">
@@ -685,7 +700,7 @@ export default function AllRequestsPage() {
             </DialogHeader>
             <ScrollArea className="max-h-[calc(100vh-20rem)] pr-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-4">
-                <div className="md:col-span-2 space-y-4"> 
+                <div className="md:col-span-2 space-y-4">
                   <Card>
                     <CardHeader><CardTitle className="text-lg flex items-center"><Info className="w-5 h-5 mr-2 text-primary"/>Basic Information</CardTitle></CardHeader>
                     <CardContent className="space-y-1 text-sm">
@@ -720,7 +735,7 @@ export default function AllRequestsPage() {
                       )}
                     </CardContent>
                   </Card>
-                  
+
                   <Separator />
 
                   <div className="space-y-3">
@@ -744,7 +759,7 @@ export default function AllRequestsPage() {
                       </div>
                   </div>
                 </div>
-                <div className="md:col-span-1"> 
+                <div className="md:col-span-1">
                    <Card>
                     <CardHeader><CardTitle className="text-lg flex items-center"><WorkflowIcon className="w-5 h-5 mr-2 text-primary"/>Workflow Progress</CardTitle></CardHeader>
                     <CardContent>

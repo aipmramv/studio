@@ -6,7 +6,8 @@ import {
   ClipboardCheck, ShoppingCart, Tags, PlusCircle, Warehouse,
   Store, PackagePlus, PackageMinus, Undo2, SearchCheck, SlidersHorizontal, GitFork,
   Users, Mail, UserCog, Layers, FileArchive, DollarSignIcon, PackageSearch,
-  Building2, Users2, TagIcon, ScaleIcon, Landmark, AreaChart
+  Building2, Users2, TagIcon, ScaleIcon, Landmark, AreaChart, PieChart, BarChartHorizontalBig,
+  FileSpreadsheet
 } from 'lucide-react';
 
 export interface NavItem {
@@ -95,7 +96,7 @@ export const mainNavItems: NavItem[] = [
   {
     title: 'DC Management',
     href: '/dc-generator',
-    icon: FileText,
+    icon: FileText, // Main icon for DC Management
     description: "Manage Delivery Challans.",
     items: [
       { title: 'Generate DC', href: '/dc-generator', icon: PlusCircle, description: "Generate a new Delivery Challan." },
@@ -131,9 +132,23 @@ export const mainNavItems: NavItem[] = [
       {
         title: 'Monthly Budget Report',
         href: '/reports/monthly-budget-report',
-        icon: AreaChart, 
+        icon: AreaChart,
         description: "Track monthly budget forecast vs actuals.",
         roles: ['admin', 'department_head', 'finance_team'],
+      },
+       {
+        title: 'Request Status Summary',
+        href: '/reports/request-status-summary',
+        icon: PieChart,
+        description: "Overview of request statuses by type.",
+        roles: ['admin', 'mm_team', 'department_head'],
+      },
+      {
+        title: 'Material Consumption',
+        href: '/reports/material-consumption',
+        icon: BarChartHorizontalBig,
+        description: "Track material usage.",
+        roles: ['admin', 'mm_team', 'department_head', 'finance_team'],
       },
       {
         title: 'Audit Logs',
@@ -146,7 +161,7 @@ export const mainNavItems: NavItem[] = [
   },
   {
     title: 'Masters',
-    href: '/masters/material-types', 
+    href: '/masters/material-types',
     icon: Database,
     description: "Manage application master data.",
     roles: ['admin'],
@@ -216,5 +231,3 @@ export const userNavItems: NavItem[] = [
         description: "Sign out of your account."
     }
 ];
-
-    

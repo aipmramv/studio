@@ -9,13 +9,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from "@/components/ui/table";
-import { FileArchive, Search, Filter as FilterIcon, Calendar as CalendarIcon, User, Tag, ChevronsLeft, ChevronsRight, X } from "lucide-react";
+import { FileArchive, Search, Filter as FilterIcon, Calendar as CalendarIcon, User, Tag, ChevronsLeft, ChevronsRight, X, FileText, FileSpreadsheet } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { DateRange } from "react-day-picker";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 interface AuditLogEntry {
   id: string;
@@ -58,6 +59,7 @@ export default function AuditLogsPage() {
   const [filterEntityType, setFilterEntityType] = React.useState("");
   const [currentPage, setCurrentPage] = React.useState(1);
   const [isFiltersApplied, setIsFiltersApplied] = React.useState(false);
+  const { toast } = useToast();
 
   const distinctActions = React.useMemo(() => {
     const actions = new Set(logs.map(log => log.action));
@@ -89,7 +91,7 @@ export default function AuditLogsPage() {
     if (filterEntityType) {
       tempLogs = tempLogs.filter(log => log.entityType === filterEntityType);
     }
-    
+
     if (searchTerm) {
       tempLogs = tempLogs.filter(log =>
         log.user.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -117,22 +119,29 @@ export default function AuditLogsPage() {
     setIsFiltersApplied(false);
     setCurrentPage(1);
   };
-  
+
   const handleApplyFilters = () => {
     setIsFiltersApplied(true);
     setCurrentPage(1);
-    // Popover will close automatically if we don't prevent it. 
+    // Popover will close automatically if we don't prevent it.
     // For now, this is fine. Could add manual close if needed.
   };
 
   const getBadgeVariant = (status: AuditLogEntry['status']) => {
     switch (status) {
-      case 'success': return 'default'; // primary
+      case 'success': return 'default';
       case 'failure': return 'destructive';
       case 'info': return 'secondary';
-      case 'warning': return 'outline'; // KONE warning color is orange, outline is neutral. Consider a custom variant if KONE system has a strong visual for warning.
+      case 'warning': return 'outline';
       default: return 'secondary';
     }
+  };
+
+  const handleExport = (format: 'excel' | 'pdf') => {
+    toast({
+      title: `Exporting to ${format.toUpperCase()}...`,
+      description: `Preparing audit logs for ${format} export. This is a mock action.`,
+    });
   };
 
 
@@ -154,76 +163,84 @@ export default function AuditLogsPage() {
                 Detailed records of user activities, system events, and data modifications.
               </CardDescription>
             </div>
-             <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline">
-                  <FilterIcon className="w-4 h-4 mr-2" /> Filters {isFiltersApplied && <span className="ml-2 h-2 w-2 rounded-full bg-primary animate-pulse"></span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-80 p-4 space-y-4" align="end">
-                <div>
-                  <label htmlFor="date-range" className="text-sm font-medium">Date Range</label>
-                  <Calendar
-                    id="date-range"
-                    mode="range"
-                    selected={dateRange}
-                    onSelect={setDateRange}
-                    className="rounded-md border p-0 mt-1"
-                    numberOfMonths={1}
-                  />
-                </div>
-                <div>
-                  <label htmlFor="filter-user" className="text-sm font-medium">User Email</label>
-                  <Input 
-                    id="filter-user"
-                    placeholder="e.g., admin@example.com" 
-                    value={filterUser}
-                    onChange={(e) => setFilterUser(e.target.value)}
-                    className="mt-1"
-                  />
-                </div>
-                 <div>
-                  <label htmlFor="filter-action" className="text-sm font-medium">Action Type</label>
-                  <Select value={filterAction} onValueChange={setFilterAction}>
-                    <SelectTrigger id="filter-action" className="mt-1">
-                      <SelectValue placeholder="All Actions" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">All Actions</SelectItem>
-                      {distinctActions.map(action => (
-                        <SelectItem key={action} value={action}>{action}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                 <div>
-                  <label htmlFor="filter-entity" className="text-sm font-medium">Entity Type</label>
-                  <Select value={filterEntityType} onValueChange={setFilterEntityType}>
-                    <SelectTrigger id="filter-entity" className="mt-1">
-                      <SelectValue placeholder="All Entities" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">All Entities</SelectItem>
-                       {distinctEntityTypes.map(type => (
-                        <SelectItem key={type} value={type}>{type}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex justify-end gap-2 pt-2">
-                  <Button variant="ghost" size="sm" onClick={handleClearFilters}>Clear</Button>
-                  <Button size="sm" onClick={handleApplyFilters}>Apply</Button>
-                </div>
-              </PopoverContent>
-            </Popover>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => handleExport('excel')}>
+                <FileSpreadsheet className="w-4 h-4 mr-2" /> Export Excel
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => handleExport('pdf')}>
+                <FileText className="w-4 h-4 mr-2" /> Export PDF
+              </Button>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline">
+                    <FilterIcon className="w-4 h-4 mr-2" /> Filters {isFiltersApplied && <span className="ml-2 h-2 w-2 rounded-full bg-primary animate-pulse"></span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 p-4 space-y-4" align="end">
+                  <div>
+                    <label htmlFor="date-range" className="text-sm font-medium">Date Range</label>
+                    <Calendar
+                      id="date-range"
+                      mode="range"
+                      selected={dateRange}
+                      onSelect={setDateRange}
+                      className="rounded-md border p-0 mt-1"
+                      numberOfMonths={1}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="filter-user" className="text-sm font-medium">User Email</label>
+                    <Input
+                      id="filter-user"
+                      placeholder="e.g., admin@example.com"
+                      value={filterUser}
+                      onChange={(e) => setFilterUser(e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                   <div>
+                    <label htmlFor="filter-action" className="text-sm font-medium">Action Type</label>
+                    <Select value={filterAction} onValueChange={setFilterAction}>
+                      <SelectTrigger id="filter-action" className="mt-1">
+                        <SelectValue placeholder="All Actions" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">All Actions</SelectItem>
+                        {distinctActions.map(action => (
+                          <SelectItem key={action} value={action}>{action}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                   <div>
+                    <label htmlFor="filter-entity" className="text-sm font-medium">Entity Type</label>
+                    <Select value={filterEntityType} onValueChange={setFilterEntityType}>
+                      <SelectTrigger id="filter-entity" className="mt-1">
+                        <SelectValue placeholder="All Entities" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">All Entities</SelectItem>
+                         {distinctEntityTypes.map(type => (
+                          <SelectItem key={type} value={type}>{type}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex justify-end gap-2 pt-2">
+                    <Button variant="ghost" size="sm" onClick={handleClearFilters}>Clear</Button>
+                    <Button size="sm" onClick={handleApplyFilters}>Apply</Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-4 mb-6">
             <div className="relative flex-grow">
               <Search className="absolute w-4 h-4 left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input 
-                placeholder="Search logs (user, action, ID, details, IP...)" 
+              <Input
+                placeholder="Search logs (user, action, ID, details, IP...)"
                 className="pl-10"
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}

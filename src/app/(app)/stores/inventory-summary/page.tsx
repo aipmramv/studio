@@ -9,12 +9,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from "@/components/ui/table";
-import { PackageSearch, Search, Filter as FilterIcon, ChevronsLeft, ChevronsRight, Package as PackageIcon, Tag as TagIcon, Warehouse as WarehouseIcon, AlertTriangle, CheckCircle, Circle, X } from "lucide-react";
+import { PackageSearch, Search, Filter as FilterIcon, ChevronsLeft, ChevronsRight, Package as PackageIcon, Tag as TagIcon, Warehouse as WarehouseIcon, AlertTriangle, CheckCircle, Circle, X, FileText, FileSpreadsheet } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { STORE_LOCATIONS, MATERIAL_CATEGORIES } from "@/lib/constants";
+import { useToast } from "@/hooks/use-toast";
+
 
 interface InventoryItem {
   id: string;
@@ -68,7 +70,8 @@ export default function InventorySummaryPage() {
   const [filterAvailability, setFilterAvailability] = React.useState<AvailabilityStatus | "">("");
   const [currentPage, setCurrentPage] = React.useState(1);
   const [isFiltersApplied, setIsFiltersApplied] = React.useState(false);
-  
+  const { toast } = useToast();
+
   const distinctStoreLocations = React.useMemo(() => Array.from(new Set(inventory.map(item => item.storeLocation))).sort(), [inventory]);
   const distinctMaterialCategories = React.useMemo(() => Array.from(new Set(inventory.map(item => item.category))).sort(), [inventory]);
   const availabilityStatuses: AvailabilityStatus[] = ["In Stock", "Low Stock", "Out of Stock"];
@@ -113,6 +116,13 @@ export default function InventorySummaryPage() {
     setCurrentPage(1);
   };
 
+  const handleExport = (format: 'excel' | 'pdf') => {
+    toast({
+      title: `Exporting to ${format.toUpperCase()}...`,
+      description: `Preparing inventory summary for ${format} export. This is a mock action.`,
+    });
+  };
+
   return (
     <div className="space-y-8">
       <PageHeader
@@ -131,69 +141,77 @@ export default function InventorySummaryPage() {
                 Overview of on-hand quantities, categories, and store locations.
               </CardDescription>
             </div>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline">
-                  <FilterIcon className="w-4 h-4 mr-2" /> Filters {isFiltersApplied && <span className="ml-2 h-2 w-2 rounded-full bg-primary animate-pulse"></span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-80 p-4 space-y-4" align="end">
-                <div>
-                  <label htmlFor="filter-store" className="text-sm font-medium">Store Location</label>
-                  <Select value={filterStoreLocation} onValueChange={setFilterStoreLocation}>
-                    <SelectTrigger id="filter-store" className="mt-1">
-                      <SelectValue placeholder="All Locations" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">All Locations</SelectItem>
-                      {distinctStoreLocations.map(loc => (
-                        <SelectItem key={loc} value={loc}>{loc}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label htmlFor="filter-category" className="text-sm font-medium">Material Category</label>
-                  <Select value={filterMaterialCategory} onValueChange={setFilterMaterialCategory}>
-                    <SelectTrigger id="filter-category" className="mt-1">
-                      <SelectValue placeholder="All Categories" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">All Categories</SelectItem>
-                      {distinctMaterialCategories.map(cat => (
-                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label htmlFor="filter-availability" className="text-sm font-medium">Availability Status</label>
-                  <Select value={filterAvailability} onValueChange={(value) => setFilterAvailability(value as AvailabilityStatus | "")}>
-                    <SelectTrigger id="filter-availability" className="mt-1">
-                      <SelectValue placeholder="All Statuses" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">All Statuses</SelectItem>
-                      {availabilityStatuses.map(status => (
-                        <SelectItem key={status} value={status}>{status}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex justify-end gap-2 pt-2">
-                  <Button variant="ghost" size="sm" onClick={handleClearFilters}>Clear</Button>
-                  <Button size="sm" onClick={handleApplyFilters}>Apply</Button>
-                </div>
-              </PopoverContent>
-            </Popover>
+             <div className="flex items-center gap-2">
+               <Button variant="outline" size="sm" onClick={() => handleExport('excel')}>
+                <FileSpreadsheet className="w-4 h-4 mr-2" /> Export Excel
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => handleExport('pdf')}>
+                <FileText className="w-4 h-4 mr-2" /> Export PDF
+              </Button>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline">
+                    <FilterIcon className="w-4 h-4 mr-2" /> Filters {isFiltersApplied && <span className="ml-2 h-2 w-2 rounded-full bg-primary animate-pulse"></span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 p-4 space-y-4" align="end">
+                  <div>
+                    <label htmlFor="filter-store" className="text-sm font-medium">Store Location</label>
+                    <Select value={filterStoreLocation} onValueChange={setFilterStoreLocation}>
+                      <SelectTrigger id="filter-store" className="mt-1">
+                        <SelectValue placeholder="All Locations" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">All Locations</SelectItem>
+                        {distinctStoreLocations.map(loc => (
+                          <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label htmlFor="filter-category" className="text-sm font-medium">Material Category</label>
+                    <Select value={filterMaterialCategory} onValueChange={setFilterMaterialCategory}>
+                      <SelectTrigger id="filter-category" className="mt-1">
+                        <SelectValue placeholder="All Categories" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">All Categories</SelectItem>
+                        {distinctMaterialCategories.map(cat => (
+                          <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label htmlFor="filter-availability" className="text-sm font-medium">Availability Status</label>
+                    <Select value={filterAvailability} onValueChange={(value) => setFilterAvailability(value as AvailabilityStatus | "")}>
+                      <SelectTrigger id="filter-availability" className="mt-1">
+                        <SelectValue placeholder="All Statuses" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">All Statuses</SelectItem>
+                        {availabilityStatuses.map(status => (
+                          <SelectItem key={status} value={status}>{status}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex justify-end gap-2 pt-2">
+                    <Button variant="ghost" size="sm" onClick={handleClearFilters}>Clear</Button>
+                    <Button size="sm" onClick={handleApplyFilters}>Apply</Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-4 mb-6">
             <div className="relative flex-grow">
               <Search className="absolute w-4 h-4 left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input 
-                placeholder="Search by Material ID or Name..." 
+              <Input
+                placeholder="Search by Material ID or Name..."
                 className="pl-10"
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
