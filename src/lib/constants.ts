@@ -338,3 +338,70 @@ export const MOCK_MATERIAL_CONSUMPTION: MaterialConsumptionItem[] = [
   { materialId: "MAT001", materialName: "Steel Rods - 10mm", materialCategory: "Raw Material", quantityIssued: 30, unitOfMeasure: "Pieces", dateIssued: "2024-07-05T14:00:00Z", issuedToDepartment: "Production", issuingStore: "Central Warehouse Alpha" },
   { materialId: "MAT006", materialName: "Copper Wiring - 2.5mm", materialCategory: "Raw Material", quantityIssued: 100, unitOfMeasure: "Meters", dateIssued: "2024-07-08T16:00:00Z", issuedToDepartment: "Facility Management", issuingStore: "Electronics Sub-Store" },
 ];
+
+// --- Constants for Work Permit Template Configuration ---
+export const WORK_PERMIT_FIELD_TYPES = ["Text", "Textarea", "Checkbox", "Date", "Signature", "Dropdown"] as const;
+export type WorkPermitFieldType = typeof WORK_PERMIT_FIELD_TYPES[number];
+
+export interface WorkPermitCustomField {
+  id: string;
+  label: string;
+  type: WorkPermitFieldType;
+  isRequired: boolean;
+  options?: string[]; // For Dropdown type
+}
+
+export interface WorkPermitTemplate {
+  id: string;
+  name: string;
+  // To represent standard sections, we can just have a list of their names or IDs.
+  // For this iteration, we'll primarily focus on customFields.
+  // standardSections: Array<{ id: string; name: string; description: string; enabled: boolean }>;
+  customFields: WorkPermitCustomField[];
+}
+
+export const MOCK_STANDARD_PERMIT_SECTIONS = [
+    { id: "permit_details", name: "Permit Details", description: "Requester, location, validity dates." },
+    { id: "scope_of_work", name: "Scope of Work", description: "Detailed description of the task." },
+    { id: "hazard_identification", name: "Hazard Identification & Controls", description: "Potential hazards and mitigation measures." },
+    { id: "ppe_required", name: "Required PPE", description: "List of personal protective equipment." },
+    { id: "safety_checklist", name: "Pre-Activity Safety Checklist", description: "Verifications before starting work." },
+    { id: "isolation_procedures", name: "Isolation Procedures", description: "Lock-out/Tag-out details (if applicable)." },
+    { id: "authorized_personnel", name: "Authorized Personnel", description: "List of approved workers for the task." },
+    { id: "emergency_contacts", name: "Emergency Contacts & Procedures", description: "Contacts and steps for emergencies." },
+    { id: "approvals_signatures", name: "Approval Signatures", description: "Sections for relevant approval signatures." },
+    { id: "completion_closeout", name: "Permit Completion & Closeout", description: "Post-activity checks and sign-off." },
+];
+
+
+export const MOCK_WORK_PERMIT_TEMPLATES: WorkPermitTemplate[] = [
+  {
+    id: "wpt_general_maintenance",
+    name: "General Maintenance Work Permit",
+    customFields: [
+      { id: "cf_gm_001", label: "Toolbox Talk Conducted By", type: "Text", isRequired: true },
+      { id: "cf_gm_002", label: "Date of Toolbox Talk", type: "Date", isRequired: true },
+      { id: "cf_gm_003", label: "Area Cleared Post-Work", type: "Checkbox", isRequired: true },
+    ]
+  },
+  {
+    id: "wpt_hot_work",
+    name: "Hot Work Permit (Welding, Grinding)",
+    customFields: [
+      { id: "cf_hw_001", label: "Fire Watch Personnel Name", type: "Text", isRequired: true },
+      { id: "cf_hw_002", label: "Fire Extinguisher Type & Serial No.", type: "Textarea", isRequired: true },
+      { id: "cf_hw_003", label: "Combustibles Removed/Protected (within 10m)", type: "Checkbox", isRequired: true },
+      { id: "cf_hw_004", label: "Hot Work Area Atmosphere Tested (Gas)", type: "Checkbox", isRequired: false },
+    ]
+  },
+  {
+    id: "wpt_electrical_lv",
+    name: "Low Voltage Electrical Work Permit",
+    customFields: [
+      { id: "cf_el_001", label: "Circuit/Equipment ID to be worked on", type: "Text", isRequired: true },
+      { id: "cf_el_002", label: "LOTO (Lock-Out/Tag-Out) Applied By", type: "Text", isRequired: true },
+      { id: "cf_el_003", label: "LOTO Verification By", type: "Text", isRequired: true },
+      { id: "cf_el_004", label: "Insulated Tools Verified", type: "Checkbox", isRequired: true },
+    ]
+  }
+];

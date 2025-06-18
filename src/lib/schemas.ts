@@ -1,6 +1,6 @@
 
 import { z } from 'zod';
-import { MATERIAL_TYPES, SCRAP_TYPES, STORE_LOCATIONS, ACTIVITY_TYPES_WORK_PERMIT, USER_ROLES, DEPARTMENTS, REQUEST_TYPES, COST_CENTERS, FISCAL_YEARS, QUARTERS } from './constants';
+import { MATERIAL_TYPES, SCRAP_TYPES, STORE_LOCATIONS, ACTIVITY_TYPES_WORK_PERMIT, USER_ROLES, DEPARTMENTS, REQUEST_TYPES, COST_CENTERS, FISCAL_YEARS, QUARTERS, WORK_PERMIT_FIELD_TYPES } from './constants';
 
 export const LoginSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -203,3 +203,19 @@ export const DepartmentBudgetSchema = z.object({
   q4Budget: z.coerce.number().min(0, "Budget must be a non-negative number."),
 });
 export type DepartmentBudgetFormData = z.infer<typeof DepartmentBudgetSchema>;
+
+
+export const WorkPermitCustomFieldSchema = z.object({
+  id: z.string().min(1, "Field ID is required."),
+  label: z.string().min(1, "Field label is required."),
+  type: z.enum(WORK_PERMIT_FIELD_TYPES, { required_error: "Field type is required." }),
+  isRequired: z.boolean().default(false),
+  options: z.array(z.string()).optional(), // For dropdown type
+});
+export type WorkPermitCustomFieldFormData = z.infer<typeof WorkPermitCustomFieldSchema>;
+
+export const WorkPermitTemplateMetadataSchema = z.object({
+  id: z.string().min(1, "Template ID is required."),
+  name: z.string().min(1, "Template name is required."),
+});
+export type WorkPermitTemplateMetadataFormData = z.infer<typeof WorkPermitTemplateMetadataSchema>;
