@@ -164,8 +164,8 @@ export default function WorkPermitTemplatesPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Work Permit Template Configuration"
-        description="Define and manage the structure and content of Work Permit documents."
+        title="Work Permit Print Template Configuration"
+        description="Define and manage the structure and content of Work Permit documents for printing."
         actions={
           <Button onClick={openAddTemplateDialog}>
             <PlusCircle className="w-4 h-4 mr-2" /> Add New Template

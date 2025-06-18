@@ -208,10 +208,10 @@ export const mainNavItems: NavItem[] = [
         roles: ['admin'],
       },
       {
-        title: 'Work Permit Templates',
+        title: 'Work Permit Print Templates',
         href: '/administration/work-permit-templates',
         icon: FileCheck,
-        description: "Configure work permit layouts.",
+        description: "Configure work permit layouts for printing.",
         roles: ['admin'],
       },
     ]
