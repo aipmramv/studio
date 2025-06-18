@@ -253,9 +253,9 @@ const renderWorkflowProgress = (request: ApprovalItem) => {
                            (request.history.some(h => h.stepId === step.id && (h.action === "system_auto_proceed" || h.action === "submitted")) || currentStepIndex === index );
           
           let icon;
-          let textClass = "text-muted-foreground";
-          let roleClass = "text-muted-foreground";
-          let lineClass = "bg-border";
+          let textClass = "text-muted-foreground/80"; // Default for pending
+          let roleClass = "text-muted-foreground/80"; // Default for pending
+          let lineClass = "bg-border"; // Default for pending
 
           if (isCompleted) {
             icon = <CheckCircle className="w-5 h-5 text-primary" />;
@@ -263,19 +263,17 @@ const renderWorkflowProgress = (request: ApprovalItem) => {
             roleClass = "text-primary";
             lineClass = "bg-primary";
           } else if (isCurrent) {
-            icon = <Clock className="w-5 h-5 text-accent animate-pulse" />; 
-            textClass = "text-accent font-semibold";
-            roleClass = "text-accent";
-            lineClass = "bg-accent";
+            icon = <Clock className="w-5 h-5 text-[hsl(var(--chart-2))] animate-pulse" />; 
+            textClass = "text-[hsl(var(--chart-2))] font-semibold";
+            roleClass = "text-[hsl(var(--chart-2))]";
+            lineClass = "bg-[hsl(var(--chart-2))]";
           } else { 
-            icon = <Circle className="w-5 h-5 text-muted-foreground/50" />;
-            textClass = "text-muted-foreground/70";
-            roleClass = "text-muted-foreground/70";
+            icon = <Circle className="w-5 h-5 text-muted-foreground/60" />;
           }
           
           const isInitialCurrentStep = isCurrent && index === 0 && request.history.every(h => h.stepId === step.id ? (h.action === "system_auto_proceed" || h.action === "submitted") : true);
           if(isInitialCurrentStep && !isCompleted) {
-             lineClass = "bg-accent"; 
+             lineClass = "bg-[hsl(var(--chart-2))]"; 
           }
 
           return (
@@ -735,3 +733,4 @@ export default function ApprovalsDashboardPage() {
     </div>
   );
 }
+

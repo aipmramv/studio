@@ -443,14 +443,13 @@ export default function AllRequestsPage() {
         {workflow.steps.map((step, index) => {
           const historyForStep = request.history.filter(h => h.stepId === step.id && h.action === "approve");
           const isCompleted = historyForStep.length > 0;
-          // Current step needs to account for whether it's truly the active step or if it's already approved
           const isCurrent = step.id === request.currentStepId && !isCompleted && 
                            (request.history.some(h => h.stepId === step.id && (h.action === "system_auto_proceed" || h.action === "submitted")) || currentStepIndex === index );
           
           let icon;
-          let textClass = "text-muted-foreground";
-          let roleClass = "text-muted-foreground";
-          let lineClass = "bg-border";
+          let textClass = "text-muted-foreground/80"; // Default for pending
+          let roleClass = "text-muted-foreground/80"; // Default for pending
+          let lineClass = "bg-border"; // Default for pending
 
           if (isCompleted) {
             icon = <CheckCircle className="w-5 h-5 text-primary" />;
@@ -458,19 +457,17 @@ export default function AllRequestsPage() {
             roleClass = "text-primary";
             lineClass = "bg-primary";
           } else if (isCurrent) {
-            icon = <Clock className="w-5 h-5 text-accent animate-pulse" />; 
-            textClass = "text-accent font-semibold";
-            roleClass = "text-accent";
-            lineClass = "bg-accent";
+            icon = <Clock className="w-5 h-5 text-[hsl(var(--chart-2))] animate-pulse" />; 
+            textClass = "text-[hsl(var(--chart-2))] font-semibold";
+            roleClass = "text-[hsl(var(--chart-2))]";
+            lineClass = "bg-[hsl(var(--chart-2))]";
           } else { 
-            icon = <Circle className="w-5 h-5 text-muted-foreground/50" />;
-            textClass = "text-muted-foreground/70";
-            roleClass = "text-muted-foreground/70";
+            icon = <Circle className="w-5 h-5 text-muted-foreground/60" />;
           }
           
           const isInitialCurrentStep = isCurrent && index === 0 && request.history.every(h => h.stepId === step.id ? (h.action === "system_auto_proceed" || h.action === "submitted") : true);
-          if(isInitialCurrentStep && !isCompleted) { // Only color line if it's truly the current step awaiting action
-             lineClass = "bg-accent"; 
+          if(isInitialCurrentStep && !isCompleted) {
+             lineClass = "bg-[hsl(var(--chart-2))]"; 
           }
 
 
@@ -768,3 +765,4 @@ export default function AllRequestsPage() {
     </div>
   );
 }
+
