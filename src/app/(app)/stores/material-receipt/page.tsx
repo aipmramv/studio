@@ -42,7 +42,7 @@ export default function MaterialReceiptPage() {
           </Button>
         }
       />
-      <Card className="shadow-lg">
+      <Card>
         <CardHeader>
           <CardTitle>Receipts List</CardTitle>
           <CardDescription>Log of all materials received into various store locations. You can add new receipts or view details of existing ones.</CardDescription>
@@ -96,4 +96,3 @@ export default function MaterialReceiptPage() {
     </div>
   );
 }
-

@@ -113,7 +113,7 @@ export default function UserManagementPage() {
         description="Manage users, roles, departments, and SSO synchronization."
       />
 
-      <Card className="shadow-lg">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center"><UserCog className="w-5 h-5 mr-2 text-primary" /> User Administration Actions</CardTitle>
         </CardHeader>
@@ -241,7 +241,7 @@ export default function UserManagementPage() {
         </DialogContent>
       </Dialog>
 
-      <Card className="shadow-lg">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center"><Users className="w-5 h-5 mr-2 text-primary" /> User List</CardTitle>
           <CardDescription>Manage existing users, their roles, and departments.</CardDescription>
@@ -286,4 +286,3 @@ export default function UserManagementPage() {
     </div>
   );
 }
-

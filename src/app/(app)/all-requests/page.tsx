@@ -5,7 +5,7 @@
 import * as React from "react";
 import { format } from "date-fns";
 import { PageHeader } from "@/components/shared/PageHeader";
-import { Card, CardContent, CardDescription, CardFooter as UICardFooter, CardHeader, CardTitle } from "@/components/ui/card"; 
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"; 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption, TableFooter } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -505,7 +505,7 @@ export default function AllRequestsPage() {
         title="All Requests"
         description="View a consolidated list of all ongoing and completed requests across the system."
       />
-      <Card className="shadow-lg">
+      <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="flex-1">

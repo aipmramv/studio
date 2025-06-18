@@ -191,7 +191,7 @@ export default function DepartmentBudgetsMasterPage() {
         </DialogContent>
       </Dialog>
 
-      <Card className="shadow-lg">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center"><Landmark className="w-5 h-5 mr-2 text-primary" /> Department Budget Records</CardTitle>
           <CardDescription>View, add, edit, or delete department budgets.</CardDescription>

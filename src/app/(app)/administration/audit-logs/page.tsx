@@ -127,10 +127,10 @@ export default function AuditLogsPage() {
 
   const getBadgeVariant = (status: AuditLogEntry['status']) => {
     switch (status) {
-      case 'success': return 'default';
+      case 'success': return 'default'; // primary
       case 'failure': return 'destructive';
       case 'info': return 'secondary';
-      case 'warning': return 'outline'; // using outline for warning, could be different
+      case 'warning': return 'outline'; // KONE warning color is orange, outline is neutral. Consider a custom variant if KONE system has a strong visual for warning.
       default: return 'secondary';
     }
   };
@@ -142,7 +142,7 @@ export default function AuditLogsPage() {
         title="System Audit Logs"
         description="Track all critical system actions, changes, and events for compliance and governance."
       />
-      <Card className="shadow-lg">
+      <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="flex-1">
@@ -294,5 +294,3 @@ export default function AuditLogsPage() {
     </div>
   );
 }
-
-    

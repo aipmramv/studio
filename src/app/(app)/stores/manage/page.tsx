@@ -35,7 +35,7 @@ export default function ManageStoresPage_DEPRECATED() {
         title="Manage Stores (DEPRECATED)"
         description="This page has been moved to Masters > Store Locations."
       />
-      <Card className="shadow-lg">
+      <Card>
         <CardHeader>
           <CardTitle>Functionality Moved</CardTitle>
           <CardDescription>Please use the 'Store Locations' page under the 'Masters' section in the navigation menu.</CardDescription>

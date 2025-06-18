@@ -20,7 +20,7 @@ export default function MaterialMovementListPage() {
           </Button>
         }
       />
-      <Card className="shadow-lg">
+      <Card>
         <CardHeader>
           <CardTitle>Request List</CardTitle>
           <CardDescription>A table of material movement requests would be displayed here.</CardDescription>

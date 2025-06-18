@@ -512,7 +512,7 @@ export default function ApprovalsDashboardPage() {
       />
 
       {userVisibleApprovals.length === 0 ? (
-        <Card className="shadow-lg">
+        <Card>
           <CardContent className="p-6 text-center">
             <Check className="w-16 h-16 mx-auto text-primary mb-4" />
             <h3 className="text-xl font-semibold text-foreground">All Caught Up!</h3>
@@ -524,7 +524,7 @@ export default function ApprovalsDashboardPage() {
           {viewMode === 'card' && (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {userVisibleApprovals.map((item) => (
-                <Card key={item.id} className="shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col">
+                <Card key={item.id} className="transition-shadow duration-300 flex flex-col">
                   <CardHeader>
                     <div className="flex justify-between items-start">
                        <div className="flex items-center">
@@ -572,7 +572,7 @@ export default function ApprovalsDashboardPage() {
           )}
 
           {viewMode === 'grid' && (
-            <Card className="shadow-lg">
+            <Card>
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
                 <Table>

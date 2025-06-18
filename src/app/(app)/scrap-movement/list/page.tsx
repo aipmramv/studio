@@ -19,7 +19,7 @@ export default function ScrapMovementListPage() {
           </Button>
         }
       />
-      <Card className="shadow-lg">
+      <Card>
         <CardHeader>
           <CardTitle>Request List</CardTitle>
           <CardDescription>A table of scrap movement requests would be displayed here.</CardDescription>

@@ -157,7 +157,7 @@ export default function HsnSacCodesMasterPage() {
         </DialogContent>
       </Dialog>
 
-      <Card className="shadow-lg">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center"><TagIcon className="w-5 h-5 mr-2 text-primary" /> Existing HSN/SAC Codes</CardTitle>
           <CardDescription>View, add, edit, or delete HSN/SAC codes.</CardDescription>

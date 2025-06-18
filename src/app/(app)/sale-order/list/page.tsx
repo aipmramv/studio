@@ -42,7 +42,7 @@ export default function SaleOrderListPage() {
           </Button>
         }
       />
-      <Card className="shadow-lg">
+      <Card>
         <CardHeader>
           <CardTitle>Sale Order List</CardTitle>
           <CardDescription>A list of all created sale orders.</CardDescription>

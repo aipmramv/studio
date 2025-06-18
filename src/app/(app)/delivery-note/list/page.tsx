@@ -20,7 +20,7 @@ export default function DeliveryNoteListPage() {
           </Button>
         }
       />
-      <Card className="shadow-lg">
+      <Card>
         <CardHeader>
           <CardTitle>Delivery Note List</CardTitle>
           <CardDescription>A table of Delivery Notes would be displayed here.</CardDescription>

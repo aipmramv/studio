@@ -42,7 +42,7 @@ export default function MaterialIssuePage() {
           </Button>
         }
       />
-      <Card className="shadow-lg">
+      <Card>
         <CardHeader>
           <CardTitle>Issue List</CardTitle>
           <CardDescription>Log of all materials issued from stores. You can add new issues or view details of existing ones.</CardDescription>
@@ -90,4 +90,3 @@ export default function MaterialIssuePage() {
     </div>
   );
 }
-

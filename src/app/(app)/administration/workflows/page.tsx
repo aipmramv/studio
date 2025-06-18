@@ -428,7 +428,7 @@ export default function WorkflowConfigurationPage() {
       </Dialog>
 
       {workflowTemplates.length === 0 ? (
-        <Card className="shadow-lg">
+        <Card>
           <CardContent className="p-6 text-center">
             <WorkflowIcon className="w-16 h-16 mx-auto mb-4 text-primary" />
             <h3 className="text-xl font-semibold text-foreground">No Workflow Templates</h3>
@@ -438,7 +438,7 @@ export default function WorkflowConfigurationPage() {
       ) : (
         <div className="space-y-6">
           {workflowTemplates.map((template) => (
-            <Card key={template.id} className="shadow-lg">
+            <Card key={template.id}>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center text-xl font-headline">
@@ -511,6 +511,3 @@ export default function WorkflowConfigurationPage() {
     </div>
   );
 }
-
-
-    

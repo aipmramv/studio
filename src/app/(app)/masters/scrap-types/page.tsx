@@ -24,7 +24,7 @@ export default function ScrapTypesMasterPage() {
           </Button>
         }
       />
-      <Card className="shadow-lg">
+      <Card>
         <CardHeader>
           <CardTitle>Existing Scrap Types</CardTitle>
         </CardHeader>

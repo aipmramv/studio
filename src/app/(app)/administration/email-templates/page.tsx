@@ -170,7 +170,7 @@ export default function EmailTemplatesPage() {
         </DialogContent>
       </Dialog>
 
-      <Card className="shadow-lg">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center"><Mail className="w-5 h-5 mr-2 text-primary" /> Email Template List</CardTitle>
           <CardDescription>View and edit system email templates. Trigger events define when specific templates are used.</CardDescription>

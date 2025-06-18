@@ -157,7 +157,7 @@ export default function MaterialTypesMasterPage() {
         </DialogContent>
       </Dialog>
 
-      <Card className="shadow-lg">
+      <Card>
         <CardHeader>
           <CardTitle>Existing Material Types</CardTitle>
           <CardDescription>View, add, edit, or delete material types.</CardDescription>
@@ -196,4 +196,3 @@ export default function MaterialTypesMasterPage() {
     </div>
   );
 }
-

@@ -9,7 +9,7 @@ export default function ProfilePage() {
         title="User Profile"
         description="Manage your personal information and settings."
       />
-      <Card className="shadow-lg">
+      <Card>
         <CardHeader>
           <CardTitle>Profile Details</CardTitle>
           <CardDescription>Your profile information will be displayed and editable here.</CardDescription>

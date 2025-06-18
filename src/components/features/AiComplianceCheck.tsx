@@ -77,13 +77,13 @@ export function AiComplianceCheck({ formData }: AiComplianceCheckProps) {
   };
 
   const getComplianceIcon = (isCompliant: boolean | null) => {
-    if (isCompliant === null) return <AlertTriangle className="w-5 h-5 text-accent" />; // Changed text-yellow-500 to text-accent
-    if (isCompliant) return <CheckCircle className="w-5 h-5 text-primary" />; // Changed text-green-500 to text-primary
-    return <XCircle className="w-5 h-5 text-destructive" />; // Changed text-red-500 to text-destructive
+    if (isCompliant === null) return <AlertTriangle className="w-5 h-5 text-accent" />; 
+    if (isCompliant) return <CheckCircle className="w-5 h-5 text-primary" />; 
+    return <XCircle className="w-5 h-5 text-destructive" />; 
   };
 
   return (
-    <Card className="mt-6 shadow-lg bg-card/80 backdrop-blur-sm">
+    <Card className="mt-6 bg-card/80 backdrop-blur-sm">
       <CardHeader>
         <CardTitle className="flex items-center text-xl font-headline">
           <Sparkles className="w-6 h-6 mr-2 text-primary" />
@@ -128,9 +128,9 @@ export function AiComplianceCheck({ formData }: AiComplianceCheckProps) {
               <span
                 className={cn(
                   "font-bold",
-                  aiFeedback.likelihood === "High" && "text-primary", // Changed text-green-600
-                  aiFeedback.likelihood === "Medium" && "text-accent", // Changed text-yellow-600
-                  aiFeedback.likelihood === "Low" && "text-destructive" // Changed text-red-600
+                  aiFeedback.likelihood === "High" && "text-primary", 
+                  aiFeedback.likelihood === "Medium" && "text-accent", 
+                  aiFeedback.likelihood === "Low" && "text-destructive" 
                 )}
               >
                 {aiFeedback.likelihood}

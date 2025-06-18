@@ -20,7 +20,7 @@ export default function DeliveryChallanListPage() {
           </Button>
         }
       />
-      <Card className="shadow-lg">
+      <Card>
         <CardHeader>
           <CardTitle>Delivery Challan List</CardTitle>
           <CardDescription>A table of Delivery Challans would be displayed here.</CardDescription>

@@ -24,7 +24,7 @@ export default function ActivityTypesMasterPage() {
           </Button>
         }
       />
-      <Card className="shadow-lg">
+      <Card>
         <CardHeader>
           <CardTitle>Existing Activity Types</CardTitle>
         </CardHeader>

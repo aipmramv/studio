@@ -14,7 +14,7 @@ export default function BuildingTypesMasterPage_DEPRECATED() {
         title="Building Types Master (DEPRECATED)"
         description="This page has been consolidated into 'Store Locations' master."
       />
-      <Card className="shadow-lg">
+      <Card>
         <CardHeader>
           <CardTitle>Functionality Moved</CardTitle>
           <CardDescription>

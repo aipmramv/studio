@@ -24,7 +24,7 @@ export default function DepartmentsMasterPage() {
           </Button>
         }
       />
-      <Card className="shadow-lg">
+      <Card>
         <CardHeader>
           <CardTitle>Existing Departments</CardTitle>
         </CardHeader>

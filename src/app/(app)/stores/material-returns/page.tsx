@@ -43,7 +43,7 @@ export default function MaterialReturnsPage() {
           </Button>
         }
       />
-      <Card className="shadow-lg">
+      <Card>
         <CardHeader>
           <CardTitle>Returns List</CardTitle>
           <CardDescription>Log of all materials returned to stores. You can add new return entries or view details.</CardDescription>
@@ -101,4 +101,3 @@ export default function MaterialReturnsPage() {
     </div>
   );
 }
-

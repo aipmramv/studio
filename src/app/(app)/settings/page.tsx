@@ -9,7 +9,7 @@ export default function SettingsPage() {
         title="Application Settings"
         description="Configure application-wide settings and preferences."
       />
-      <Card className="shadow-lg">
+      <Card>
         <CardHeader>
           <CardTitle>General Settings</CardTitle>
           <CardDescription>Application settings will be configurable here (e.g., for admins).</CardDescription>

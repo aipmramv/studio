@@ -179,7 +179,7 @@ export function DcGeneratorContent() {
   };
 
   return (
-    <Card className="w-full shadow-xl">
+    <Card className="w-full">
       <CardHeader>
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
           <div>
@@ -355,4 +355,3 @@ export function DcGeneratorContent() {
     </Card>
   );
 }
-

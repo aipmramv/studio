@@ -19,7 +19,7 @@ export default function WorkPermitListPage() {
           </Button>
         }
       />
-      <Card className="shadow-lg">
+      <Card>
         <CardHeader>
           <CardTitle>Permit List</CardTitle>
           <CardDescription>A table of work permits would be displayed here.</CardDescription>

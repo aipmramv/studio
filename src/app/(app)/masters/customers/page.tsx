@@ -148,7 +148,7 @@ export default function CustomersMasterPage() {
         </DialogContent>
       </Dialog>
 
-      <Card className="shadow-lg">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center"><Users2 className="w-5 h-5 mr-2 text-primary" /> Existing Customers</CardTitle>
           <CardDescription>View, add, edit, or delete customers.</CardDescription>

@@ -67,9 +67,9 @@ export default {
         },
       },
       borderRadius: {
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
+        lg: 'var(--radius)', /* 0.25rem */
+        md: 'calc(var(--radius) - 0.125rem)', /* Effectively 0.125rem if radius is 0.25rem */
+        sm: 'calc(var(--radius) - 0.125rem)', /* Effectively 0.125rem for sharper small elements if base is 0.25rem. Let's keep it simple for now. */
       },
       keyframes: {
         'accordion-down': {

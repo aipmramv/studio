@@ -93,7 +93,7 @@ export default function KpiDashboardPage() {
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {kpiStats.map((stat, index) => (
-          <Card key={index} className="shadow-lg">
+          <Card key={index}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">{stat.title}</CardTitle>
               <stat.icon className={`h-5 w-5 ${stat.color}`} />
@@ -106,7 +106,7 @@ export default function KpiDashboardPage() {
       </div>
 
       { (user?.role === 'admin' || user?.role === 'department_head') && (
-        <Card className="shadow-lg">
+        <Card>
           <CardHeader>
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
@@ -200,7 +200,7 @@ export default function KpiDashboardPage() {
         />
       </div>
       
-      <Card className="shadow-lg">
+      <Card>
         <CardHeader>
             <CardTitle className="font-headline">Delayed Approvals Breakdown</CardTitle>
         </CardHeader>
@@ -217,4 +217,3 @@ export default function KpiDashboardPage() {
     </div>
   );
 }
-

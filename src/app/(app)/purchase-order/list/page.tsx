@@ -42,7 +42,7 @@ export default function PurchaseOrderListPage() {
           </Button>
         }
       />
-      <Card className="shadow-lg">
+      <Card>
         <CardHeader>
           <CardTitle>Purchase Order List</CardTitle>
           <CardDescription>A list of all created purchase orders.</CardDescription>

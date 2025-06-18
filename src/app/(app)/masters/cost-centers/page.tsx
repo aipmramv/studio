@@ -155,7 +155,7 @@ export default function CostCentersMasterPage() {
         </DialogContent>
       </Dialog>
 
-      <Card className="shadow-lg">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center"><DollarSignIcon className="w-5 h-5 mr-2 text-primary" /> Existing Cost Centers</CardTitle>
           <CardDescription>View, add, edit, or delete cost centers.</CardDescription>
