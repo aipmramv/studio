@@ -60,70 +60,70 @@ const ITEMS_PER_PAGE = 10;
 
 const mockAllRequestsData: ApprovalItem[] = [
   {
-    id: "MM001", requestType: "Material Movement", requesterName: "Alice Smith", requesterDepartment: "Production", submissionDate: "2024-07-28T10:00:00Z",
+    id: "MM001", requestType: "Material Movement", requesterName: "Ram Kumar", requesterDepartment: "Production", submissionDate: "2024-07-28T10:00:00Z",
     currentStepId: "mm_dept_head", currentStepName: "Department Head Approval", workflowTemplateId: "material_movement_default",
     payload: { materialType: "Raw Material", source: "Warehouse A", destination: "Production Line 1", quantity: 100, value: 150000, isReturnable: "no", vehicleNumber:"MH12AB1234" } as MaterialMovementFormData,
     history: [
-      { stepId: "submission", stepName: "Submitted", actor: "Alice Smith", action: "submitted", timestamp: "2024-07-28T10:00:00Z", comment: "Initial submission for urgent production requirement." },
+      { stepId: "submission", stepName: "Submitted", actor: "Ram Kumar", action: "submitted", timestamp: "2024-07-28T10:00:00Z", comment: "Initial submission for urgent production requirement." },
       { stepId: "mm_dept_head", stepName: "Pending Dept. Head", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-28T10:01:00Z" },
     ]
   },
   {
-    id: "SM002", requestType: "Scrap Request", requesterName: "Bob Johnson", requesterDepartment: "Maintenance", submissionDate: "2024-07-27T14:30:00Z",
+    id: "SM002", requestType: "Scrap Request", requesterName: "Praveen S.", requesterDepartment: "Maintenance", submissionDate: "2024-07-27T14:30:00Z",
     currentStepId: "sm_ehs_clearance", currentStepName: "EHS Clearance", workflowTemplateId: "scrap_default",
     payload: { scrapType: "E-waste", description: "Old monitors and keyboards, non-functional", quantity: 10, weight: 50 } as ScrapMovementFormData,
     history: [
-      { stepId: "submission", stepName: "Submitted", actor: "Bob Johnson", action: "submitted", timestamp: "2024-07-27T14:30:00Z" },
-      { stepId: "sm_supervisor_approval", stepName: "Supervisor Approval", actor: "Maintenance Lead", action: "approve", timestamp: "2024-07-27T15:00:00Z", comment: "Looks OK." },
+      { stepId: "submission", stepName: "Submitted", actor: "Praveen S.", action: "submitted", timestamp: "2024-07-27T14:30:00Z" },
+      { stepId: "sm_supervisor_approval", stepName: "Supervisor Approval", actor: "Prem (Maintenance Head)", action: "approve", timestamp: "2024-07-27T15:00:00Z", comment: "Looks OK." },
       { stepId: "sm_ehs_clearance", stepName: "Pending EHS Clearance", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-27T15:01:00Z" },
     ]
   },
   {
-    id: "WP003", requestType: "Work Permit", requesterName: "Carol White", requesterDepartment: "IT", submissionDate: "2024-07-29T09:15:00Z",
+    id: "WP003", requestType: "Work Permit", requesterName: "Chandrasekar R.", requesterDepartment: "IT", submissionDate: "2024-07-29T09:15:00Z",
     currentStepId: "wp_maintenance_review", currentStepName: "Maintenance Team Review", workflowTemplateId: "work_permit_default",
     payload: { activityType: "Electrical Work (LV/MV/HV)", building: "KOSMO Building", activityDetails: "Routine server maintenance in DC room 3. Includes rack mounting and cable management.", specificAreaOrEquipment: "DC Room 3, Rack A5", permitValidity: new Date("2024-08-05") } as WorkPermitFormData,
     history: [
-      { stepId: "submission", stepName: "Submitted", actor: "Carol White", action: "submitted", timestamp: "2024-07-29T09:15:00Z" },
-      { stepId: "wp_safety_review", stepName: "Safety Team Review", actor: "Safety Officer", action: "approve", timestamp: "2024-07-29T14:00:00Z", comment: "Safety protocols confirmed." },
+      { stepId: "submission", stepName: "Submitted", actor: "Chandrasekar R.", action: "submitted", timestamp: "2024-07-29T09:15:00Z" },
+      { stepId: "wp_safety_review", stepName: "Safety Team Review", actor: "Sashikanth (Safety Head)", action: "approve", timestamp: "2024-07-29T14:00:00Z", comment: "Safety protocols confirmed." },
       { stepId: "wp_maintenance_review", stepName: "Pending Maintenance Review", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-29T14:01:00Z"}
     ]
   },
   {
-    id: "WP007", requestType: "Work Permit", requesterName: "Gina Facility", requesterDepartment: "Facility Management", submissionDate: "2024-08-02T10:00:00Z",
+    id: "WP007", requestType: "Work Permit", requesterName: "Ram G. (Facility)", requesterDepartment: "Facility Management", submissionDate: "2024-08-02T10:00:00Z",
     currentStepId: "wp_facility_head", currentStepName: "Permit Issued by Facility Head", workflowTemplateId: "work_permit_default",
     payload: { activityType: "Civil Works (Excavation, Construction)", building: "Test Tower", activityDetails: "Area preparation for new equipment installation, minor excavation.", specificAreaOrEquipment: "Test Tower, Ground Floor, Bay 3", permitValidity: new Date("2024-08-15") } as WorkPermitFormData,
     history: [
-      { stepId: "submission", stepName: "Submitted", actor: "Gina Facility", action: "submitted", timestamp: "2024-08-02T10:00:00Z" },
-      { stepId: "wp_safety_review", stepName: "Safety Team Review", actor: "Safety Officer", action: "approve", timestamp: "2024-08-02T14:00:00Z", comment: "All clear." },
-      { stepId: "wp_maintenance_review", stepName: "Maintenance Team Review", actor: "Maintenance Supervisor", action: "approve", timestamp: "2024-08-03T09:00:00Z", comment: "Impact assessed, OK to proceed."},
-      { stepId: "wp_facility_head", stepName: "Permit Issued by Facility Head", actor: "Facility Head", action: "approve", timestamp: "2024-08-03T11:00:00Z", comment: "Permit issued."},
+      { stepId: "submission", stepName: "Submitted", actor: "Ram G. (Facility)", action: "submitted", timestamp: "2024-08-02T10:00:00Z" },
+      { stepId: "wp_safety_review", stepName: "Safety Team Review", actor: "Sashikanth (Safety Head)", action: "approve", timestamp: "2024-08-02T14:00:00Z", comment: "All clear." },
+      { stepId: "wp_maintenance_review", stepName: "Maintenance Team Review", actor: "Prem (Maintenance Supervisor)", action: "approve", timestamp: "2024-08-03T09:00:00Z", comment: "Impact assessed, OK to proceed."},
+      { stepId: "wp_facility_head", stepName: "Permit Issued by Facility Head", actor: "Kumaravel (Facility Head)", action: "approve", timestamp: "2024-08-03T11:00:00Z", comment: "Permit issued."},
     ]
   },
   {
-    id: "PO004", requestType: "Purchase Order", requesterName: "David Brown", requesterDepartment: "Logistics", submissionDate: "2024-07-29T11:00:00Z",
+    id: "PO004", requestType: "Purchase Order", requesterName: "Nagaraj V.", requesterDepartment: "Logistics", submissionDate: "2024-07-29T11:00:00Z",
     currentStepId: "po_dept_head", currentStepName: "Dept. Head Approval", workflowTemplateId: "po_default",
     payload: { poCategory: "IT Equipment", department: "IT", vendorName: "Tech Solutions Inc.", kmKmgCode: "KM123", costCenter: "CC_IT_001_Infra", ioNumber: "IO_IT_2024_004", poDate: new Date("2024-07-29"), items: [{itemName: "Laptop Model X", quantity: 5, unitPrice: 120000, hsnSacCode:"84713010", gstPercentage:18}, {itemName: "Docking Station", quantity: 5, unitPrice: 15000, hsnSacCode:"84718000", gstPercentage:18}], deliveryAddress: "Main Office, R&D Block", segment: "Hardware Refresh" } as PurchaseOrderFormData,
      history: [
-      { stepId: "submission", stepName: "Submitted", actor: "David Brown", action: "submitted", timestamp: "2024-07-29T11:00:00Z" },
+      { stepId: "submission", stepName: "Submitted", actor: "Nagaraj V.", action: "submitted", timestamp: "2024-07-29T11:00:00Z" },
       { stepId: "po_dept_head", stepName: "Pending Dept. Head Approval", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-29T11:01:00Z"}
     ]
   },
    {
-    id: "SO005", requestType: "Sale Order", requesterName: "Eve Green", requesterDepartment: "Sales", submissionDate: "2024-07-30T11:00:00Z",
+    id: "SO005", requestType: "Sale Order", requesterName: "Praveen E.", requesterDepartment: "Sales", submissionDate: "2024-07-30T11:00:00Z",
     currentStepId: "so_manager_approval", currentStepName: "Sales Manager Approval", workflowTemplateId: "so_default",
     payload: { customerName: "Client ABC Corp", soDate: new Date("2024-07-30"), projectOrCrNo:"PROJ123", saleOrderCategory:"Software", purpose:"Annual License Renewal", costCenter:"CC_SALES_001", ioNumber:"IO_SALES_2024_005", budgetAmount:500000, materialRequiredDate:new Date("2024-08-15"), departmentHeadApproval:"Sales Head", deliveryTo:"IT Dept Contact", items: [{itemName: "Software License - Annual", quantity: 10, unitPrice: 50000, hsnSacCode: "997331", gstPercentage: 18}], shippingAddress: "Client HQ, Tower B, Floor 5", billingAddress: "Client HQ, Accounts Dept." } as SaleOrderFormData,
      history: [
-      { stepId: "submission", stepName: "Submitted", actor: "Eve Green", action: "submitted", timestamp: "2024-07-30T11:00:00Z" },
+      { stepId: "submission", stepName: "Submitted", actor: "Praveen E.", action: "submitted", timestamp: "2024-07-30T11:00:00Z" },
       { stepId: "so_manager_approval", stepName: "Pending Sales Manager Approval", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-30T11:01:00Z"}
     ]
   },
   {
-    id: "MM006", requestType: "Material Movement", requesterName: "Frank Wright", requesterDepartment: "Logistics", submissionDate: "2024-08-01T10:00:00Z",
+    id: "MM006", requestType: "Material Movement", requesterName: "Chandrasekar F.", requesterDepartment: "Logistics", submissionDate: "2024-08-01T10:00:00Z",
     currentStepId: "mm_finance_check", currentStepName: "Finance Check (High Value)", workflowTemplateId: "material_movement_default",
     payload: { materialType: "Finished Goods", source: "Main Warehouse", destination: "Shipping Dock", quantity: 50, value: 250000, isReturnable: "no", vehicleNumber:"MH14CD5678" } as MaterialMovementFormData,
     history: [
-      { stepId: "submission", stepName: "Submitted", actor: "Frank Wright", action: "submitted", timestamp: "2024-08-01T10:00:00Z" },
-      { stepId: "mm_dept_head", stepName: "Department Head Approval", actor: "Logistics Head", action: "approve", timestamp: "2024-08-01T11:30:00Z" },
+      { stepId: "submission", stepName: "Submitted", actor: "Chandrasekar F.", action: "submitted", timestamp: "2024-08-01T10:00:00Z" },
+      { stepId: "mm_dept_head", stepName: "Department Head Approval", actor: "Kumaravel (Logistics Head)", action: "approve", timestamp: "2024-08-01T11:30:00Z" },
       { stepId: "mm_finance_check", stepName: "Pending Finance Check", actor: "System", action: "system_auto_proceed", timestamp: "2024-08-01T11:31:00Z" },
     ]
   },
@@ -388,7 +388,7 @@ export default function AllRequestsPage() {
         {
           stepId: selectedRequest.currentStepId,
           stepName: `Comment on: ${selectedRequest.currentStepName}`,
-          actor: "Current User (Mock)",
+          actor: "Current User (Ram Kumar)", // Updated mock user
           action: "commented",
           timestamp: new Date().toISOString(),
           comment: newComment,
@@ -410,7 +410,7 @@ export default function AllRequestsPage() {
         {
           stepId: selectedRequest.currentStepId,
           stepName: "Reminder Sent",
-          actor: "Current User (Mock)",
+          actor: "Current User (Ram Kumar)", // Updated mock user
           action: "reminded",
           timestamp: new Date().toISOString(),
           comment: `Reminder sent for step: ${selectedRequest.currentStepName}`,
@@ -431,7 +431,7 @@ export default function AllRequestsPage() {
         {
           stepId: selectedRequest.currentStepId,
           stepName: "Request Escalated",
-          actor: "Current User (Mock)",
+          actor: "Current User (Ram Kumar)", // Updated mock user
           action: "escalated",
           timestamp: new Date().toISOString(),
           comment: `Request escalated at step: ${selectedRequest.currentStepName}`,
@@ -558,7 +558,7 @@ export default function AllRequestsPage() {
                     <label htmlFor="filter-requester" className="text-sm font-medium">Requester Name/Email</label>
                     <Input
                       id="filter-requester"
-                      placeholder="e.g., Alice Smith"
+                      placeholder="e.g., Ram Kumar"
                       value={filterRequester}
                       onChange={(e) => setFilterRequester(e.target.value)}
                       className="mt-1"

@@ -43,7 +43,7 @@ const initialMockStores: StoreLocationFormData[] = INITIAL_STORE_LOCATIONS.map((
   name: loc,
   location: `Details for ${loc}`, // Placeholder detail
   type: (index % 3 === 0) ? "Main Warehouse" : (index % 3 === 1) ? "Sub-Store" : "Production Floor", // Placeholder type
-  manager: (index % 2 === 0) ? "Manager Name" : undefined, // Placeholder manager
+  manager: (index % 2 === 0) ? "Ram Kumar" : "Praveen S.", // Placeholder manager
 }));
 
 
@@ -192,7 +192,7 @@ export default function StoreLocationsMasterPage() {
                   <FormItem>
                     <FormLabel>Store Manager (Optional)</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., John Doe" {...field} />
+                      <Input placeholder="e.g., Ram Kumar" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

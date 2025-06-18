@@ -1,3 +1,4 @@
+
 // src/hooks/useAuth.ts
 "use client";
 
@@ -9,6 +10,7 @@ interface AuthUser {
   email: string | null;
   displayName: string | null;
   role: UserRole;
+  department?: string; // Added department for role-based filtering
 }
 
 // This is a mock hook. In a real Firebase app, you'd use `onAuthStateChanged`
@@ -22,11 +24,20 @@ export function useAuth() {
     const timer = setTimeout(() => {
       // To test different roles, you can change this:
       const mockUser: AuthUser = {
-        uid: 'mock-user-id',
-        email: 'admin@example.com',
-        displayName: 'Admin User',
-        role: 'admin', // Changed to 'admin' to show Masters menu
+        uid: 'mock-user-id-ram',
+        email: 'ram.admin@example.com',
+        displayName: 'Ram Kumar (Admin)',
+        role: 'admin', 
+        department: 'IT', // Example department
       };
+      // To simulate a different user for testing:
+      // const mockUser: AuthUser = {
+      //   uid: 'mock-user-id-prem',
+      //   email: 'prem.dh@example.com',
+      //   displayName: 'Prem Kumar (Head)',
+      //   role: 'department_head',
+      //   department: 'Finance', 
+      // };
       // To simulate a logged-out state:
       // setUser(null);
       setUser(mockUser);
@@ -41,11 +52,13 @@ export function useAuth() {
     setLoading(true);
     return new Promise<void>((resolve) => {
       setTimeout(() => {
+        // This mock now defaults to the 'admin' user for broader testing access
         setUser({
-          uid: 'mock-user-id',
-          email: 'admin@example.com', // Default to admin for testing
-          displayName: 'Admin User',
+          uid: 'mock-user-id-ram',
+          email: 'ram.admin@example.com',
+          displayName: 'Ram Kumar (Admin)',
           role: 'admin',
+          department: 'IT'
         });
         setLoading(false);
         resolve();
@@ -59,10 +72,11 @@ export function useAuth() {
      return new Promise<void>((resolve) => {
        setTimeout(() => {
          setUser({
-           uid: 'new-mock-user-id',
-           email: 'newuser@example.com',
-           displayName: 'New Mock User',
+           uid: 'new-mock-user-id-nagaraj',
+           email: 'nagaraj.new@example.com',
+           displayName: 'Nagaraj V. (New User)',
            role: 'requester', // Default role for new signups
+           department: 'Production'
          });
          setLoading(false);
          resolve();

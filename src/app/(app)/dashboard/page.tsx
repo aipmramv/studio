@@ -77,40 +77,40 @@ interface ApprovalItem {
 
 const mockApprovalsData: ApprovalItem[] = [
   {
-    id: "MM001", requestType: "Material Movement", requesterName: "Alice Smith", requesterDepartment: "Production", submissionDate: "2024-07-28T10:00:00Z",
+    id: "MM001", requestType: "Material Movement", requesterName: "Ram Kumar", requesterDepartment: "Production", submissionDate: "2024-07-28T10:00:00Z",
     currentStepId: "mm_dept_head", currentStepName: "Department Head Approval", currentAssignees: ["department_head", "admin"], workflowTemplateId: "material_movement_default",
     payload: { materialType: "Raw Material", source: "Warehouse A", destination: "Production Line 1", quantity: 100, value: 150000, isReturnable: "no", vehicleNumber:"MH12AB1234" } as MaterialMovementFormData,
     history: [
-        { stepId: "submission", stepName:"Submitted", actor: "Alice Smith", action: "submitted", timestamp: "2024-07-28T10:00:00Z" },
+        { stepId: "submission", stepName:"Submitted", actor: "Ram Kumar", action: "submitted", timestamp: "2024-07-28T10:00:00Z" },
         { stepId: "mm_dept_head", stepName: "Pending Dept. Head", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-28T10:01:00Z" },
     ]
   },
   {
-    id: "SM002", requestType: "Scrap Request", requesterName: "Bob Johnson", requesterDepartment: "Maintenance", submissionDate: "2024-07-27T14:30:00Z",
+    id: "SM002", requestType: "Scrap Request", requesterName: "Praveen S.", requesterDepartment: "Maintenance", submissionDate: "2024-07-27T14:30:00Z",
     currentStepId: "sm_finance_clearance", currentStepName: "Finance Clearance", currentAssignees: ["finance_team", "admin"], workflowTemplateId: "scrap_default", 
     payload: { scrapType: "E-waste", description: "Old monitors and keyboards", quantity: 10, weight: 50 } as ScrapMovementFormData,
     history: [
-        { stepId: "submission", stepName:"Submitted", actor: "Bob Johnson", action: "submitted", timestamp: "2024-07-27T14:30:00Z" },
-        { stepId: "sm_supervisor_approval", stepName: "Supervisor Approval", actor: "Maintenance Lead", action: "approve", timestamp: "2024-07-27T15:00:00Z", comment: "Looks OK." },
-        { stepId: "sm_ehs_clearance", stepName: "EHS Clearance", actor: "Safety Officer", action: "approve", timestamp: "2024-07-27T18:00:00Z" },
+        { stepId: "submission", stepName:"Submitted", actor: "Praveen S.", action: "submitted", timestamp: "2024-07-27T14:30:00Z" },
+        { stepId: "sm_supervisor_approval", stepName: "Supervisor Approval", actor: "Prem (Maintenance Head)", action: "approve", timestamp: "2024-07-27T15:00:00Z", comment: "Looks OK." },
+        { stepId: "sm_ehs_clearance", stepName: "EHS Clearance", actor: "Sashikanth (Safety Head)", action: "approve", timestamp: "2024-07-27T18:00:00Z" },
         { stepId: "sm_finance_clearance", stepName: "Pending Finance Clearance", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-27T18:01:00Z" },
     ]
   },
   {
-    id: "WP003", requestType: "Work Permit", requesterName: "Carol White", requesterDepartment: "IT", submissionDate: "2024-07-29T09:15:00Z",
+    id: "WP003", requestType: "Work Permit", requesterName: "Chandrasekar R.", requesterDepartment: "IT", submissionDate: "2024-07-29T09:15:00Z",
     currentStepId: "wp_safety_review", currentStepName: "Safety Team Review", currentAssignees: ["safety", "admin"], workflowTemplateId: "work_permit_default",
     payload: { building: "KOSMO Building", activityType: "Electrical Work (LV/MV/HV)", activityDetails: "Routine server maintenance in DC room 3", specificAreaOrEquipment: "DC Room 3", permitValidity: new Date() } as WorkPermitFormData,
     history: [
-        { stepId: "submission", stepName:"Submitted", actor: "Carol White", action: "submitted", timestamp: "2024-07-29T09:15:00Z" },
+        { stepId: "submission", stepName:"Submitted", actor: "Chandrasekar R.", action: "submitted", timestamp: "2024-07-29T09:15:00Z" },
         { stepId: "wp_safety_review", stepName: "Pending Safety Review", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-29T09:16:00Z" },
     ]
   },
   {
-    id: "PO004", requestType: "Purchase Order", requesterName: "David Brown", requesterDepartment: "Logistics", submissionDate: "2024-07-29T11:00:00Z",
+    id: "PO004", requestType: "Purchase Order", requesterName: "Nagaraj V.", requesterDepartment: "Logistics", submissionDate: "2024-07-29T11:00:00Z",
     currentStepId: "po_dept_head", currentStepName: "Dept. Head Approval", currentAssignees: ["department_head", "admin"], workflowTemplateId: "po_default",
     payload: { vendorName: "Tech Solutions Inc.", poDate: new Date("2024-07-29"), items: [{itemName: "Laptop Model X", quantity: 5, unitPrice: 120000, hsnSacCode:"84713010", gstPercentage:18}], deliveryAddress: "Main Office", poCategory:"IT Equipment", department:"IT", costCenter:"IT001", ioNumber:"IO_IT004" } as PurchaseOrderFormData,
     history: [
-        { stepId: "submission", stepName:"Submitted", actor: "David Brown", action: "submitted", timestamp: "2024-07-29T11:00:00Z"},
+        { stepId: "submission", stepName:"Submitted", actor: "Nagaraj V.", action: "submitted", timestamp: "2024-07-29T11:00:00Z"},
         { stepId: "po_dept_head", stepName: "Pending Dept. Head", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-29T11:01:00Z" },
     ]
   },
@@ -339,7 +339,7 @@ export default function ApprovalsDashboardPage() {
         stepId: item.currentStepId,
         stepName: item.currentStepName,
         action: action,
-        actor: user.displayName || user.email || "User",
+        actor: user.displayName || user.email || "Current User (Ram Kumar)",
         timestamp: new Date().toISOString(),
         comment: comment,
     };
@@ -399,7 +399,7 @@ export default function ApprovalsDashboardPage() {
         {
           stepId: selectedRequestDetail.currentStepId, 
           stepName: `Comment on: ${selectedRequestDetail.currentStepName}`,
-          actor: user.displayName || "Current User", 
+          actor: user.displayName || "Current User (Ram Kumar)", 
           action: "commented" as const,
           timestamp: new Date().toISOString(),
           comment: newComment,

@@ -37,9 +37,13 @@ interface MockUser {
 }
 
 const mockUsersData: MockUser[] = [
-  { id: "user1", name: "Alice Admin", email: "alice@example.com", department: "IT", role: "admin" },
-  { id: "user2", name: "Bob Approver", email: "bob@example.com", department: "Finance", role: "approver" },
-  { id: "user3", name: "Charlie Requester", email: "charlie@example.com", department: "Production", role: "requester" },
+  { id: "user1", name: "Ram Kumar", email: "ram.admin@example.com", department: "IT", role: "admin" },
+  { id: "user2", name: "Prem Kumar", email: "prem.kumar@example.com", department: "Finance", role: "approver" },
+  { id: "user3", name: "Praveen S.", email: "praveen.s@example.com", department: "Production", role: "requester" },
+  { id: "user4", name: "Chandrasekar R.", email: "chandrasekar.r@example.com", department: "R&D", role: "requester" },
+  { id: "user5", name: "Nagaraj V.", email: "nagaraj.v@example.com", department: "Maintenance", role: "requester" },
+  { id: "user6", name: "Sashikanth M.", email: "sashikanth.m@example.com", department: "Safety & Environment", role: "safety" },
+  { id: "user7", name: "Kumaravel P.", email: "kumaravel.p@example.com", department: "Logistics", role: "department_head" },
 ];
 
 export default function UserManagementPage() {
@@ -63,9 +67,13 @@ export default function UserManagementPage() {
 
   const handleInviteUserSubmit = (data: InviteUserFormData) => {
     console.log("Invite User Data:", data);
+    // Extract name from email or use a generic name
+    const namePart = data.email.split('@')[0].replace('.', ' ');
+    const formattedName = namePart.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') || "New User";
+
     const newUser: MockUser = { 
       id: `user_${Date.now()}`, 
-      name: data.email.split('@')[0] || "New User", 
+      name: formattedName, 
       email: data.email, 
       department: "Unassigned", 
       role: data.role 
@@ -81,8 +89,8 @@ export default function UserManagementPage() {
     setTimeout(() => {
       const ssoUser: MockUser = { 
         id: `sso_user_${Date.now()}`, 
-        name: "SSO Synced User", 
-        email: "sso.user@example.com", 
+        name: "SSO Ram", 
+        email: "sso.ram@example.com", 
         department: "IT", 
         role: "requester"
       };

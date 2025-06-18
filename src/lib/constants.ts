@@ -149,16 +149,16 @@ export const COST_CENTERS = [
 export type CostCenterType = typeof COST_CENTERS[number];
 
 export const MOCK_VENDORS = [
-  { id: "VEND001", name: "Tech Solutions Inc.", contactPerson: "Mr. Sharma", email: "sales@techsolutions.com", phone: "9876543210", category: "IT Equipment" },
-  { id: "VEND002", name: "Industrial Supplies Co.", contactPerson: "Ms. Priya", email: "info@industrialsupplies.co", phone: "8765432109", category: "Raw Materials" },
-  { id: "VEND003", name: "Office Essentials Ltd.", contactPerson: "Mr. Kumar", email: "support@officeessentials.com", phone: "7654321098", category: "Stationery" },
+  { id: "VEND001", name: "Tech Solutions Inc.", contactPerson: "Ram Sharma", email: "sales@techsolutions.com", phone: "9876543210", category: "IT Equipment" },
+  { id: "VEND002", name: "Industrial Supplies Co.", contactPerson: "Praveen Priya", email: "info@industrialsupplies.co", phone: "8765432109", category: "Raw Materials" },
+  { id: "VEND003", name: "Office Essentials Ltd.", contactPerson: "Chandrasekar Kumar", email: "support@officeessentials.com", phone: "7654321098", category: "Stationery" },
 ] as const;
 export type MockVendor = typeof MOCK_VENDORS[number];
 
 export const MOCK_CUSTOMERS = [
-  { id: "CUST001", name: "Global Corp", contactPerson: "Ms. Lee", email: "procurement@globalcorp.com", phone: "1234567890", industry: "Manufacturing" },
-  { id: "CUST002", name: "Innovate Labs", contactPerson: "Dr. Singh", email: "purchasing@innovatelabs.org", phone: "2345678901", industry: "Research" },
-  { id: "CUST003", name: "Local Services Ltd.", contactPerson: "Mr. Patel", email: "accounts@localservices.net", phone: "3456789012", industry: "Services" },
+  { id: "CUST001", name: "Global Corp", contactPerson: "Ram Lee", email: "procurement@globalcorp.com", phone: "1234567890", industry: "Manufacturing" },
+  { id: "CUST002", name: "Innovate Labs", contactPerson: "Praveen Singh", email: "purchasing@innovatelabs.org", phone: "2345678901", industry: "Research" },
+  { id: "CUST003", name: "Local Services Ltd.", contactPerson: "Chandrasekar Patel", email: "accounts@localservices.net", phone: "3456789012", industry: "Services" },
 ] as const;
 export type MockCustomer = typeof MOCK_CUSTOMERS[number];
 
@@ -220,60 +220,72 @@ export interface MonthlyBudgetRecord {
   id: string;
   department: Department;
   year: FiscalYear;
-  monthIndex: number;
+  monthIndex: number; // 0 for April, 1 for May, ..., 11 for March
   forecastedAmount: number;
   actualAmount: number;
   userBreakdown?: UserExpenditure[];
 }
 
+// Helper function to map calendar month (1-12) to fiscal month index (0-11)
+// Not strictly needed for mock data but useful for real data processing.
+// const getFiscalMonthIndex = (date: Date): number => {
+//   const month = date.getMonth(); // 0 for Jan, 11 for Dec
+//   if (month >= 3) return month - 3; // Apr (3) becomes 0, May (4) becomes 1 ... Dec (11) becomes 8
+//   return month + 9; // Jan (0) becomes 9, Feb (1) becomes 10, Mar (2) becomes 11
+// };
+
 export const getFiscalMonthName = (monthIndex: number): string => {
+  // monthIndex: 0 for April, 1 for May, ..., 11 for March
   const fiscalYearMonths = ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar"];
   return fiscalYearMonths[monthIndex] || "Invalid Month";
 };
 
 
 export const MOCK_MONTHLY_BUDGET_DATA: MonthlyBudgetRecord[] = [
+  // R&D 2024-2025
   {
     id: "MB001", department: "R&D", year: "2024-2025", monthIndex: 0, forecastedAmount: 160000, actualAmount: 155000, // Apr
     userBreakdown: [
-      { userId: "user1", userName: "Alice Admin", actualAmount: 75000 },
-      { userId: "user2", userName: "Bob Approver", actualAmount: 50000 },
-      { userId: "user3", userName: "Charlie Requester", actualAmount: 30000 },
+      { userId: "user_ram_rd", userName: "Ram Kumar", actualAmount: 75000 },
+      { userId: "user_praveen_rd", userName: "Praveen S.", actualAmount: 50000 },
+      { userId: "user_chandra_rd", userName: "Chandrasekar R.", actualAmount: 30000 },
     ]
   },
   {
     id: "MB002", department: "R&D", year: "2024-2025", monthIndex: 1, forecastedAmount: 170000, actualAmount: 175000, // May
     userBreakdown: [
-      { userId: "user1", userName: "Alice Admin", actualAmount: 80000 },
-      { userId: "user3", userName: "Charlie Requester", actualAmount: 95000 },
+      { userId: "user_ram_rd", userName: "Ram Kumar", actualAmount: 80000 },
+      { userId: "user_chandra_rd", userName: "Chandrasekar R.", actualAmount: 95000 },
     ]
   },
   { id: "MB003", department: "R&D", year: "2024-2025", monthIndex: 2, forecastedAmount: 170000, actualAmount: 165000 }, // Jun (Q1 total: 500k) - No user breakdown for this one
   {
     id: "MB004", department: "R&D", year: "2024-2025", monthIndex: 3, forecastedAmount: 180000, actualAmount: 182000, // Jul
      userBreakdown: [
-      { userId: "user2", userName: "Bob Approver", actualAmount: 100000 },
-      { userId: "user4", userName: "David DRE", actualAmount: 82000 },
+      { userId: "user_praveen_rd", userName: "Praveen S.", actualAmount: 100000 },
+      { userId: "user_nagaraj_rd", userName: "Nagaraj V.", actualAmount: 82000 },
     ]
   },
   { id: "MB005", department: "R&D", year: "2024-2025", monthIndex: 4, forecastedAmount: 180000, actualAmount: 0 },    // Aug (No actuals yet)
   { id: "MB006", department: "R&D", year: "2024-2025", monthIndex: 5, forecastedAmount: 190000, actualAmount: 0 },    // Sep (No actuals yet, Q2 total: 550k)
 
+  // IT 2024-2025
   {
     id: "MB007", department: "IT", year: "2024-2025", monthIndex: 0, forecastedAmount: 60000, actualAmount: 58000,  // Apr
     userBreakdown: [
-      { userId: "it_user1", userName: "IT Support L1", actualAmount: 30000 },
-      { userId: "it_user2", userName: "IT Infra Head", actualAmount: 28000 },
+      { userId: "user_ram_admin", userName: "Ram Kumar (Admin)", actualAmount: 30000 }, // Assuming Ram is also IT admin
+      { userId: "user_sashikanth_it_head", userName: "Sashikanth M. (IT Head)", actualAmount: 28000 },
     ]
   },
   { id: "MB008", department: "IT", year: "2024-2025", monthIndex: 1, forecastedAmount: 70000, actualAmount: 72000 },  // May
   { id: "MB009", department: "IT", year: "2024-2025", monthIndex: 2, forecastedAmount: 70000, actualAmount: 65000 },  // Jun (Q1 total: 200k)
 
+  // Finance 2024-2025
   { id: "MB010", department: "Finance", year: "2024-2025", monthIndex: 0, forecastedAmount: 30000, actualAmount: 28000 }, // Apr
   {
     id: "MB011", department: "Finance", year: "2024-2025", monthIndex: 1, forecastedAmount: 35000, actualAmount: 33000, // May
     userBreakdown: [
-      { userId: "fin_user1", userName: "Finance Exec", actualAmount: 33000 },
+      { userId: "user_prem_fin_head", userName: "Prem Kumar (Finance Head)", actualAmount: 33000 },
     ]
   },
   { id: "MB012", department: "Finance", year: "2024-2025", monthIndex: 2, forecastedAmount: 35000, actualAmount: 38000 }, // Jun (Q1 total: 100k)
@@ -282,8 +294,8 @@ export const MOCK_MONTHLY_BUDGET_DATA: MonthlyBudgetRecord[] = [
   {
     id: "MB013", department: "R&D", year: "2023-2024", monthIndex: 0, forecastedAmount: 150000, actualAmount: 145000, // Apr
     userBreakdown: [
-      { userId: "user1_old", userName: "Old Alice", actualAmount: 70000 },
-      { userId: "user2_old", userName: "Old Bob", actualAmount: 75000 },
+      { userId: "user_ram_rd_old", userName: "Ram Kumar", actualAmount: 70000 },
+      { userId: "user_praveen_rd_old", userName: "Praveen S.", actualAmount: 75000 },
     ]
   },
   { id: "MB014", department: "R&D", year: "2023-2024", monthIndex: 1, forecastedAmount: 150000, actualAmount: 152000 }, // May

@@ -33,21 +33,21 @@ interface AuditLogEntry {
 const ITEMS_PER_PAGE = 10;
 
 const initialMockAuditLogs: AuditLogEntry[] = [
-  { id: "log001", timestamp: new Date("2024-07-31T10:00:00Z"), user: "admin@example.com", action: "LOGIN_SUCCESS", details: "User logged in successfully.", ipAddress: "192.168.1.10", status: 'success' },
-  { id: "log002", timestamp: new Date("2024-07-31T10:05:00Z"), user: "approver@example.com", action: "REQUEST_APPROVED", entityType: "Purchase Order", entityId: "PO004", details: "Approved PO004 for IT equipment.", ipAddress: "192.168.1.15", status: 'success' },
-  { id: "log003", timestamp: new Date("2024-07-31T10:10:00Z"), user: "requester@example.com", action: "REQUEST_SUBMITTED", entityType: "Material Movement", entityId: "MM001", details: "Submitted new material movement request.", ipAddress: "192.168.1.20", status: 'info' },
-  { id: "log004", timestamp: new Date("2024-07-31T10:15:00Z"), user: "admin@example.com", action: "WORKFLOW_UPDATED", entityType: "WorkflowTemplate", entityId: "po_default", details: "Updated PO approval workflow steps.", ipAddress: "192.168.1.10", status: 'info' },
-  { id: "log005", timestamp: new Date("2024-07-31T10:20:00Z"), user: "admin@example.com", action: "LOGIN_FAILED", details: "Failed login attempt for user admin@example.com.", ipAddress: "192.168.1.10", status: 'failure' },
-  { id: "log006", timestamp: new Date("2024-07-31T10:25:00Z"), user: "requester@example.com", action: "REQUEST_REJECTED", entityType: "Work Permit", entityId: "WP005", details: "Work permit WP005 rejected due to missing safety plan.", ipAddress: "192.168.1.22", status: 'failure' },
-  { id: "log007", timestamp: new Date("2024-08-01T09:00:00Z"), user: "finance@example.com", action: "PO_FINALIZED", entityType: "Purchase Order", entityId: "PO003", details: "Purchase Order PO003 marked as finalized.", ipAddress: "192.168.1.30", status: 'success'},
-  { id: "log008", timestamp: new Date("2024-08-01T11:30:00Z"), user: "safety_officer@example.com", action: "PERMIT_ISSUED", entityType: "Work Permit", entityId: "WP006", details: "Work Permit WP006 for hot work issued.", ipAddress: "192.168.1.35", status: 'success'},
-  { id: "log009", timestamp: new Date("2024-08-01T15:00:00Z"), user: "user@example.com", action: "SETTINGS_UPDATED", entityType: "UserPreferences", entityId: "user@example.com", details: "User updated notification preferences.", ipAddress: "192.168.1.40", status: 'info'},
-  { id: "log010", timestamp: new Date("2024-08-02T10:00:00Z"), user: "admin@example.com", action: "USER_ROLE_CHANGED", entityType: "User", entityId: "bob@example.com", details: "User Bob's role changed to 'approver'.", ipAddress: "192.168.1.10", status: 'warning'},
-  { id: "log011", timestamp: new Date("2024-08-02T14:00:00Z"), user: "approver@example.com", action: "SCRAP_REQUEST_APPROVED", entityType: "Scrap Request", entityId: "SM003", details: "Scrap request SM003 approved for disposal.", ipAddress: "192.168.1.15", status: 'success'},
-  { id: "log012", timestamp: new Date("2024-08-03T10:00:00Z"), user: "admin@example.com", action: "SYSTEM_BACKUP", details: "System backup completed successfully.", ipAddress: "SYSTEM", status: 'info' },
-  { id: "log013", timestamp: new Date("2024-08-03T11:00:00Z"), user: "requester@example.com", action: "REQUEST_SUBMITTED", entityType: "Sale Order", entityId: "SO008", details: "New sale order SO008 submitted.", ipAddress: "192.168.1.25", status: 'info' },
-  { id: "log014", timestamp: new Date("2024-08-03T12:00:00Z"), user: "admin@example.com", action: "EMAIL_TEMPLATE_UPDATED", entityType: "EmailTemplate", entityId: "et_request_approved", details: "Email template for request approval updated.", ipAddress: "192.168.1.10", status: 'info' },
-  { id: "log015", timestamp: new Date("2024-08-04T09:30:00Z"), user: "approver@example.com", action: "REQUEST_APPROVED", entityType: "Material Movement", entityId: "MM002", details: "Approved MM002 for internal transfer.", ipAddress: "192.168.1.15", status: 'success' },
+  { id: "log001", timestamp: new Date("2024-07-31T10:00:00Z"), user: "admin.ram@example.com", action: "LOGIN_SUCCESS", details: "User logged in successfully.", ipAddress: "192.168.1.10", status: 'success' },
+  { id: "log002", timestamp: new Date("2024-07-31T10:05:00Z"), user: "prem.kumar@example.com", action: "REQUEST_APPROVED", entityType: "Purchase Order", entityId: "PO004", details: "Approved PO004 for IT equipment.", ipAddress: "192.168.1.15", status: 'success' },
+  { id: "log003", timestamp: new Date("2024-07-31T10:10:00Z"), user: "praveen.s@example.com", action: "REQUEST_SUBMITTED", entityType: "Material Movement", entityId: "MM001", details: "Submitted new material movement request.", ipAddress: "192.168.1.20", status: 'info' },
+  { id: "log004", timestamp: new Date("2024-07-31T10:15:00Z"), user: "admin.ram@example.com", action: "WORKFLOW_UPDATED", entityType: "WorkflowTemplate", entityId: "po_default", details: "Updated PO approval workflow steps.", ipAddress: "192.168.1.10", status: 'info' },
+  { id: "log005", timestamp: new Date("2024-07-31T10:20:00Z"), user: "admin.ram@example.com", action: "LOGIN_FAILED", details: "Failed login attempt for user admin.ram@example.com.", ipAddress: "192.168.1.10", status: 'failure' },
+  { id: "log006", timestamp: new Date("2024-07-31T10:25:00Z"), user: "praveen.s@example.com", action: "REQUEST_REJECTED", entityType: "Work Permit", entityId: "WP005", details: "Work permit WP005 rejected due to missing safety plan.", ipAddress: "192.168.1.22", status: 'failure' },
+  { id: "log007", timestamp: new Date("2024-08-01T09:00:00Z"), user: "chandrasekar.finance@example.com", action: "PO_FINALIZED", entityType: "Purchase Order", entityId: "PO003", details: "Purchase Order PO003 marked as finalized.", ipAddress: "192.168.1.30", status: 'success'},
+  { id: "log008", timestamp: new Date("2024-08-01T11:30:00Z"), user: "sashikanth.safety@example.com", action: "PERMIT_ISSUED", entityType: "Work Permit", entityId: "WP006", details: "Work Permit WP006 for hot work issued.", ipAddress: "192.168.1.35", status: 'success'},
+  { id: "log009", timestamp: new Date("2024-08-01T15:00:00Z"), user: "nagaraj.v@example.com", action: "SETTINGS_UPDATED", entityType: "UserPreferences", entityId: "nagaraj.v@example.com", details: "User updated notification preferences.", ipAddress: "192.168.1.40", status: 'info'},
+  { id: "log010", timestamp: new Date("2024-08-02T10:00:00Z"), user: "admin.ram@example.com", action: "USER_ROLE_CHANGED", entityType: "User", entityId: "praveen.s@example.com", details: "User Praveen S.'s role changed to 'approver'.", ipAddress: "192.168.1.10", status: 'warning'},
+  { id: "log011", timestamp: new Date("2024-08-02T14:00:00Z"), user: "prem.kumar@example.com", action: "SCRAP_REQUEST_APPROVED", entityType: "Scrap Request", entityId: "SM003", details: "Scrap request SM003 approved for disposal.", ipAddress: "192.168.1.15", status: 'success'},
+  { id: "log012", timestamp: new Date("2024-08-03T10:00:00Z"), user: "admin.ram@example.com", action: "SYSTEM_BACKUP", details: "System backup completed successfully.", ipAddress: "SYSTEM", status: 'info' },
+  { id: "log013", timestamp: new Date("2024-08-03T11:00:00Z"), user: "praveen.s@example.com", action: "REQUEST_SUBMITTED", entityType: "Sale Order", entityId: "SO008", details: "New sale order SO008 submitted.", ipAddress: "192.168.1.25", status: 'info' },
+  { id: "log014", timestamp: new Date("2024-08-03T12:00:00Z"), user: "admin.ram@example.com", action: "EMAIL_TEMPLATE_UPDATED", entityType: "EmailTemplate", entityId: "et_request_approved", details: "Email template for request approval updated.", ipAddress: "192.168.1.10", status: 'info' },
+  { id: "log015", timestamp: new Date("2024-08-04T09:30:00Z"), user: "prem.kumar@example.com", action: "REQUEST_APPROVED", entityType: "Material Movement", entityId: "MM002", details: "Approved MM002 for internal transfer.", ipAddress: "192.168.1.15", status: 'success' },
 ];
 
 export default function AuditLogsPage() {
@@ -192,7 +192,7 @@ export default function AuditLogsPage() {
                     <label htmlFor="filter-user" className="text-sm font-medium">User Email</label>
                     <Input
                       id="filter-user"
-                      placeholder="e.g., admin@example.com"
+                      placeholder="e.g., admin.ram@example.com"
                       value={filterUser}
                       onChange={(e) => setFilterUser(e.target.value)}
                       className="mt-1"
