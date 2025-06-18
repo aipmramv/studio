@@ -1,4 +1,3 @@
-
 // src/components/forms/MaterialMovementForm.tsx
 "use client";
 
@@ -64,7 +63,7 @@ export function MaterialMovementForm() {
     console.log("Material Movement Data:", {...data, eWayBill: eWayBillFile?.name });
     toast({
       title: "Request Submitted",
-      description: "Material movement request logged successfully.",
+      description: "Material movement request logged successfully and sent for approval.",
     });
     form.reset();
     setEWayBillFile(null);
@@ -74,7 +73,7 @@ export function MaterialMovementForm() {
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center text-2xl font-headline">
-          <Package className="w-6 h-6 mr-2 text-primary" /> Log Material Movement
+          <Package className="w-6 h-6 mr-2 text-primary" /> Log Material Movement Request
         </CardTitle>
       </CardHeader>
       <CardContent>

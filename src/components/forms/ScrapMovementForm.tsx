@@ -1,4 +1,3 @@
-
 // src/components/forms/ScrapMovementForm.tsx
 "use client";
 
@@ -43,7 +42,7 @@ export function ScrapMovementForm() {
     console.log("Scrap Movement Data:", { ...data, photo: photoFile?.name });
     toast({
       title: "Request Submitted",
-      description: "Scrap movement request logged successfully.",
+      description: "Scrap disposal request logged successfully and sent for approval.",
     });
     form.reset();
     setPhotoFile(null);
@@ -53,7 +52,7 @@ export function ScrapMovementForm() {
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center text-2xl font-headline">
-          <PackageSearch className="w-6 h-6 mr-2 text-primary" /> Log Scrap Movement
+          <PackageSearch className="w-6 h-6 mr-2 text-primary" /> Log Scrap Disposal Request
         </CardTitle>
       </CardHeader>
       <CardContent>

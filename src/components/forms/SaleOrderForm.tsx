@@ -1,4 +1,3 @@
-
 // src/components/forms/SaleOrderForm.tsx
 "use client";
 
@@ -59,8 +58,8 @@ export function SaleOrderForm() {
   function onSubmit(data: SaleOrderFormData) {
     console.log("Sale Order Data:", data);
     toast({
-      title: "Sale Order Submitted",
-      description: "SO has been created successfully.",
+      title: "Sale Order Request Submitted",
+      description: "Your SO request has been submitted for approval.",
     });
     form.reset();
   }
@@ -69,10 +68,13 @@ export function SaleOrderForm() {
     <Card className="w-full shadow-xl">
       <CardHeader>
         <CardTitle className="flex items-center text-2xl font-headline">
-          <Tags className="w-6 h-6 mr-2 text-primary" /> Create Sale Order
+          <Tags className="w-6 h-6 mr-2 text-primary" /> Create Sale Order Request
         </CardTitle>
       </CardHeader>
       <CardContent>
+        <p className="text-sm text-muted-foreground mb-6">
+          This form is to request approval for a new Sale Order. After internal approval, the SO will be created in SAP, and the SAP SO number will be associated with this request for tracking.
+        </p>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">

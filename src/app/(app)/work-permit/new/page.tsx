@@ -7,7 +7,7 @@ export default function NewWorkPermitPage() {
     <div className="space-y-8">
       <PageHeader
         title="New Work Permit Request"
-        description="Submit a request for a work permit by providing activity details and necessary attachments."
+        description="Complete the form below to request a Work Permit from your Department Head and relevant safety/operational teams for approval."
       />
       <WorkPermitForm />
     </div>

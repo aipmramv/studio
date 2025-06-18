@@ -1,4 +1,3 @@
-
 // src/components/forms/WorkPermitForm.tsx
 "use client";
 
@@ -49,7 +48,7 @@ export function WorkPermitForm() {
     console.log("Work Permit Data:", { ...data, attachments: attachmentsFile?.name });
     toast({
       title: "Request Submitted",
-      description: "Work permit request logged successfully.",
+      description: "Work permit request logged successfully and sent for approval.",
     });
     form.reset();
     setAttachmentsFile(null);

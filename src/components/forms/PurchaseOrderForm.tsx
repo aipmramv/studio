@@ -1,4 +1,3 @@
-
 // src/components/forms/PurchaseOrderForm.tsx
 "use client";
 
@@ -77,8 +76,8 @@ export function PurchaseOrderForm() {
   function onSubmit(data: PurchaseOrderFormData) {
     console.log("Purchase Order Data:", { ...data, attachmentName: attachments?.name });
     toast({
-      title: "Purchase Order Submitted",
-      description: "PO has been created successfully.",
+      title: "Purchase Order Request Submitted",
+      description: "Your PO request has been submitted for approval.",
     });
     form.reset();
     setAttachments(null);
@@ -90,10 +89,13 @@ export function PurchaseOrderForm() {
     <Card className="w-full shadow-xl">
       <CardHeader>
         <CardTitle className="flex items-center text-2xl font-headline">
-          <ShoppingCart className="w-6 h-6 mr-2 text-primary" /> Create Purchase Order
+          <ShoppingCart className="w-6 h-6 mr-2 text-primary" /> Create Purchase Order Request
         </CardTitle>
       </CardHeader>
       <CardContent>
+        <p className="text-sm text-muted-foreground mb-6">
+          This form is to request approval for a new Purchase Order. After internal approval, the PO will be created in SAP, and the SAP PO number will be associated with this request for tracking.
+        </p>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">

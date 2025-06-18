@@ -6,8 +6,8 @@ export default function NewScrapMovementPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="New Scrap Movement Request"
-        description="Log details for scrap material disposal."
+        title="New Scrap Disposal Request"
+        description="Submit a request for scrap material disposal to your Department Head for approval."
       />
       <ScrapMovementForm />
     </div>
