@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -8,97 +9,101 @@ body {
 
 @layer base {
   :root {
-    /* KONE Inspired Light Theme */
-    --background: 240 100% 99%; /* KONE White with a slight tint for off-white */
-    --foreground: 240 60% 10%; /* KONE Black */
+    /* KONE Primary & Secondary Colors - Light Theme */
+    --background: 0 0% 100%; /* KONE White */
+    --foreground: 0 0% 8%; /* KONE Black */
+    
     --card: 0 0% 100%; /* KONE White */
-    --card-foreground: 240 60% 10%; /* KONE Black */
+    --card-foreground: 0 0% 8%; /* KONE Black */
+    
     --popover: 0 0% 100%; /* KONE White */
-    --popover-foreground: 240 60% 10%; /* KONE Black */
+    --popover-foreground: 0 0% 8%; /* KONE Black */
     
-    --primary: 208 100% 35%; /* KONE Blue #0068B3 */
-    --primary-foreground: 0 0% 100%; /* KONE White */
+    --primary: 228 93% 52%; /* KONE Blue #1450f5 */
+    --primary-foreground: 0 0% 100%; /* KONE White (text on KONE Blue) */
     
-    --secondary: 240 5% 96%; /* KONE Gray Extra Light #E6E6E6 */
-    --secondary-foreground: 240 60% 10%; /* KONE Black */
+    --secondary: 36 43% 93%; /* KONE Sand #f3eee6 */
+    --secondary-foreground: 0 0% 8%; /* KONE Black (text on Sand) */
     
-    --muted: 240 5% 90%; /* KONE Gray Light #B3B3B3 - for borders, muted text bg */
-    --muted-foreground: 240 5% 50%; /* KONE Gray #808080 */
+    --muted: 36 43% 88%; /* Lighter KONE Sand / Light Gray */
+    --muted-foreground: 0 0% 30%; /* Darker Gray for muted text */
     
-    --accent: 199 100% 44%; /* Signal Blue #009FDF */
-    --accent-foreground: 0 0% 100%; /* KONE White */
+    --accent: 195 100% 91%; /* KONE Light Blue #d2f5ff */
+    --accent-foreground: 0 0% 8%; /* KONE Black (text on Light Blue) */
     
-    --destructive: 356 74% 45%; /* Error Red #D91E2A */
+    --destructive: 39 100% 50%; /* Orange (Non-Red destructive) #FFA500 */
     --destructive-foreground: 0 0% 100%; /* KONE White */
     
-    --border: 240 5% 85%; /* KONE Gray Light #B3B3B3 */
-    --input: 0 0% 100%; /* KONE White */ /* Input border will use --border */
-    --ring: 208 100% 35%; /* KONE Blue for focus rings */
+    --border: 36 43% 85%; /* Gray derived from Sand for borders */
+    --input: 0 0% 100%; /* KONE White */
+    --ring: 228 93% 52%; /* KONE Blue for focus rings */
 
-    --radius: 0.25rem; /* 4px - KONE uses 2px for buttons, 4px for cards */
+    --radius: 0.25rem; /* 4px */
 
     /* Chart colors based on KONE palette */
-    --chart-1: 208 100% 35%; /* KONE Blue */
-    --chart-2: 199 100% 44%; /* Signal Blue */
-    --chart-3: 208 58% 53%; /* KONE Blue Dark (approximated HSL) */
-    --chart-4: 30 100% 50%; /* Warning Orange #FF9900 */
-    --chart-5: 148 100% 27%; /* Success Green #008750 */
+    --chart-1: 228 93% 52%; /* KONE Blue */
+    --chart-2: 53 100% 63%; /* KONE Yellow */
+    --chart-3: 153 44% 77%; /* KONE Green */
+    --chart-4: 195 100% 91%; /* KONE Light Blue */
+    --chart-5: 347 100% 90%; /* KONE Pink */
 
-    /* Sidebar specific colors */
-    --sidebar-background: 208 58% 25%; /* KONE Blue Dark #004B80 */
+    /* Sidebar specific colors (KONE Blue background) */
+    --sidebar-background: 228 93% 52%; /* KONE Blue */
     --sidebar-foreground: 0 0% 100%; /* KONE White */
-    --sidebar-primary: 199 100% 44%; /* Signal Blue for active/hover */
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 208 100% 40%; /* Slightly lighter KONE Blue for hover */
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 208 58% 20%; /* Darker shade for border */
-    --sidebar-ring: 199 100% 44%; /* Signal Blue for ring */
+    --sidebar-primary: 53 100% 63%; /* KONE Yellow (for active/hover background) */
+    --sidebar-primary-foreground: 0 0% 8%; /* KONE Black (text on Yellow) */
+    --sidebar-accent: 228 93% 60%; /* Lighter KONE Blue (hover background for non-active items) */
+    --sidebar-accent-foreground: 0 0% 100%; /* KONE White (text on Lighter Blue) */
+    --sidebar-border: 228 93% 45%; /* Darker KONE Blue shade for borders within sidebar */
+    --sidebar-ring: 53 100% 63%; /* KONE Yellow for focus rings in sidebar */
   }
 
   .dark {
-    /* KONE Inspired Dark Theme (Conceptual - KONE DS focuses on light) */
-    --background: 240 10% 10%; /* Dark Grey */
-    --foreground: 0 0% 95%; /* Light Grey / White */
-    --card: 240 10% 13%; /* Slightly Lighter Dark Grey */
+    /* KONE Inspired Dark Theme (Conceptual Interpretation) */
+    --background: 0 0% 8%; /* KONE Black */
+    --foreground: 0 0% 95%; /* Off-White */
+    
+    --card: 0 0% 12%; /* Dark Gray */
     --card-foreground: 0 0% 95%;
-    --popover: 240 10% 10%;
+    
+    --popover: 0 0% 12%; /* Dark Gray */
     --popover-foreground: 0 0% 95%;
     
-    --primary: 199 100% 56%; /* Lighter Signal Blue for dark mode primary */
-    --primary-foreground: 240 60% 10%; /* Dark text on lighter primary */
+    --primary: 228 93% 65%; /* Lighter KONE Blue */
+    --primary-foreground: 0 0% 100%; /* KONE White */
     
-    --secondary: 240 10% 20%; /* Darker Grey for secondary elements */
+    --secondary: 0 0% 15%; /* Darker Gray for secondary elements */
     --secondary-foreground: 0 0% 95%;
     
-    --muted: 240 10% 25%; /* Medium Dark Grey */
+    --muted: 0 0% 20%; /* Medium Dark Grey */
     --muted-foreground: 0 0% 65%; /* Medium Light Grey */
     
-    --accent: 208 100% 50%; /* KONE Blue for accent in dark mode */
-    --accent-foreground: 0 0% 100%;
+    --accent: 53 100% 70%; /* Lighter KONE Yellow */
+    --accent-foreground: 0 0% 8%; /* KONE Black (text on Lighter Yellow) */
     
-    --destructive: 356 80% 60%; /* Brighter Red for dark mode */
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 39 100% 60%; /* Lighter Orange */
+    --destructive-foreground: 0 0% 8%; /* KONE Black */
     
-    --border: 240 10% 25%; /* Medium Dark Grey for borders */
-    --input: 240 10% 15%; /* Dark input background */
-    --ring: 199 100% 56%; /* Lighter Signal Blue for rings */
+    --border: 0 0% 20%; /* Medium Dark Grey for borders */
+    --input: 0 0% 10%; /* Dark input background */
+    --ring: 228 93% 65%; /* Lighter KONE Blue for rings */
 
-    --radius: 0.25rem;
+    /* Chart colors for dark theme */
+    --chart-1: 228 93% 65%; /* Lighter KONE Blue */
+    --chart-2: 53 100% 70%; /* Lighter KONE Yellow */
+    --chart-3: 153 50% 80%; /* Lighter KONE Green */
+    --chart-4: 195 100% 93%; /* Lighter KONE Light Blue */
+    --chart-5: 347 100% 93%; /* Lighter KONE Pink */
 
-    --chart-1: 199 100% 56%;
-    --chart-2: 208 100% 50%;
-    --chart-3: 199 80% 40%;
-    --chart-4: 30 100% 60%;
-    --chart-5: 148 100% 37%;
-
-    --sidebar-background: 240 10% 13%; /* Dark Grey for sidebar */
-    --sidebar-foreground: 0 0% 95%; /* Light text */
-    --sidebar-primary: 199 100% 56%; /* Lighter Signal Blue for active/hover */
-    --sidebar-primary-foreground: 240 60% 10%;
-    --sidebar-accent: 240 10% 20%; /* Darker Grey for hover */
+    /* Sidebar specific colors (Dark Theme) */
+    --sidebar-background: 0 0% 10%; /* Very Dark Gray, distinct from main dark bg */
+    --sidebar-foreground: 0 0% 95%; /* Off-White */
+    --sidebar-primary: 228 93% 65%; /* Lighter KONE Blue (active/hover background) */
+    --sidebar-primary-foreground: 0 0% 100%; /* KONE White (text on Lighter Blue) */
+    --sidebar-accent: 0 0% 15%; /* Slightly Lighter Dark Gray (hover for non-active) */
     --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 240 10% 25%;
-    --sidebar-ring: 199 100% 56%;
+    --sidebar-border: 0 0% 15%; /* Border for dark sidebar elements */
+    --sidebar-ring: 228 93% 65%; /* Lighter KONE Blue for focus */
   }
 }
 
