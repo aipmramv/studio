@@ -1,10 +1,11 @@
+
 // src/components/forms/PurchaseOrderForm.tsx
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useFieldArray } from "react-hook-form";
 import * as React from "react";
-import { CalendarIcon, DollarSign, PlusCircle, Send, ShoppingCart, Trash2, Loader2, Briefcase, Tag, Hash, Users, Percent, FileType, Info, Building } from "lucide-react";
+import { CalendarIcon, PlusCircle, Send, ShoppingCart, Trash2, Loader2, Briefcase, Tag, Hash, Users, Percent, FileType, Info, Building } from "lucide-react";
 import { format } from "date-fns";
 
 import { Button } from "@/components/ui/button";
@@ -165,7 +166,7 @@ export function PurchaseOrderForm() {
                 name="costCenter"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="flex items-center"><DollarSign className="w-4 h-4 mr-1" />Cost Center</FormLabel>
+                    <FormLabel className="flex items-center"><Briefcase className="w-4 h-4 mr-1" />Cost Center</FormLabel>
                     <FormControl>
                       <Input placeholder="Enter Cost Center ID" {...field} />
                     </FormControl>

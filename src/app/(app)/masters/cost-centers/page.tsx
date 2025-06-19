@@ -6,7 +6,7 @@ import * as React from "react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Edit, Trash2, Save, DollarSignIcon } from "lucide-react";
+import { PlusCircle, Edit, Trash2, Save, Briefcase } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from "@/components/ui/table";
 import { COST_CENTERS as INITIAL_COST_CENTERS } from "@/lib/constants";
 import {
@@ -157,7 +157,7 @@ export default function CostCentersMasterPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center"><DollarSignIcon className="w-5 h-5 mr-2 text-primary" /> Existing Cost Centers</CardTitle>
+          <CardTitle className="flex items-center"><Briefcase className="w-5 h-5 mr-2 text-primary" /> Existing Cost Centers</CardTitle>
           <CardDescription>View, add, edit, or delete cost centers.</CardDescription>
         </CardHeader>
         <CardContent>

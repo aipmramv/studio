@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SampleBarChart } from "@/components/charts/SampleBarChart";
 import { SampleLineChart } from "@/components/charts/SampleLineChart";
-import { TrendingUp, Package, AlertTriangle, Clock, Landmark, DollarSign, Briefcase } from "lucide-react";
+import { TrendingUp, Package, AlertTriangle, Clock, Landmark, Briefcase } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { DEPARTMENTS, FISCAL_YEARS, QUARTERS, MOCK_DEPARTMENT_BUDGETS, type Department, type FiscalYear, type Quarter } from "@/lib/constants";
 
@@ -152,15 +152,15 @@ export default function KpiDashboardPage() {
               <div className="grid gap-6 lg:grid-cols-3">
                 <div className="lg:col-span-1 space-y-4">
                     <Card>
-                        <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground flex items-center"><DollarSign className="w-4 h-4 mr-1"/>Total Budget</CardTitle></CardHeader>
+                        <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Total Budget</CardTitle></CardHeader>
                         <CardContent><p className="text-2xl font-bold text-foreground">{budgetDataForPeriod.total.toLocaleString('en-IN', formattingOptions)}</p></CardContent>
                     </Card>
                      <Card>
-                        <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground flex items-center"><DollarSign className="w-4 h-4 mr-1 text-primary"/>Utilized Budget</CardTitle></CardHeader>
+                        <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground text-primary">Utilized Budget</CardTitle></CardHeader>
                         <CardContent><p className="text-2xl font-bold text-primary">{budgetDataForPeriod.utilized.toLocaleString('en-IN', formattingOptions)}</p></CardContent>
                     </Card>
                      <Card>
-                        <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground flex items-center"><DollarSign className="w-4 h-4 mr-1 text-accent"/>Unutilized Budget</CardTitle></CardHeader>
+                        <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground text-accent">Unutilized Budget</CardTitle></CardHeader>
                         <CardContent><p className="text-2xl font-bold text-accent">{budgetDataForPeriod.unutilized.toLocaleString('en-IN', formattingOptions)}</p></CardContent>
                     </Card>
                 </div>

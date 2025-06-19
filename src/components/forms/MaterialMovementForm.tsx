@@ -5,7 +5,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as React from "react";
-import { DollarSign, FilePlus, Package, Save, Send, Truck, ChevronsUpDown, Check, Loader2 } from "lucide-react";
+import { FilePlus, Package, Save, Send, Truck, ChevronsUpDown, Check, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -169,7 +169,7 @@ export function MaterialMovementForm() {
                 name="value"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="flex items-center"><DollarSign className="w-4 h-4 mr-1" />Material Value (₹)</FormLabel>
+                    <FormLabel className="flex items-center">Material Value (₹)</FormLabel>
                     <FormControl>
                       <Input type="number" placeholder="e.g., 50000" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />
                     </FormControl>

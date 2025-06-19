@@ -6,7 +6,7 @@ import * as React from "react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Edit, Trash2, Save, Landmark, CalendarDays, DollarSign, Users, Briefcase } from "lucide-react";
+import { PlusCircle, Edit, Trash2, Save, Landmark, CalendarDays, Users, Briefcase } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from "@/components/ui/table";
 import { MOCK_DEPARTMENT_BUDGETS, DEPARTMENTS, FISCAL_YEARS, type DepartmentBudget } from "@/lib/constants";
 import {
@@ -158,25 +158,25 @@ export default function DepartmentBudgetsMasterPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField control={form.control} name="q1Budget" render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="flex items-center"><DollarSign className="w-4 h-4 mr-1"/>Q1 Budget (Apr-Jun)</FormLabel>
+                    <FormLabel className="flex items-center">Q1 Budget (Apr-Jun)</FormLabel>
                     <FormControl><Input type="number" placeholder="0.00" {...field} /></FormControl><FormMessage />
                   </FormItem>
                 )}/>
                 <FormField control={form.control} name="q2Budget" render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="flex items-center"><DollarSign className="w-4 h-4 mr-1"/>Q2 Budget (Jul-Sep)</FormLabel>
+                    <FormLabel className="flex items-center">Q2 Budget (Jul-Sep)</FormLabel>
                     <FormControl><Input type="number" placeholder="0.00" {...field} /></FormControl><FormMessage />
                   </FormItem>
                 )}/>
                 <FormField control={form.control} name="q3Budget" render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="flex items-center"><DollarSign className="w-4 h-4 mr-1"/>Q3 Budget (Oct-Dec)</FormLabel>
+                    <FormLabel className="flex items-center">Q3 Budget (Oct-Dec)</FormLabel>
                     <FormControl><Input type="number" placeholder="0.00" {...field} /></FormControl><FormMessage />
                   </FormItem>
                 )}/>
                 <FormField control={form.control} name="q4Budget" render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="flex items-center"><DollarSign className="w-4 h-4 mr-1"/>Q4 Budget (Jan-Mar)</FormLabel>
+                    <FormLabel className="flex items-center">Q4 Budget (Jan-Mar)</FormLabel>
                     <FormControl><Input type="number" placeholder="0.00" {...field} /></FormControl><FormMessage />
                   </FormItem>
                 )}/>
