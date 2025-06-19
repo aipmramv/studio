@@ -25,6 +25,7 @@ import { MaterialMovementSchema, type MaterialMovementFormData } from "@/lib/sch
 import { MATERIAL_TYPES, DEPARTMENTS, STORE_LOCATIONS } from "@/lib/constants";
 import { FileUpload } from "@/components/ui/file-upload";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils"; // Added missing import
 
 interface MaterialMovementFormProps {
   initialData?: MaterialMovementFormData;
@@ -54,6 +55,12 @@ export function MaterialMovementForm({ initialData, isEditing, onSave, onCancel 
   React.useEffect(() => {
     if (initialData) {
       form.reset(initialData);
+       // Set initial state for vehicle number display based on existing data
+      if (initialData.value > 100000) {
+        setShowVehicleNumber(true);
+      } else {
+        setShowVehicleNumber(false);
+      }
     }
   }, [initialData, form]);
 
@@ -62,39 +69,54 @@ export function MaterialMovementForm({ initialData, isEditing, onSave, onCancel 
   React.useEffect(() => {
     if (materialValue > 100000) {
       setShowVehicleNumber(true);
+      // Ensure vehicleNumber is registered if it becomes mandatory and wasn't already
       if (!form.formState.dirtyFields.vehicleNumber && !initialData?.vehicleNumber) {
-         form.register("vehicleNumber");
+         // form.register("vehicleNumber"); // This might not be needed if zod schema handles optionality correctly
       }
     } else {
       setShowVehicleNumber(false);
-      if (form.formState.isDirty && form.getValues("vehicleNumber") === "" && !initialData?.vehicleNumber) {
-          form.unregister("vehicleNumber");
-      }
+      // If value drops and vehicleNumber was not part of initialData or explicitly set, unregister or clear it if schema allows
+      // This part is tricky as unregistering can lead to issues if not handled carefully with zod.
+      // For now, we just hide it. The schema already makes it optional.
     }
   }, [materialValue, form, initialData]);
 
   function onSubmit(data: MaterialMovementFormData) {
+    // Ensure vehicleNumber is empty if not shown, to align with schema optionality logic
+    const submissionData = {
+      ...data,
+      vehicleNumber: showVehicleNumber ? data.vehicleNumber : "",
+    };
+
     if (isEditing && onSave) {
-      onSave(data);
-      toast({
-        title: "Request Updated",
-        description: "Material movement request has been updated.",
+      onSave(submissionData);
+    } else if (onSave) { // For new request submission scenario if onSave is provided
+      onSave(submissionData);
+      form.reset({
+        materialType: undefined,
+        source: "",
+        destination: "",
+        quantity: 1,
+        value: 0,
+        isReturnable: "no",
+        vehicleNumber: "",
       });
-    } else if (onSave) {
-      onSave(data); // For new request submission scenario if onSave is provided
-      toast({
-        title: "Request Submitted",
-        description: "Material movement request logged and sent for approval and receipt confirmation.",
-      });
-      form.reset(); // Reset only for new submissions
       setEWayBillFile(null);
     } else { // Fallback for direct usage on /new page
-       console.log("Material Movement Data (New):", {...data, eWayBill: eWayBillFile?.name });
+       console.log("Material Movement Data (New):", {...submissionData, eWayBill: eWayBillFile?.name });
        toast({
          title: "Request Submitted",
          description: "Material movement request logged and sent for approval and receipt confirmation.",
        });
-       form.reset();
+       form.reset({
+        materialType: undefined,
+        source: "",
+        destination: "",
+        quantity: 1,
+        value: 0,
+        isReturnable: "no",
+        vehicleNumber: "",
+      });
        setEWayBillFile(null);
     }
   }
