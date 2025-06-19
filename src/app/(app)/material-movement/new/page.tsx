@@ -8,7 +8,7 @@ export default function NewMaterialMovementPage() {
     <div className="space-y-8">
       <PageHeader
         title="New Material Movement Request"
-        description="Initiate a material movement by filling the form. This request will be routed for approval (Dept. Head -> Dispatch -> Finance if applicable)."
+        description="Initiate a material movement by filling the form. The request will be routed for approval (Dept. Head -> Dispatch -> Finance if applicable), followed by receipt confirmation."
       />
       <MaterialMovementForm />
     </div>

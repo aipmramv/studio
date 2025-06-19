@@ -8,7 +8,7 @@ export default function NewScrapMovementPage() {
     <div className="space-y-8">
       <PageHeader
         title="New Scrap Disposal Request"
-        description="Submit a request for scrap material disposal. This will be routed for approval (Dept. Head -> Finance -> MM Head)."
+        description="Submit a request for scrap material disposal. This will be routed for approval (Dept. Head -> Finance -> MM Head). Include Gate Pass Number if available."
       />
       <ScrapMovementForm />
     </div>

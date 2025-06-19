@@ -5,7 +5,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as React from "react";
-import { PackageSearch, Scale, Send, Image as ImageIcon, Edit3, Loader2 } from "lucide-react";
+import { PackageSearch, Scale, Send, Image as ImageIcon, Edit3, Loader2, Hash } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -36,13 +36,12 @@ export function ScrapMovementForm() {
       description: "",
       quantity: 1,
       weight: 0.1,
+      gatePassNumber: "",
     },
   });
 
   function onSubmit(data: ScrapMovementFormData) {
-    // Simulate Housekeeping segregation, Security weighing & photo - these are operational.
-    // The form captures the outcome.
-    console.log("Scrap Movement Data (after mock operational steps):", { ...data, photo: photoFile?.name });
+    console.log("Scrap Movement Data:", { ...data, photo: photoFile?.name });
     toast({
       title: "Request Submitted",
       description: "Scrap disposal request logged successfully and sent for approval.",
@@ -58,7 +57,7 @@ export function ScrapMovementForm() {
           <PackageSearch className="w-6 h-6 mr-2 text-primary" /> Log Scrap Disposal Request
         </CardTitle>
         <CardDescription>
-          Select scrap type, enter description, quantity, and weight. Attach photos or documents (e.g., weight measurement photo).
+          Select scrap type, describe, quantify, and weigh the scrap. Attach photos/documents (e.g., weight measurement photo) and provide Gate Pass Number if available.
           Operational steps like segregation by Housekeeping and weighing in presence of Security are assumed before or during this request.
         </CardDescription>
       </CardHeader>
@@ -109,6 +108,19 @@ export function ScrapMovementForm() {
                     <FormLabel className="flex items-center"><Scale className="w-4 h-4 mr-1" /> Weight (e.g., KG, Tons)</FormLabel>
                     <FormControl>
                       <Input type="number" step="0.1" placeholder="e.g., 50.5" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="gatePassNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center"><Hash className="w-4 h-4 mr-1" />Gate Pass Number (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter gate pass number if available" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

@@ -29,7 +29,7 @@ export const STORE_LOCATIONS = [
   "Main Gate",
   "Scrap Yard",
   "Supplier Location", // Added for "Supplier -> ITEC"
-  "ITEC Location",     // Added for "Supplier -> ITEC -> Factory"
+  "ITEC Location",     // Added for "ITEC -> Factory"
   "Factory Location"   // Added for "ITEC -> Factory"
 ] as const;
 export type StoreLocationType = typeof STORE_LOCATIONS[number];
@@ -84,11 +84,12 @@ export const MOCK_WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
     id: "material_movement_default",
     requestType: "Material Movement",
     name: "Standard Material Movement Workflow",
-    initialStepId: "mm_dept_head_approval", // Department Head Approval
+    initialStepId: "mm_dept_head_approval",
     steps: [
       { id: "mm_dept_head_approval", name: "Department Head Approval", assignedRoles: ["department_head", "admin"], nextStepId: "mm_dispatch_team_coordination", rejectionLeadsToStepId: "mm_dept_head_approval" },
       { id: "mm_dispatch_team_coordination", name: "Dispatch Team Coordination", assignedRoles: ["dispatch_team", "admin"], nextStepId: "mm_finance_check", rejectionLeadsToStepId: "mm_dept_head_approval" },
-      { id: "mm_finance_check", name: "Finance Check (If Applicable)", assignedRoles: ["finance_team", "admin"], rejectionLeadsToStepId: "mm_dept_head_approval" }, // Final step if finance is applicable
+      { id: "mm_finance_check", name: "Finance Check (If Applicable)", assignedRoles: ["finance_team", "admin"], nextStepId: "mm_receipt_confirmation", rejectionLeadsToStepId: "mm_dept_head_approval" },
+      { id: "mm_receipt_confirmation", name: "Receipt Confirmation", assignedRoles: ["requester", "dispatch_team", "admin"] } // Final step
     ],
   },
   {
@@ -113,14 +114,14 @@ export const MOCK_WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
     ]
   },
   {
-    id: "scrap_default", // Updated scrap workflow
+    id: "scrap_default",
     requestType: "Scrap Request",
     name: "Standard Scrap Disposal Workflow",
-    initialStepId: "sm_dept_head_approval", // Department Head Approval
+    initialStepId: "sm_dept_head_approval",
     steps: [
       { id: "sm_dept_head_approval", name: "Department Head Approval", assignedRoles: ["department_head", "admin"], nextStepId: "sm_finance_approval", rejectionLeadsToStepId: "sm_dept_head_approval"},
       { id: "sm_finance_approval", name: "Finance Approval", assignedRoles: ["finance_team", "admin"], nextStepId: "sm_mm_head_approval", rejectionLeadsToStepId: "sm_dept_head_approval"},
-      { id: "sm_mm_head_approval", name: "MM Head Approval", assignedRoles: ["mm_team", "admin"] }, // Using mm_team for MM Head
+      { id: "sm_mm_head_approval", name: "MM Head Approval", assignedRoles: ["mm_team", "admin"] },
     ],
   },
   {
@@ -229,23 +230,13 @@ export interface MonthlyBudgetRecord {
   userBreakdown?: UserExpenditure[];
 }
 
-// Helper function to map calendar month (1-12) to fiscal month index (0-11)
-// Not strictly needed for mock data but useful for real data processing.
-// const getFiscalMonthIndex = (date: Date): number => {
-//   const month = date.getMonth(); // 0 for Jan, 11 for Dec
-//   if (month >= 3) return month - 3; // Apr (3) becomes 0, May (4) becomes 1 ... Dec (11) becomes 8
-//   return month + 9; // Jan (0) becomes 9, Feb (1) becomes 10, Mar (2) becomes 11
-// };
-
 export const getFiscalMonthName = (monthIndex: number): string => {
-  // monthIndex: 0 for April, 1 for May, ..., 11 for March
   const fiscalYearMonths = ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar"];
   return fiscalYearMonths[monthIndex] || "Invalid Month";
 };
 
 
 export const MOCK_MONTHLY_BUDGET_DATA: MonthlyBudgetRecord[] = [
-  // R&D 2024-2025
   {
     id: "MB001", department: "R&D", year: "2024-2025", monthIndex: 0, forecastedAmount: 160000, actualAmount: 155000, // Apr
     userBreakdown: [
@@ -272,28 +263,25 @@ export const MOCK_MONTHLY_BUDGET_DATA: MonthlyBudgetRecord[] = [
   { id: "MB005", department: "R&D", year: "2024-2025", monthIndex: 4, forecastedAmount: 180000, actualAmount: 0 },    // Aug (No actuals yet)
   { id: "MB006", department: "R&D", year: "2024-2025", monthIndex: 5, forecastedAmount: 190000, actualAmount: 0 },    // Sep (No actuals yet, Q2 total: 550k)
 
-  // IT 2024-2025
   {
     id: "MB007", department: "IT", year: "2024-2025", monthIndex: 0, forecastedAmount: 60000, actualAmount: 58000,  // Apr
     userBreakdown: [
       { userId: "user_ram_admin", userName: "Ram Kumar (Admin)", actualAmount: 30000 }, 
-      { userId: "user_sashikanth_it_head", userName: "Sashikanth M. (IT Head)", actualAmount: 28000 },
+      { userId: "user_sashikanth_it_head", userName: "Sashikanth M.", actualAmount: 28000 },
     ]
   },
   { id: "MB008", department: "IT", year: "2024-2025", monthIndex: 1, forecastedAmount: 70000, actualAmount: 72000 },  // May
   { id: "MB009", department: "IT", year: "2024-2025", monthIndex: 2, forecastedAmount: 70000, actualAmount: 65000 },  // Jun (Q1 total: 200k)
 
-  // Finance 2024-2025
   { id: "MB010", department: "Finance", year: "2024-2025", monthIndex: 0, forecastedAmount: 30000, actualAmount: 28000 }, // Apr
   {
     id: "MB011", department: "Finance", year: "2024-2025", monthIndex: 1, forecastedAmount: 35000, actualAmount: 33000, // May
     userBreakdown: [
-      { userId: "user_prem_fin_head", userName: "Prem Kumar (Finance Head)", actualAmount: 33000 },
+      { userId: "user_prem_fin_head", userName: "Prem Kumar", actualAmount: 33000 },
     ]
   },
   { id: "MB012", department: "Finance", year: "2024-2025", monthIndex: 2, forecastedAmount: 35000, actualAmount: 38000 }, // Jun (Q1 total: 100k)
 
-  // R&D 2023-2024 (Past year example)
   {
     id: "MB013", department: "R&D", year: "2023-2024", monthIndex: 0, forecastedAmount: 150000, actualAmount: 145000, // Apr
     userBreakdown: [
@@ -314,17 +302,14 @@ export const MOCK_MONTHLY_BUDGET_DATA: MonthlyBudgetRecord[] = [
   { id: "MB024", department: "R&D", year: "2023-2024", monthIndex: 11, forecastedAmount: 190000, actualAmount: 188000 }, // Mar
 ];
 
-
-// --- New Constants for Reports ---
-
 export interface RequestStatusSummaryItem {
   requestType: RequestType;
   totalSubmitted: number;
   pending: number;
   approved: number;
   rejected: number;
-  inProgress?: number; // Optional, for workflows with multiple steps
-  completed?: number; // Optional, for fully finished workflows
+  inProgress?: number; 
+  completed?: number; 
 }
 
 export const MOCK_REQUEST_STATUS_SUMMARY: RequestStatusSummaryItem[] = [
@@ -354,7 +339,6 @@ export const MOCK_MATERIAL_CONSUMPTION: MaterialConsumptionItem[] = [
   { materialId: "MAT006", materialName: "Copper Wiring - 2.5mm", materialCategory: "Raw Material", quantityIssued: 100, unitOfMeasure: "Meters", dateIssued: "2024-07-08T16:00:00Z", issuedToDepartment: "Facility Management", issuingStore: "Electronics Sub-Store" },
 ];
 
-// --- Constants for Work Permit Template Configuration ---
 export const WORK_PERMIT_FIELD_TYPES = ["Text", "Textarea", "Checkbox", "Date", "Signature", "Dropdown"] as const;
 export type WorkPermitFieldType = typeof WORK_PERMIT_FIELD_TYPES[number];
 
@@ -369,9 +353,6 @@ export interface WorkPermitCustomField {
 export interface WorkPermitTemplate {
   id: string;
   name: string;
-  // To represent standard sections, we can just have a list of their names or IDs.
-  // For this iteration, we'll primarily focus on customFields.
-  // standardSections: Array<{ id: string; name: string; description: string; enabled: boolean }>;
   customFields: WorkPermitCustomField[];
 }
 
@@ -420,3 +401,4 @@ export const MOCK_WORK_PERMIT_TEMPLATES: WorkPermitTemplate[] = [
     ]
   }
 ];
+

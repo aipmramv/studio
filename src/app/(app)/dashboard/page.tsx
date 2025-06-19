@@ -5,7 +5,7 @@ import * as React from "react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, CardFooter as UICardFooter } from "@/components/ui/card";
-import { Check, X, User, CalendarDays, Filter, LayoutGrid, List, Briefcase, Package, ShieldCheck, ShoppingCart, Tags, Recycle, Edit3, DollarSign, Truck, ChevronsUpDown, Eye, MessageSquare, Bell, ChevronsUp, Send, Info, History, Workflow as WorkflowIcon, Clock, Circle, CheckCircle, CircleDot, Loader2 } from "lucide-react";
+import { Check, X, User, CalendarDays, Filter, LayoutGrid, List, Briefcase, Package, ShieldCheck, ShoppingCart, Tags, Recycle, Edit3, DollarSign, Truck, ChevronsUpDown, Eye, MessageSquare, Bell, ChevronsUp, Send, Info, History, Workflow as WorkflowIcon, Clock, Circle, CheckCircle, CircleDot, Loader2, Hash } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { type RequestType, type UserRole, DEPARTMENTS, MOCK_WORKFLOW_TEMPLATES, USER_ACTIONS, type UserAction, type WorkflowStep } from "@/lib/constants";
@@ -78,20 +78,23 @@ interface ApprovalItem {
 const mockApprovalsData: ApprovalItem[] = [
   {
     id: "MM001", requestType: "Material Movement", requesterName: "Ram Kumar", requesterDepartment: "Production", submissionDate: "2024-07-28T10:00:00Z",
-    currentStepId: "mm_dept_head_approval", currentStepName: "Department Head Approval", currentAssignees: ["department_head", "admin"], workflowTemplateId: "material_movement_default",
+    currentStepId: "mm_receipt_confirmation", currentStepName: "Receipt Confirmation", currentAssignees: ["requester", "dispatch_team", "admin"], workflowTemplateId: "material_movement_default",
     payload: { materialType: "Raw Material", source: "Warehouse A", destination: "Production Line 1", quantity: 100, value: 150000, isReturnable: "no", vehicleNumber:"MH12AB1234" } as MaterialMovementFormData,
     history: [
         { stepId: "submission", stepName:"Submitted", actor: "Ram Kumar", action: "submitted", timestamp: "2024-07-28T10:00:00Z" },
-        { stepId: "mm_dept_head_approval", stepName: "Pending Dept. Head Approval", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-28T10:01:00Z" },
+        { stepId: "mm_dept_head_approval", stepName: "Department Head Approval", actor: "Prem Kumar", action: "approve", timestamp: "2024-07-28T11:00:00Z" },
+        { stepId: "mm_dispatch_team_coordination", stepName: "Dispatch Team Coordination", actor: "Dispatch Team", action: "approve", timestamp: "2024-07-28T12:00:00Z" },
+        { stepId: "mm_finance_check", stepName: "Finance Check (If Applicable)", actor: "Finance Team", action: "approve", timestamp: "2024-07-28T13:00:00Z" },
+        { stepId: "mm_receipt_confirmation", stepName: "Pending Receipt Confirmation", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-28T13:01:00Z" },
     ]
   },
   {
     id: "SM002", requestType: "Scrap Request", requesterName: "Praveen S.", requesterDepartment: "Maintenance", submissionDate: "2024-07-27T14:30:00Z",
     currentStepId: "sm_finance_approval", currentStepName: "Finance Approval", currentAssignees: ["finance_team", "admin"], workflowTemplateId: "scrap_default", 
-    payload: { scrapType: "E-waste", description: "Old monitors and keyboards", quantity: 10, weight: 50 } as ScrapMovementFormData,
+    payload: { scrapType: "E-waste", description: "Old monitors and keyboards", quantity: 10, weight: 50, gatePassNumber: "GP12345" } as ScrapMovementFormData,
     history: [
         { stepId: "submission", stepName:"Submitted", actor: "Praveen S.", action: "submitted", timestamp: "2024-07-27T14:30:00Z" },
-        { stepId: "sm_dept_head_approval", stepName: "Department Head Approval", actor: "Prem Kumar (Maintenance Head)", action: "approve", timestamp: "2024-07-27T15:00:00Z", comment: "Looks OK." },
+        { stepId: "sm_dept_head_approval", stepName: "Department Head Approval", actor: "Prem Kumar", action: "approve", timestamp: "2024-07-27T15:00:00Z", comment: "Looks OK." },
         { stepId: "sm_finance_approval", stepName: "Pending Finance Approval", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-27T18:01:00Z" },
     ]
   },
@@ -149,6 +152,7 @@ const renderRequestPayloadDetailsDialog = (payload: RequestPayload, requestType:
         details.push({ key: "Description", value: <p className="whitespace-pre-wrap">{smPayload.description}</p> });
         details.push({ key: "Quantity", value: smPayload.quantity });
         details.push({ key: "Weight", value: `${smPayload.weight} (units)` });
+        if (smPayload.gatePassNumber) details.push({key: "Gate Pass No.", value: <span className='flex items-center'><Hash className='w-3 h-3 mr-1'/>{smPayload.gatePassNumber}</span> });
         break;
       case "Work Permit":
         const wpPayload = payload as WorkPermitFormData;
@@ -479,7 +483,7 @@ export default function ApprovalsDashboardPage() {
         return `Move ${mm.quantity} x ${mm.materialType} from ${mm.source} to ${mm.destination}. Value: ${mm.value.toLocaleString('en-IN', formattingOptions)}`;
       case "Scrap Request":
         const sm = payload as ScrapMovementFormData;
-        return `Dispose ${sm.quantity} units of ${sm.scrapType} (${sm.weight} units weight).`;
+        return `Dispose ${sm.quantity} units of ${sm.scrapType} (${sm.weight} units weight). ${sm.gatePassNumber ? `GP: ${sm.gatePassNumber}`: ''}`;
       case "Work Permit":
         const wp = payload as WorkPermitFormData;
         return `Permit for ${wp.activityType} in ${wp.building}. Area: ${wp.specificAreaOrEquipment}.`;

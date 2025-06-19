@@ -36,6 +36,7 @@ export const ScrapMovementSchema = z.object({
   description: z.string().min(1, "Description is required.").max(500, "Description too long."),
   quantity: z.coerce.number().min(1, "Quantity must be at least 1."),
   weight: z.coerce.number().min(0.1, "Weight must be at least 0.1 KG/Ton/etc."),
+  gatePassNumber: z.string().optional(),
 });
 export type ScrapMovementFormData = z.infer<typeof ScrapMovementSchema>;
 

@@ -64,7 +64,7 @@ export function MaterialMovementForm() {
     console.log("Material Movement Data:", {...data, eWayBill: eWayBillFile?.name });
     toast({
       title: "Request Submitted",
-      description: "Material movement request logged successfully and sent for approval.",
+      description: "Material movement request logged and sent for approval and receipt confirmation.",
     });
     form.reset();
     setEWayBillFile(null);
@@ -78,7 +78,7 @@ export function MaterialMovementForm() {
         </CardTitle>
         <CardDescription>
           Fill the form with source, destination, item details, quantity, and value. Choose if the material is returnable. 
-          If value is over ₹1 Lakh, vehicle number is mandatory. Upload E-Way bill if applicable.
+          If value is over ₹1 Lakh, vehicle number is mandatory. Upload E-Way bill if applicable. The request will include approval and receipt confirmation steps.
         </CardDescription>
       </CardHeader>
       <CardContent>
