@@ -31,6 +31,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { DateRange } from "react-day-picker";
+import { useAuth } from "@/hooks/useAuth";
 
 type RequestPayload = MaterialMovementFormData | ScrapMovementFormData | WorkPermitFormData | PurchaseOrderFormData | SaleOrderFormData;
 
@@ -61,21 +62,21 @@ const ITEMS_PER_PAGE = 10;
 const mockAllRequestsData: ApprovalItem[] = [
   {
     id: "MM001", requestType: "Material Movement", requesterName: "Ram Kumar", requesterDepartment: "Production", submissionDate: "2024-07-28T10:00:00Z",
-    currentStepId: "mm_dept_head", currentStepName: "Department Head Approval", workflowTemplateId: "material_movement_default",
+    currentStepId: "mm_dept_head_approval", currentStepName: "Department Head Approval", workflowTemplateId: "material_movement_default",
     payload: { materialType: "Raw Material", source: "Warehouse A", destination: "Production Line 1", quantity: 100, value: 150000, isReturnable: "no", vehicleNumber:"MH12AB1234" } as MaterialMovementFormData,
     history: [
       { stepId: "submission", stepName: "Submitted", actor: "Ram Kumar", action: "submitted", timestamp: "2024-07-28T10:00:00Z", comment: "Initial submission for urgent production requirement." },
-      { stepId: "mm_dept_head", stepName: "Pending Dept. Head", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-28T10:01:00Z" },
+      { stepId: "mm_dept_head_approval", stepName: "Pending Dept. Head Approval", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-28T10:01:00Z" },
     ]
   },
   {
     id: "SM002", requestType: "Scrap Request", requesterName: "Praveen S.", requesterDepartment: "Maintenance", submissionDate: "2024-07-27T14:30:00Z",
-    currentStepId: "sm_ehs_clearance", currentStepName: "EHS Clearance", workflowTemplateId: "scrap_default",
+    currentStepId: "sm_finance_approval", currentStepName: "Finance Approval", workflowTemplateId: "scrap_default",
     payload: { scrapType: "E-waste", description: "Old monitors and keyboards, non-functional", quantity: 10, weight: 50 } as ScrapMovementFormData,
     history: [
       { stepId: "submission", stepName: "Submitted", actor: "Praveen S.", action: "submitted", timestamp: "2024-07-27T14:30:00Z" },
-      { stepId: "sm_supervisor_approval", stepName: "Supervisor Approval", actor: "Prem (Maintenance Head)", action: "approve", timestamp: "2024-07-27T15:00:00Z", comment: "Looks OK." },
-      { stepId: "sm_ehs_clearance", stepName: "Pending EHS Clearance", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-27T15:01:00Z" },
+      { stepId: "sm_dept_head_approval", stepName: "Department Head Approval", actor: "Prem Kumar (Maintenance Head)", action: "approve", timestamp: "2024-07-27T15:00:00Z", comment: "Looks OK." },
+      { stepId: "sm_finance_approval", stepName: "Pending Finance Approval", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-27T15:01:00Z" },
     ]
   },
   {
@@ -89,13 +90,13 @@ const mockAllRequestsData: ApprovalItem[] = [
     ]
   },
   {
-    id: "WP007", requestType: "Work Permit", requesterName: "Ram G. (Facility)", requesterDepartment: "Facility Management", submissionDate: "2024-08-02T10:00:00Z",
-    currentStepId: "wp_facility_head", currentStepName: "Permit Issued by Facility Head", workflowTemplateId: "work_permit_default",
+    id: "WP007", requestType: "Work Permit", requesterName: "Ram Kumar (Facility)", requesterDepartment: "Facility Management", submissionDate: "2024-08-02T10:00:00Z",
+    currentStepId: "wp_facility_head", currentStepName: "Permit Issued by Facility Head", workflowTemplateId: "work_permit_default", // Assuming wp_facility_head is final.
     payload: { activityType: "Civil Works (Excavation, Construction)", building: "Test Tower", activityDetails: "Area preparation for new equipment installation, minor excavation.", specificAreaOrEquipment: "Test Tower, Ground Floor, Bay 3", permitValidity: new Date("2024-08-15") } as WorkPermitFormData,
     history: [
-      { stepId: "submission", stepName: "Submitted", actor: "Ram G. (Facility)", action: "submitted", timestamp: "2024-08-02T10:00:00Z" },
+      { stepId: "submission", stepName: "Submitted", actor: "Ram Kumar (Facility)", action: "submitted", timestamp: "2024-08-02T10:00:00Z" },
       { stepId: "wp_safety_review", stepName: "Safety Team Review", actor: "Sashikanth (Safety Head)", action: "approve", timestamp: "2024-08-02T14:00:00Z", comment: "All clear." },
-      { stepId: "wp_maintenance_review", stepName: "Maintenance Team Review", actor: "Prem (Maintenance Supervisor)", action: "approve", timestamp: "2024-08-03T09:00:00Z", comment: "Impact assessed, OK to proceed."},
+      { stepId: "wp_maintenance_review", stepName: "Maintenance Team Review", actor: "Prem Kumar (Maintenance Supervisor)", action: "approve", timestamp: "2024-08-03T09:00:00Z", comment: "Impact assessed, OK to proceed."},
       { stepId: "wp_facility_head", stepName: "Permit Issued by Facility Head", actor: "Kumaravel (Facility Head)", action: "approve", timestamp: "2024-08-03T11:00:00Z", comment: "Permit issued."},
     ]
   },
@@ -109,21 +110,22 @@ const mockAllRequestsData: ApprovalItem[] = [
     ]
   },
    {
-    id: "SO005", requestType: "Sale Order", requesterName: "Praveen E.", requesterDepartment: "Sales", submissionDate: "2024-07-30T11:00:00Z",
+    id: "SO005", requestType: "Sale Order", requesterName: "Praveen S.", requesterDepartment: "Sales", submissionDate: "2024-07-30T11:00:00Z",
     currentStepId: "so_manager_approval", currentStepName: "Sales Manager Approval", workflowTemplateId: "so_default",
     payload: { customerName: "Client ABC Corp", soDate: new Date("2024-07-30"), projectOrCrNo:"PROJ123", saleOrderCategory:"Software", purpose:"Annual License Renewal", costCenter:"CC_SALES_001", ioNumber:"IO_SALES_2024_005", budgetAmount:500000, materialRequiredDate:new Date("2024-08-15"), departmentHeadApproval:"Sales Head", deliveryTo:"IT Dept Contact", items: [{itemName: "Software License - Annual", quantity: 10, unitPrice: 50000, hsnSacCode: "997331", gstPercentage: 18}], shippingAddress: "Client HQ, Tower B, Floor 5", billingAddress: "Client HQ, Accounts Dept." } as SaleOrderFormData,
      history: [
-      { stepId: "submission", stepName: "Submitted", actor: "Praveen E.", action: "submitted", timestamp: "2024-07-30T11:00:00Z" },
+      { stepId: "submission", stepName: "Submitted", actor: "Praveen S.", action: "submitted", timestamp: "2024-07-30T11:00:00Z" },
       { stepId: "so_manager_approval", stepName: "Pending Sales Manager Approval", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-30T11:01:00Z"}
     ]
   },
   {
-    id: "MM006", requestType: "Material Movement", requesterName: "Chandrasekar F.", requesterDepartment: "Logistics", submissionDate: "2024-08-01T10:00:00Z",
-    currentStepId: "mm_finance_check", currentStepName: "Finance Check (High Value)", workflowTemplateId: "material_movement_default",
+    id: "MM006", requestType: "Material Movement", requesterName: "Chandrasekar R.", requesterDepartment: "Logistics", submissionDate: "2024-08-01T10:00:00Z",
+    currentStepId: "mm_finance_check", currentStepName: "Finance Check (If Applicable)", workflowTemplateId: "material_movement_default",
     payload: { materialType: "Finished Goods", source: "Main Warehouse", destination: "Shipping Dock", quantity: 50, value: 250000, isReturnable: "no", vehicleNumber:"MH14CD5678" } as MaterialMovementFormData,
     history: [
-      { stepId: "submission", stepName: "Submitted", actor: "Chandrasekar F.", action: "submitted", timestamp: "2024-08-01T10:00:00Z" },
-      { stepId: "mm_dept_head", stepName: "Department Head Approval", actor: "Kumaravel (Logistics Head)", action: "approve", timestamp: "2024-08-01T11:30:00Z" },
+      { stepId: "submission", stepName: "Submitted", actor: "Chandrasekar R.", action: "submitted", timestamp: "2024-08-01T10:00:00Z" },
+      { stepId: "mm_dept_head_approval", stepName: "Department Head Approval", actor: "Kumaravel P. (Logistics Head)", action: "approve", timestamp: "2024-08-01T11:30:00Z" },
+      { stepId: "mm_dispatch_team_coordination", stepName: "Dispatch Team Coordination", actor: "Logistics Team", action: "approve", timestamp: "2024-08-01T11:30:30Z", comment: "Vehicle and manpower planned." },
       { stepId: "mm_finance_check", stepName: "Pending Finance Check", actor: "System", action: "system_auto_proceed", timestamp: "2024-08-01T11:31:00Z" },
     ]
   },
@@ -294,6 +296,7 @@ export default function AllRequestsPage() {
   const [isDetailDialogOpen, setIsDetailDialogOpen] = React.useState(false);
   const [newComment, setNewComment] = React.useState("");
   const { toast } = useToast();
+  const { user } = useAuth();
 
   // State for filters and search
   const [searchTerm, setSearchTerm] = React.useState("");
@@ -377,8 +380,8 @@ export default function AllRequestsPage() {
   };
 
   const handleAddComment = () => {
-    if (!selectedRequest || !newComment.trim()) {
-      toast({ title: "Cannot add empty comment", variant: "destructive" });
+    if (!selectedRequest || !newComment.trim() || !user) {
+      toast({ title: "Cannot add empty comment or user not identified.", variant: "destructive" });
       return;
     }
     const updatedRequest = {
@@ -388,8 +391,8 @@ export default function AllRequestsPage() {
         {
           stepId: selectedRequest.currentStepId,
           stepName: `Comment on: ${selectedRequest.currentStepName}`,
-          actor: "Current User (Ram Kumar)", // Updated mock user
-          action: "commented",
+          actor: user.displayName || "Current User",
+          action: "commented" as const,
           timestamp: new Date().toISOString(),
           comment: newComment,
         },
@@ -402,7 +405,7 @@ export default function AllRequestsPage() {
   };
 
   const handleRemind = () => {
-    if (!selectedRequest) return;
+    if (!selectedRequest || !user) return;
      const updatedRequest = {
       ...selectedRequest,
       history: [
@@ -410,8 +413,8 @@ export default function AllRequestsPage() {
         {
           stepId: selectedRequest.currentStepId,
           stepName: "Reminder Sent",
-          actor: "Current User (Ram Kumar)", // Updated mock user
-          action: "reminded",
+          actor: user.displayName || "Current User",
+          action: "reminded" as const,
           timestamp: new Date().toISOString(),
           comment: `Reminder sent for step: ${selectedRequest.currentStepName}`,
         },
@@ -423,7 +426,7 @@ export default function AllRequestsPage() {
   };
 
   const handleEscalate = () => {
-    if (!selectedRequest) return;
+    if (!selectedRequest || !user) return;
      const updatedRequest = {
       ...selectedRequest,
       history: [
@@ -431,8 +434,8 @@ export default function AllRequestsPage() {
         {
           stepId: selectedRequest.currentStepId,
           stepName: "Request Escalated",
-          actor: "Current User (Ram Kumar)", // Updated mock user
-          action: "escalated",
+          actor: user.displayName || "Current User",
+          action: "escalated" as const,
           timestamp: new Date().toISOString(),
           comment: `Request escalated at step: ${selectedRequest.currentStepName}`,
         },
@@ -803,4 +806,3 @@ export default function AllRequestsPage() {
     </div>
   );
 }
-

@@ -78,22 +78,21 @@ interface ApprovalItem {
 const mockApprovalsData: ApprovalItem[] = [
   {
     id: "MM001", requestType: "Material Movement", requesterName: "Ram Kumar", requesterDepartment: "Production", submissionDate: "2024-07-28T10:00:00Z",
-    currentStepId: "mm_dept_head", currentStepName: "Department Head Approval", currentAssignees: ["department_head", "admin"], workflowTemplateId: "material_movement_default",
+    currentStepId: "mm_dept_head_approval", currentStepName: "Department Head Approval", currentAssignees: ["department_head", "admin"], workflowTemplateId: "material_movement_default",
     payload: { materialType: "Raw Material", source: "Warehouse A", destination: "Production Line 1", quantity: 100, value: 150000, isReturnable: "no", vehicleNumber:"MH12AB1234" } as MaterialMovementFormData,
     history: [
         { stepId: "submission", stepName:"Submitted", actor: "Ram Kumar", action: "submitted", timestamp: "2024-07-28T10:00:00Z" },
-        { stepId: "mm_dept_head", stepName: "Pending Dept. Head", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-28T10:01:00Z" },
+        { stepId: "mm_dept_head_approval", stepName: "Pending Dept. Head Approval", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-28T10:01:00Z" },
     ]
   },
   {
     id: "SM002", requestType: "Scrap Request", requesterName: "Praveen S.", requesterDepartment: "Maintenance", submissionDate: "2024-07-27T14:30:00Z",
-    currentStepId: "sm_finance_clearance", currentStepName: "Finance Clearance", currentAssignees: ["finance_team", "admin"], workflowTemplateId: "scrap_default", 
+    currentStepId: "sm_finance_approval", currentStepName: "Finance Approval", currentAssignees: ["finance_team", "admin"], workflowTemplateId: "scrap_default", 
     payload: { scrapType: "E-waste", description: "Old monitors and keyboards", quantity: 10, weight: 50 } as ScrapMovementFormData,
     history: [
         { stepId: "submission", stepName:"Submitted", actor: "Praveen S.", action: "submitted", timestamp: "2024-07-27T14:30:00Z" },
-        { stepId: "sm_supervisor_approval", stepName: "Supervisor Approval", actor: "Prem (Maintenance Head)", action: "approve", timestamp: "2024-07-27T15:00:00Z", comment: "Looks OK." },
-        { stepId: "sm_ehs_clearance", stepName: "EHS Clearance", actor: "Sashikanth (Safety Head)", action: "approve", timestamp: "2024-07-27T18:00:00Z" },
-        { stepId: "sm_finance_clearance", stepName: "Pending Finance Clearance", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-27T18:01:00Z" },
+        { stepId: "sm_dept_head_approval", stepName: "Department Head Approval", actor: "Prem Kumar (Maintenance Head)", action: "approve", timestamp: "2024-07-27T15:00:00Z", comment: "Looks OK." },
+        { stepId: "sm_finance_approval", stepName: "Pending Finance Approval", actor: "System", action: "system_auto_proceed", timestamp: "2024-07-27T18:01:00Z" },
     ]
   },
   {
@@ -253,9 +252,9 @@ const renderWorkflowProgress = (request: ApprovalItem) => {
                            (request.history.some(h => h.stepId === step.id && (h.action === "system_auto_proceed" || h.action === "submitted")) || currentStepIndex === index );
           
           let icon;
-          let textClass = "text-muted-foreground/80"; // Default for pending
-          let roleClass = "text-muted-foreground/80"; // Default for pending
-          let lineClass = "bg-border"; // Default for pending
+          let textClass = "text-muted-foreground/80"; 
+          let roleClass = "text-muted-foreground/80"; 
+          let lineClass = "bg-border"; 
 
           if (isCompleted) {
             icon = <CheckCircle className="w-5 h-5 text-primary" />;
@@ -344,7 +343,6 @@ export default function ApprovalsDashboardPage() {
         comment: comment,
     };
     
-    // Find the next step in the workflow
     const currentWorkflow = MOCK_WORKFLOW_TEMPLATES.find(wf => wf.id === item.workflowTemplateId);
     const currentStepConfig = currentWorkflow?.steps.find(s => s.id === item.currentStepId);
     let nextStep: WorkflowStep | undefined;
@@ -353,10 +351,27 @@ export default function ApprovalsDashboardPage() {
     if (action === 'approve' && currentStepConfig?.nextStepId) {
         nextStep = currentWorkflow?.steps.find(s => s.id === currentStepConfig.nextStepId);
     } else if (action === 'reject' && currentStepConfig?.rejectionLeadsToStepId) {
-        // Potentially revert to a specific step or back to requester (handled by workflow logic not fully mocked here)
         nextStep = currentWorkflow?.steps.find(s => s.id === currentStepConfig.rejectionLeadsToStepId);
-        // For now, rejection also removes it from the list for simplicity in mock
+    } else if (action === 'reject' && !currentStepConfig?.rejectionLeadsToStepId) { // Rejection leads to request closure or back to requester if no specific step
+        // For mock, simply remove from list. Real app might set a 'rejected_closed' status
+        updatedApprovals = approvals.map(ap => 
+            ap.id === itemId ? {
+                ...ap,
+                currentStepId: "request_rejected_final", // Fictional final rejected state
+                currentStepName: "Request Rejected",
+                currentAssignees: [], // No further assignees
+                history: [...ap.history, newHistoryEntry]
+            } : ap
+        ).filter(ap => ap.id !== itemId); // Or keep it with the final rejected status
+        setApprovals(updatedApprovals);
+        toast({
+          title: `Request ${action === "approve" ? "Approved" : "Rejected"}`,
+          description: `Request ID ${itemId} has been processed.`,
+        });
+        form.reset();
+        return; // Exit early as it's removed or terminally updated
     }
+
 
     if (nextStep) {
         updatedApprovals = approvals.map(ap => 
@@ -375,9 +390,17 @@ export default function ApprovalsDashboardPage() {
             } : ap
         );
         setApprovals(updatedApprovals);
-    } else {
-        // If no next step (final approval or rejection without specific next step), remove from active list
-        setApprovals(prev => prev.filter(ap => ap.id !== itemId));
+    } else { // This handles final approval where there's no nextStepId
+        updatedApprovals = approvals.map(ap => 
+            ap.id === itemId ? {
+                ...ap,
+                currentStepId: "request_approved_final", // Fictional final approved state
+                currentStepName: "Request Approved & Closed",
+                currentAssignees: [],
+                history: [...ap.history, newHistoryEntry]
+            } : ap
+        ).filter(ap => ap.id !== itemId); // For mock, remove from active list
+        setApprovals(updatedApprovals);
     }
     
     toast({
@@ -733,4 +756,3 @@ export default function ApprovalsDashboardPage() {
     </div>
   );
 }
-

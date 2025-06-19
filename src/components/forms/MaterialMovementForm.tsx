@@ -1,3 +1,4 @@
+
 // src/components/forms/MaterialMovementForm.tsx
 "use client";
 
@@ -19,9 +20,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
 import { MaterialMovementSchema, type MaterialMovementFormData } from "@/lib/schemas";
-import { MATERIAL_TYPES, DEPARTMENTS } from "@/lib/constants";
+import { MATERIAL_TYPES, DEPARTMENTS, STORE_LOCATIONS } from "@/lib/constants";
 import { FileUpload } from "@/components/ui/file-upload";
 import { useToast } from "@/hooks/use-toast";
 
@@ -75,6 +76,10 @@ export function MaterialMovementForm() {
         <CardTitle className="flex items-center text-2xl font-headline">
           <Package className="w-6 h-6 mr-2 text-primary" /> Log Material Movement Request
         </CardTitle>
+        <CardDescription>
+          Fill the form with source, destination, item details, quantity, and value. Choose if the material is returnable. 
+          If value is over ₹1 Lakh, vehicle number is mandatory. Upload E-Way bill if applicable.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -120,19 +125,17 @@ export function MaterialMovementForm() {
                 name="source"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Source Department/Location</FormLabel>
+                    <FormLabel>Source Location</FormLabel>
                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select source department" />
+                          <SelectValue placeholder="Select source location" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {DEPARTMENTS.map((dept) => (
-                          <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                        {STORE_LOCATIONS.map((loc) => (
+                          <SelectItem key={loc} value={loc}>{loc}</SelectItem>
                         ))}
-                         <SelectItem value="External Vendor">External Vendor</SelectItem>
-                         <SelectItem value="Other Site">Other Site</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -144,20 +147,17 @@ export function MaterialMovementForm() {
                 name="destination"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Destination Department/Location</FormLabel>
+                    <FormLabel>Destination Location</FormLabel>
                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select destination department" />
+                          <SelectValue placeholder="Select destination location" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {DEPARTMENTS.map((dept) => (
-                          <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                         {STORE_LOCATIONS.map((loc) => (
+                          <SelectItem key={loc} value={loc}>{loc}</SelectItem>
                         ))}
-                        <SelectItem value="External Customer">External Customer</SelectItem>
-                        <SelectItem value="Scrap Yard">Scrap Yard</SelectItem>
-                        <SelectItem value="Other Site">Other Site</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -169,12 +169,12 @@ export function MaterialMovementForm() {
                 name="value"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="flex items-center"><DollarSign className="w-4 h-4 mr-1" />Material Value</FormLabel>
+                    <FormLabel className="flex items-center"><DollarSign className="w-4 h-4 mr-1" />Material Value (₹)</FormLabel>
                     <FormControl>
                       <Input type="number" placeholder="e.g., 50000" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />
                     </FormControl>
                     <FormDescription>
-                      If value &gt; 1,00,000 vehicle number is mandatory.
+                      If value &gt; ₹1,00,000 vehicle number is mandatory.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

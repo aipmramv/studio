@@ -1,3 +1,4 @@
+
 // src/components/forms/ScrapMovementForm.tsx
 "use client";
 
@@ -18,7 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
 import { ScrapMovementSchema, type ScrapMovementFormData } from "@/lib/schemas";
 import { SCRAP_TYPES } from "@/lib/constants";
 import { FileUpload } from "@/components/ui/file-upload";
@@ -39,7 +40,9 @@ export function ScrapMovementForm() {
   });
 
   function onSubmit(data: ScrapMovementFormData) {
-    console.log("Scrap Movement Data:", { ...data, photo: photoFile?.name });
+    // Simulate Housekeeping segregation, Security weighing & photo - these are operational.
+    // The form captures the outcome.
+    console.log("Scrap Movement Data (after mock operational steps):", { ...data, photo: photoFile?.name });
     toast({
       title: "Request Submitted",
       description: "Scrap disposal request logged successfully and sent for approval.",
@@ -54,6 +57,10 @@ export function ScrapMovementForm() {
         <CardTitle className="flex items-center text-2xl font-headline">
           <PackageSearch className="w-6 h-6 mr-2 text-primary" /> Log Scrap Disposal Request
         </CardTitle>
+        <CardDescription>
+          Select scrap type, enter description, quantity, and weight. Attach photos or documents (e.g., weight measurement photo).
+          Operational steps like segregation by Housekeeping and weighing in presence of Security are assumed before or during this request.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -129,9 +136,9 @@ export function ScrapMovementForm() {
               <div className="md:col-span-2">
                 <FileUpload 
                   onFileChange={setPhotoFile} 
-                  label="Photo for Weight Measurement (Optional)"
-                  accept="image/*"
-                  dataAiHint="scrap weight"
+                  label="Photo for Weight Measurement / Supporting Documents (Optional)"
+                  accept="image/*,.pdf,.doc,.docx"
+                  dataAiHint="scrap weight document"
                 />
               </div>
             </div>

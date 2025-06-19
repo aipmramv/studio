@@ -27,11 +27,14 @@ export const STORE_LOCATIONS = [
   "Production Hall X",
   "Utility Building",
   "Main Gate",
-  "Scrap Yard"
+  "Scrap Yard",
+  "Supplier Location", // Added for "Supplier -> ITEC"
+  "ITEC Location",     // Added for "Supplier -> ITEC -> Factory"
+  "Factory Location"   // Added for "ITEC -> Factory"
 ] as const;
 export type StoreLocationType = typeof STORE_LOCATIONS[number];
 
-export const DEPARTMENTS = ["Production", "Maintenance", "Logistics", "Quality Assurance", "IT", "HR", "Finance", "R&D", "Safety & Environment", "Sales", "Facility Management"] as const;
+export const DEPARTMENTS = ["Production", "Maintenance", "Logistics", "Quality Assurance", "IT", "HR", "Finance", "R&D", "Safety & Environment", "Sales", "Facility Management", "SR Engineering", "Housekeeping", "Security"] as const;
 export type Department = typeof DEPARTMENTS[number];
 
 
@@ -81,11 +84,11 @@ export const MOCK_WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
     id: "material_movement_default",
     requestType: "Material Movement",
     name: "Standard Material Movement Workflow",
-    initialStepId: "mm_dept_head",
+    initialStepId: "mm_dept_head_approval", // Department Head Approval
     steps: [
-      { id: "mm_dept_head", name: "Department Head Approval", assignedRoles: ["department_head", "admin"], nextStepId: "mm_finance_check" },
-      { id: "mm_finance_check", name: "Finance Check (If Value > X)", assignedRoles: ["finance_team", "admin"], nextStepId: "mm_dispatch_approval", rejectionLeadsToStepId: "mm_dept_head" },
-      { id: "mm_dispatch_approval", name: "Dispatch Team Approval", assignedRoles: ["dispatch_team", "admin"] },
+      { id: "mm_dept_head_approval", name: "Department Head Approval", assignedRoles: ["department_head", "admin"], nextStepId: "mm_dispatch_team_coordination", rejectionLeadsToStepId: "mm_dept_head_approval" },
+      { id: "mm_dispatch_team_coordination", name: "Dispatch Team Coordination", assignedRoles: ["dispatch_team", "admin"], nextStepId: "mm_finance_check", rejectionLeadsToStepId: "mm_dept_head_approval" },
+      { id: "mm_finance_check", name: "Finance Check (If Applicable)", assignedRoles: ["finance_team", "admin"], rejectionLeadsToStepId: "mm_dept_head_approval" }, // Final step if finance is applicable
     ],
   },
   {
@@ -110,14 +113,14 @@ export const MOCK_WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
     ]
   },
   {
-    id: "scrap_default",
+    id: "scrap_default", // Updated scrap workflow
     requestType: "Scrap Request",
     name: "Standard Scrap Disposal Workflow",
-    initialStepId: "sm_supervisor_approval",
+    initialStepId: "sm_dept_head_approval", // Department Head Approval
     steps: [
-      { id: "sm_supervisor_approval", name: "Supervisor Approval", assignedRoles: ["department_head", "admin"], nextStepId: "sm_ehs_clearance", rejectionLeadsToStepId: "sm_supervisor_approval" },
-      { id: "sm_ehs_clearance", name: "EHS Clearance", assignedRoles: ["safety", "admin"], nextStepId: "sm_gate_pass", rejectionLeadsToStepId: "sm_supervisor_approval" },
-      { id: "sm_gate_pass", name: "Gate Pass Issue", assignedRoles: ["dispatch_team", "admin"] },
+      { id: "sm_dept_head_approval", name: "Department Head Approval", assignedRoles: ["department_head", "admin"], nextStepId: "sm_finance_approval", rejectionLeadsToStepId: "sm_dept_head_approval"},
+      { id: "sm_finance_approval", name: "Finance Approval", assignedRoles: ["finance_team", "admin"], nextStepId: "sm_mm_head_approval", rejectionLeadsToStepId: "sm_dept_head_approval"},
+      { id: "sm_mm_head_approval", name: "MM Head Approval", assignedRoles: ["mm_team", "admin"] }, // Using mm_team for MM Head
     ],
   },
   {
@@ -273,7 +276,7 @@ export const MOCK_MONTHLY_BUDGET_DATA: MonthlyBudgetRecord[] = [
   {
     id: "MB007", department: "IT", year: "2024-2025", monthIndex: 0, forecastedAmount: 60000, actualAmount: 58000,  // Apr
     userBreakdown: [
-      { userId: "user_ram_admin", userName: "Ram Kumar (Admin)", actualAmount: 30000 }, // Assuming Ram is also IT admin
+      { userId: "user_ram_admin", userName: "Ram Kumar (Admin)", actualAmount: 30000 }, 
       { userId: "user_sashikanth_it_head", userName: "Sashikanth M. (IT Head)", actualAmount: 28000 },
     ]
   },
