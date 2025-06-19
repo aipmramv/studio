@@ -89,7 +89,7 @@ export const MOCK_WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
       { id: "mm_dept_head_approval", name: "Department Head Approval", assignedRoles: ["department_head", "admin"], nextStepId: "mm_dispatch_team_coordination", rejectionLeadsToStepId: "mm_dept_head_approval" },
       { id: "mm_dispatch_team_coordination", name: "Dispatch Team Coordination", assignedRoles: ["dispatch_team", "admin"], nextStepId: "mm_finance_check", rejectionLeadsToStepId: "mm_dept_head_approval" },
       { id: "mm_finance_check", name: "Finance Check (If Applicable)", assignedRoles: ["finance_team", "admin"], nextStepId: "mm_receipt_confirmation", rejectionLeadsToStepId: "mm_dept_head_approval" },
-      { id: "mm_receipt_confirmation", name: "Receipt Confirmation", assignedRoles: ["requester", "dispatch_team", "admin"] } // Final step
+      { id: "mm_receipt_confirmation", name: "Receipt Confirmation", assignedRoles: ["requester", "dispatch_team", "admin"] } 
     ],
   },
   {
@@ -100,7 +100,7 @@ export const MOCK_WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
     steps: [
       { id: "wp_safety_review", name: "Safety Team Review", assignedRoles: ["safety", "admin"], nextStepId: "wp_maintenance_review", rejectionLeadsToStepId: "wp_safety_review"},
       { id: "wp_maintenance_review", name: "Maintenance Team Review", assignedRoles: ["maintenance_team", "admin"], nextStepId: "wp_facility_head", rejectionLeadsToStepId: "wp_safety_review" },
-      { id: "wp_facility_head", name: "Facility Head Approval", assignedRoles: ["facility_team", "department_head", "admin"] },
+      { id: "wp_facility_head", name: "Permit Issued by Facility Head", assignedRoles: ["facility_team", "department_head", "admin"] },
     ],
   },
   {
@@ -153,16 +153,16 @@ export const COST_CENTERS = [
 export type CostCenterType = typeof COST_CENTERS[number];
 
 export const MOCK_VENDORS = [
-  { id: "VEND001", name: "Tech Solutions Inc.", contactPerson: "Ram Sharma", email: "sales@techsolutions.com", phone: "9876543210", category: "IT Equipment" },
-  { id: "VEND002", name: "Industrial Supplies Co.", contactPerson: "Praveen Priya", email: "info@industrialsupplies.co", phone: "8765432109", category: "Raw Materials" },
-  { id: "VEND003", name: "Office Essentials Ltd.", contactPerson: "Chandrasekar Kumar", email: "support@officeessentials.com", phone: "7654321098", category: "Stationery" },
+  { id: "VEND001", name: "Tech Solutions Inc.", contactPerson: "Ram Kumar", email: "sales@techsolutions.com", phone: "9876543210", category: "IT Equipment" },
+  { id: "VEND002", name: "Industrial Supplies Co.", contactPerson: "Praveen S.", email: "info@industrialsupplies.co", phone: "8765432109", category: "Raw Materials" },
+  { id: "VEND003", name: "Office Essentials Ltd.", contactPerson: "Chandrasekar R.", email: "support@officeessentials.com", phone: "7654321098", category: "Stationery" },
 ] as const;
 export type MockVendor = typeof MOCK_VENDORS[number];
 
 export const MOCK_CUSTOMERS = [
-  { id: "CUST001", name: "Global Corp", contactPerson: "Ram Lee", email: "procurement@globalcorp.com", phone: "1234567890", industry: "Manufacturing" },
-  { id: "CUST002", name: "Innovate Labs", contactPerson: "Praveen Singh", email: "purchasing@innovatelabs.org", phone: "2345678901", industry: "Research" },
-  { id: "CUST003", name: "Local Services Ltd.", contactPerson: "Chandrasekar Patel", email: "accounts@localservices.net", phone: "3456789012", industry: "Services" },
+  { id: "CUST001", name: "Global Corp", contactPerson: "Nagaraj V.", email: "procurement@globalcorp.com", phone: "1234567890", industry: "Manufacturing" },
+  { id: "CUST002", name: "Innovate Labs", contactPerson: "Prem Kumar", email: "purchasing@innovatelabs.org", phone: "2345678901", industry: "Research" },
+  { id: "CUST003", name: "Local Services Ltd.", contactPerson: "Sashikanth M.", email: "accounts@localservices.net", phone: "3456789012", industry: "Services" },
 ] as const;
 export type MockCustomer = typeof MOCK_CUSTOMERS[number];
 
@@ -266,7 +266,7 @@ export const MOCK_MONTHLY_BUDGET_DATA: MonthlyBudgetRecord[] = [
   {
     id: "MB007", department: "IT", year: "2024-2025", monthIndex: 0, forecastedAmount: 60000, actualAmount: 58000,  // Apr
     userBreakdown: [
-      { userId: "user_ram_admin", userName: "Ram Kumar (Admin)", actualAmount: 30000 }, 
+      { userId: "user_ram_admin", userName: "Ram Kumar", actualAmount: 30000 }, 
       { userId: "user_sashikanth_it_head", userName: "Sashikanth M.", actualAmount: 28000 },
     ]
   },
@@ -401,4 +401,3 @@ export const MOCK_WORK_PERMIT_TEMPLATES: WorkPermitTemplate[] = [
     ]
   }
 ];
-
