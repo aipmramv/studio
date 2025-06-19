@@ -89,7 +89,7 @@ export const MOCK_WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
       { id: "mm_dept_head_approval", name: "Department Head Approval", assignedRoles: ["department_head", "admin"], nextStepId: "mm_dispatch_team_coordination", rejectionLeadsToStepId: "mm_dept_head_approval" },
       { id: "mm_dispatch_team_coordination", name: "Dispatch Team Coordination", assignedRoles: ["dispatch_team", "admin"], nextStepId: "mm_finance_check", rejectionLeadsToStepId: "mm_dept_head_approval" },
       { id: "mm_finance_check", name: "Finance Check (If Applicable)", assignedRoles: ["finance_team", "admin"], nextStepId: "mm_receipt_confirmation", rejectionLeadsToStepId: "mm_dept_head_approval" },
-      { id: "mm_receipt_confirmation", name: "Receipt Confirmation", assignedRoles: ["requester", "dispatch_team", "admin"] }
+      { id: "mm_receipt_confirmation", name: "Receipt Confirmation", assignedRoles: ["requester", "dispatch_team", "admin"] } // Final step
     ],
   },
   {
@@ -100,7 +100,7 @@ export const MOCK_WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
     steps: [
       { id: "wp_safety_review", name: "Safety Team Review", assignedRoles: ["safety", "admin"], nextStepId: "wp_maintenance_review", rejectionLeadsToStepId: "wp_safety_review"},
       { id: "wp_maintenance_review", name: "Maintenance Team Review", assignedRoles: ["maintenance_team", "admin"], nextStepId: "wp_facility_head", rejectionLeadsToStepId: "wp_safety_review" },
-      { id: "wp_facility_head", name: "Permit Issued by Facility Head", assignedRoles: ["facility_team", "department_head", "admin"] },
+      { id: "wp_facility_head", name: "Permit Issued by Facility Head", assignedRoles: ["facility_team", "department_head", "admin"] }, // Final step
     ],
   },
   {
@@ -112,7 +112,7 @@ export const MOCK_WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
       { id: "po_dept_head", name: "Dept. Head Approval", assignedRoles: ["department_head", "admin"], nextStepId: "po_finance", rejectionLeadsToStepId: "po_dept_head" },
       { id: "po_finance", name: "Finance Approval (Budget)", assignedRoles: ["finance_team", "admin"], nextStepId: "po_sap_creation", rejectionLeadsToStepId: "po_dept_head" },
       { id: "po_sap_creation", name: "SAP PO Creation & Update", assignedRoles: ["admin", "finance_team"], nextStepId: "po_fulfilled" },
-      { id: "po_fulfilled", name: "Order Fulfilled/Closed", assignedRoles: ["admin", "requester"] },
+      { id: "po_fulfilled", name: "Order Fulfilled/Closed", assignedRoles: ["admin", "requester"] }, // Final step
     ]
   },
   {
@@ -123,7 +123,7 @@ export const MOCK_WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
     steps: [
       { id: "sm_dept_head_approval", name: "Department Head Approval", assignedRoles: ["department_head", "admin"], nextStepId: "sm_finance_approval", rejectionLeadsToStepId: "sm_dept_head_approval"},
       { id: "sm_finance_approval", name: "Finance Approval", assignedRoles: ["finance_team", "admin"], nextStepId: "sm_mm_head_approval", rejectionLeadsToStepId: "sm_dept_head_approval"},
-      { id: "sm_mm_head_approval", name: "MM Head Approval", assignedRoles: ["mm_team", "admin"] },
+      { id: "sm_mm_head_approval", name: "MM Head Approval & Dispatch", assignedRoles: ["mm_team", "admin"] }, // Final step
     ],
   },
   {
@@ -135,7 +135,7 @@ export const MOCK_WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
       { id: "so_manager_approval", name: "Sales Manager Approval", assignedRoles: ["department_head", "admin"], nextStepId: "so_finance_review", rejectionLeadsToStepId: "so_manager_approval" },
       { id: "so_finance_review", name: "Finance Review (Pricing & Terms)", assignedRoles: ["finance_team", "admin"], nextStepId: "so_sap_creation", rejectionLeadsToStepId: "so_manager_approval" },
       { id: "so_sap_creation", name: "SAP SO Creation & Update", assignedRoles: ["admin", "finance_team"], nextStepId: "so_shipped" },
-      { id: "so_shipped", name: "Order Shipped/Delivered", assignedRoles: ["dispatch_team", "admin"] },
+      { id: "so_shipped", name: "Order Shipped/Delivered", assignedRoles: ["dispatch_team", "admin"] }, // Final step
     ],
   }
 ];

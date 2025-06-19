@@ -98,7 +98,7 @@ export function DcGeneratorContent() {
         const datePart = `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}`;
         const randomPart = Math.random().toString(36).substring(2, 7).toUpperCase();
         const newDcNumber = `DC${datePart}-${randomPart}`;
-        
+
         setDcDetails({
           dcNumber: newDcNumber,
           approvedRequestID: request.id,
@@ -297,7 +297,7 @@ export function DcGeneratorContent() {
 
             <Card>
               <CardHeader>
-                 <CardTitle className="text-lg flex items-center"><Truck className="mr-2 h-5 w-5 text-primary"/>Material List</CardTitle>
+                 <CardTitle className="text-lg flex items-center"><Truck className="mr-2 h-5 w-5 text-primary"/>Material List (Value in INR)</CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="overflow-x-auto">

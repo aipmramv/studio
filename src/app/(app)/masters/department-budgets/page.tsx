@@ -96,7 +96,7 @@ export default function DepartmentBudgetsMasterPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Department Budgets Master"
+        title="Department Budgets Master (INR)"
         description="Manage quarterly budgets for all departments and fiscal years."
         actions={
           <Button onClick={openAddDialog}>
@@ -129,7 +129,7 @@ export default function DepartmentBudgetsMasterPage() {
       }}>
         <DialogContent className="sm:max-w-xl">
           <DialogHeader>
-            <DialogTitle>{editingBudget ? "Edit" : "Add New"} Department Budget</DialogTitle>
+            <DialogTitle>{editingBudget ? "Edit" : "Add New"} Department Budget (Amounts in INR)</DialogTitle>
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4 py-4">
@@ -159,25 +159,25 @@ export default function DepartmentBudgetsMasterPage() {
                 <FormField control={form.control} name="q1Budget" render={({ field }) => (
                   <FormItem>
                     <FormLabel className="flex items-center">Q1 Budget (Apr-Jun)</FormLabel>
-                    <FormControl><Input type="number" placeholder="0.00" {...field} /></FormControl><FormMessage />
+                    <FormControl><Input type="number" placeholder="0.00" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} /></FormControl><FormMessage />
                   </FormItem>
                 )}/>
                 <FormField control={form.control} name="q2Budget" render={({ field }) => (
                   <FormItem>
                     <FormLabel className="flex items-center">Q2 Budget (Jul-Sep)</FormLabel>
-                    <FormControl><Input type="number" placeholder="0.00" {...field} /></FormControl><FormMessage />
+                    <FormControl><Input type="number" placeholder="0.00" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} /></FormControl><FormMessage />
                   </FormItem>
                 )}/>
                 <FormField control={form.control} name="q3Budget" render={({ field }) => (
                   <FormItem>
                     <FormLabel className="flex items-center">Q3 Budget (Oct-Dec)</FormLabel>
-                    <FormControl><Input type="number" placeholder="0.00" {...field} /></FormControl><FormMessage />
+                    <FormControl><Input type="number" placeholder="0.00" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} /></FormControl><FormMessage />
                   </FormItem>
                 )}/>
                 <FormField control={form.control} name="q4Budget" render={({ field }) => (
                   <FormItem>
                     <FormLabel className="flex items-center">Q4 Budget (Jan-Mar)</FormLabel>
-                    <FormControl><Input type="number" placeholder="0.00" {...field} /></FormControl><FormMessage />
+                    <FormControl><Input type="number" placeholder="0.00" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} /></FormControl><FormMessage />
                   </FormItem>
                 )}/>
               </div>
@@ -193,7 +193,7 @@ export default function DepartmentBudgetsMasterPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center"><Landmark className="w-5 h-5 mr-2 text-primary" /> Department Budget Records</CardTitle>
+          <CardTitle className="flex items-center"><Landmark className="w-5 h-5 mr-2 text-primary" /> Department Budget Records (INR)</CardTitle>
           <CardDescription>View, add, edit, or delete department budgets.</CardDescription>
         </CardHeader>
         <CardContent>

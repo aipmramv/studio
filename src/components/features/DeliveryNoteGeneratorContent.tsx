@@ -138,7 +138,7 @@ export function DeliveryNoteGeneratorContent() {
           </div>
         </div>
 
-        <h3 className="text-lg font-semibold text-foreground">Material List</h3>
+        <h3 className="text-lg font-semibold text-foreground">Material List (Value in INR)</h3>
         <div className="overflow-x-auto border rounded-lg">
           <Table>
             <TableHeader>

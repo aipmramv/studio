@@ -5,7 +5,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useFieldArray } from "react-hook-form";
 import * as React from "react";
-import { CalendarIcon, PlusCircle, Send, Tags, Trash2, User, Home, Loader2, FileText, Target, Briefcase, Hash, CalendarClock, UserCheck, MessageSquare, Tag } from "lucide-react";
+import { CalendarIcon, PlusCircle, Send, Tags, Trash2, User, Home, Loader2, FileText, Target, Briefcase, Hash, CalendarClock, UserCheck, MessageSquare, Tag, Save, Ban } from "lucide-react";
 import { format } from "date-fns";
 
 import { Button } from "@/components/ui/button";
@@ -19,37 +19,59 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { SaleOrderSchema, type SaleOrderFormData } from "@/lib/schemas";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
-export function SaleOrderForm() {
+interface SaleOrderFormProps {
+  initialData?: SaleOrderFormData;
+  isEditing?: boolean;
+  onSave?: (data: SaleOrderFormData) => void;
+  onCancel?: () => void;
+}
+
+export function SaleOrderForm({ initialData, isEditing, onSave, onCancel }: SaleOrderFormProps) {
   const { toast } = useToast();
 
   const form = useForm<SaleOrderFormData>({
     resolver: zodResolver(SaleOrderSchema),
-    defaultValues: {
-      customerName: "",
-      soDate: new Date(),
-      projectOrCrNo: "",
-      saleOrderCategory: "",
-      purpose: "",
-      costCenter: "",
-      ioNumber: "",
-      budgetAmount: 0,
-      materialRequiredDate: new Date(),
-      departmentHeadApproval: "",
-      deliveryTo: "",
-      items: [{ itemName: "", quantity: 1, unitPrice: 0 }],
-      shippingAddress: "",
-      billingAddress: "",
-      remarks: "",
-    },
+    defaultValues: initialData ?
+      {
+        ...initialData,
+        soDate: initialData.soDate ? new Date(initialData.soDate) : new Date(),
+        materialRequiredDate: initialData.materialRequiredDate ? new Date(initialData.materialRequiredDate) : new Date(),
+      }
+      : {
+        customerName: "",
+        soDate: new Date(),
+        projectOrCrNo: "",
+        saleOrderCategory: "",
+        purpose: "",
+        costCenter: "",
+        ioNumber: "",
+        budgetAmount: 0,
+        materialRequiredDate: new Date(),
+        departmentHeadApproval: "",
+        deliveryTo: "",
+        items: [{ itemName: "", quantity: 1, unitPrice: 0, hsnSacCode: "", gstPercentage: 18 }], // Default GST to 18%
+        shippingAddress: "",
+        billingAddress: "",
+        remarks: "",
+      },
   });
+
+  React.useEffect(() => {
+    if (initialData) {
+      form.reset({
+        ...initialData,
+        soDate: initialData.soDate ? new Date(initialData.soDate) : new Date(),
+        materialRequiredDate: initialData.materialRequiredDate ? new Date(initialData.materialRequiredDate) : new Date(),
+      });
+    }
+  }, [initialData, form]);
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -57,25 +79,42 @@ export function SaleOrderForm() {
   });
 
   function onSubmit(data: SaleOrderFormData) {
-    console.log("Sale Order Data:", data);
-    toast({
-      title: "Sale Order Request Submitted",
-      description: "Your SO request has been submitted for approval.",
-    });
-    form.reset();
+    if (isEditing && onSave) {
+      onSave(data);
+      toast({
+        title: "Sale Order Updated",
+        description: "Your SO request has been successfully updated.",
+      });
+    } else if (onSave) { // For new request submission scenario if onSave is provided
+      onSave(data);
+       toast({
+        title: "Sale Order Request Submitted",
+        description: "Your SO request has been submitted for approval.",
+      });
+      form.reset();
+    } else { // Fallback for direct usage on /new page
+      console.log("Sale Order Data (New):", data);
+      toast({
+        title: "Sale Order Request Submitted",
+        description: "Your SO request has been submitted for approval.",
+      });
+      form.reset();
+    }
   }
 
   return (
     <Card className="w-full shadow-xl">
-      <CardHeader>
-        <CardTitle className="flex items-center text-2xl font-headline">
-          <Tags className="w-6 h-6 mr-2 text-primary" /> Create Sale Order Request
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-muted-foreground mb-6">
-          This form is to request approval for a new Sale Order. After internal approval, the SO will be created in SAP, and the SAP SO number will be associated with this request for tracking.
-        </p>
+      {!isEditing && (
+        <CardHeader>
+          <CardTitle className="flex items-center text-2xl font-headline">
+            <Tags className="w-6 h-6 mr-2 text-primary" /> Create Sale Order Request
+          </CardTitle>
+           <CardDescription>
+            This form is to request approval for a new Sale Order. After internal approval, the SO will be created in SAP, and the SAP SO number will be associated with this request for tracking.
+          </CardDescription>
+        </CardHeader>
+      )}
+      <CardContent className={cn(isEditing && "pt-6")}>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -109,7 +148,7 @@ export function SaleOrderForm() {
                             )}
                           >
                             {field.value ? (
-                              format(field.value, "PPP")
+                              format(new Date(field.value), "PPP")
                             ) : (
                               <span>Pick a date</span>
                             )}
@@ -120,7 +159,7 @@ export function SaleOrderForm() {
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                           mode="single"
-                          selected={field.value}
+                          selected={field.value ? new Date(field.value) : undefined}
                           onSelect={field.onChange}
                            disabled={(date) =>
                             date > new Date() || date < new Date("1900-01-01")
@@ -163,7 +202,7 @@ export function SaleOrderForm() {
                 )}
               />
             </div>
-            
+
             <FormField
                 control={form.control}
                 name="purpose"
@@ -206,14 +245,14 @@ export function SaleOrderForm() {
                 )}
               />
             </div>
-            
+
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <FormField
                 control={form.control}
                 name="budgetAmount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="flex items-center">Budget Amount</FormLabel>
+                    <FormLabel className="flex items-center">Budget Amount (INR)</FormLabel>
                     <FormControl>
                       <Input type="number" placeholder="0.00" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />
                     </FormControl>
@@ -238,7 +277,7 @@ export function SaleOrderForm() {
                             )}
                           >
                             {field.value ? (
-                              format(field.value, "PPP")
+                              format(new Date(field.value), "PPP")
                             ) : (
                               <span>Pick a date</span>
                             )}
@@ -249,7 +288,7 @@ export function SaleOrderForm() {
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                           mode="single"
-                          selected={field.value}
+                          selected={field.value ? new Date(field.value) : undefined}
                           onSelect={field.onChange}
                           initialFocus
                         />
@@ -325,7 +364,7 @@ export function SaleOrderForm() {
                     name={`items.${index}.unitPrice`}
                     render={({ field }) => (
                       <FormItem className="md:col-span-2">
-                        <FormLabel>Unit Price</FormLabel>
+                        <FormLabel>Unit Price (INR)</FormLabel>
                         <FormControl>
                           <Input type="number" placeholder="0.00" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />
                         </FormControl>
@@ -344,7 +383,7 @@ export function SaleOrderForm() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => append({ itemName: "", quantity: 1, unitPrice: 0 })}
+                onClick={() => append({ itemName: "", quantity: 1, unitPrice: 0, hsnSacCode: "", gstPercentage: 18 })}
                 className="mt-2"
               >
                 <PlusCircle className="w-4 h-4 mr-2" /> Add Item
@@ -377,7 +416,7 @@ export function SaleOrderForm() {
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="remarks"
@@ -392,9 +431,14 @@ export function SaleOrderForm() {
               )}
             />
 
-            <CardFooter className="px-0 pt-6">
+            <CardFooter className="px-0 pt-6 flex justify-end gap-2">
+              {isEditing && onCancel && (
+                <Button type="button" variant="outline" onClick={onCancel} disabled={form.formState.isSubmitting}>
+                  <Ban className="w-4 h-4 mr-2" /> Cancel
+                </Button>
+              )}
               <Button type="submit" className="w-full md:w-auto" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Submitting...</> : <><Send className="w-4 h-4 mr-2" /> Submit Sale Order</>}
+                {form.formState.isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Submitting...</> : (isEditing ? <><Save className="w-4 h-4 mr-2" /> Save Changes</> : <><Send className="w-4 h-4 mr-2" /> Submit Sale Order</>)}
               </Button>
             </CardFooter>
           </form>

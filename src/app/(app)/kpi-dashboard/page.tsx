@@ -73,14 +73,14 @@ export default function KpiDashboardPage() {
         break;
     }
     // Mock utilization: 60-90% of budget for demo
-    const utilized = total * (Math.random() * 0.3 + 0.6); 
+    const utilized = total * (Math.random() * 0.3 + 0.6);
     const unutilized = total - utilized;
     return { total, utilized, unutilized };
   }, [departmentBudget, selectedQuarter]);
 
   const budgetChartData = [
-    { name: "Budgeted", value: budgetDataForPeriod.total },
-    { name: "Utilized", value: budgetDataForPeriod.utilized },
+    { name: "Budgeted (INR)", value: budgetDataForPeriod.total },
+    { name: "Utilized (INR)", value: budgetDataForPeriod.utilized },
   ];
 
 
@@ -152,15 +152,15 @@ export default function KpiDashboardPage() {
               <div className="grid gap-6 lg:grid-cols-3">
                 <div className="lg:col-span-1 space-y-4">
                     <Card>
-                        <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Total Budget</CardTitle></CardHeader>
+                        <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Total Budget (INR)</CardTitle></CardHeader>
                         <CardContent><p className="text-2xl font-bold text-foreground">{budgetDataForPeriod.total.toLocaleString('en-IN', currencyFormattingOptions)}</p></CardContent>
                     </Card>
                      <Card>
-                        <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground text-primary">Utilized Budget</CardTitle></CardHeader>
+                        <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground text-primary">Utilized Budget (INR)</CardTitle></CardHeader>
                         <CardContent><p className="text-2xl font-bold text-primary">{budgetDataForPeriod.utilized.toLocaleString('en-IN', currencyFormattingOptions)}</p></CardContent>
                     </Card>
                      <Card>
-                        <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground text-accent">Unutilized Budget</CardTitle></CardHeader>
+                        <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground text-accent">Unutilized Budget (INR)</CardTitle></CardHeader>
                         <CardContent><p className="text-2xl font-bold text-accent">{budgetDataForPeriod.unutilized.toLocaleString('en-IN', currencyFormattingOptions)}</p></CardContent>
                     </Card>
                 </div>
@@ -199,7 +199,7 @@ export default function KpiDashboardPage() {
           fillColor="hsl(var(--primary))"
         />
       </div>
-      
+
       <Card>
         <CardHeader>
             <CardTitle className="font-headline">Delayed Approvals Breakdown</CardTitle>

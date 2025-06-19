@@ -58,14 +58,14 @@ export default function MaterialConsumptionReportPage() {
       .sort((a, b) => b.value - a.value)
       .slice(0, 10); // Top 10 consumed materials
   }, [filteredData]);
-  
+
   const formattingOptions = { minimumFractionDigits: 0, maximumFractionDigits: 0 };
 
 
-  const handleExport = (format: 'excel' | 'pdf') => {
+  const handleExport = (formatType: 'excel' | 'pdf') => {
     toast({
-      title: `Exporting to ${format.toUpperCase()}...`,
-      description: `Preparing material consumption report for ${format} export. This is a mock action.`,
+      title: `Exporting to ${formatType.toUpperCase()}...`,
+      description: `Preparing material consumption report for ${formatType} export. This is a mock action.`,
     });
   };
 

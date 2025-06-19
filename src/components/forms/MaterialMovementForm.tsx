@@ -5,7 +5,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as React from "react";
-import { FilePlus, Package, Save, Send, Truck, ChevronsUpDown, Check, Loader2 } from "lucide-react";
+import { FilePlus, Package, Save, Send, Truck, ChevronsUpDown, Check, Loader2, Ban } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -26,14 +26,21 @@ import { MATERIAL_TYPES, DEPARTMENTS, STORE_LOCATIONS } from "@/lib/constants";
 import { FileUpload } from "@/components/ui/file-upload";
 import { useToast } from "@/hooks/use-toast";
 
-export function MaterialMovementForm() {
+interface MaterialMovementFormProps {
+  initialData?: MaterialMovementFormData;
+  isEditing?: boolean;
+  onSave?: (data: MaterialMovementFormData) => void;
+  onCancel?: () => void;
+}
+
+export function MaterialMovementForm({ initialData, isEditing, onSave, onCancel }: MaterialMovementFormProps) {
   const { toast } = useToast();
   const [showVehicleNumber, setShowVehicleNumber] = React.useState(false);
   const [eWayBillFile, setEWayBillFile] = React.useState<File | null>(null);
 
   const form = useForm<MaterialMovementFormData>({
     resolver: zodResolver(MaterialMovementSchema),
-    defaultValues: {
+    defaultValues: initialData || {
       materialType: undefined,
       source: "",
       destination: "",
@@ -44,44 +51,68 @@ export function MaterialMovementForm() {
     },
   });
 
+  React.useEffect(() => {
+    if (initialData) {
+      form.reset(initialData);
+    }
+  }, [initialData, form]);
+
   const materialValue = form.watch("value");
 
   React.useEffect(() => {
-    if (materialValue > 100000) { 
+    if (materialValue > 100000) {
       setShowVehicleNumber(true);
-      if (!form.formState.dirtyFields.vehicleNumber) {
+      if (!form.formState.dirtyFields.vehicleNumber && !initialData?.vehicleNumber) {
          form.register("vehicleNumber");
       }
     } else {
       setShowVehicleNumber(false);
-      if (form.formState.isDirty && form.getValues("vehicleNumber") === "") { 
+      if (form.formState.isDirty && form.getValues("vehicleNumber") === "" && !initialData?.vehicleNumber) {
           form.unregister("vehicleNumber");
       }
     }
-  }, [materialValue, form]);
+  }, [materialValue, form, initialData]);
 
   function onSubmit(data: MaterialMovementFormData) {
-    console.log("Material Movement Data:", {...data, eWayBill: eWayBillFile?.name });
-    toast({
-      title: "Request Submitted",
-      description: "Material movement request logged and sent for approval and receipt confirmation.",
-    });
-    form.reset();
-    setEWayBillFile(null);
+    if (isEditing && onSave) {
+      onSave(data);
+      toast({
+        title: "Request Updated",
+        description: "Material movement request has been updated.",
+      });
+    } else if (onSave) {
+      onSave(data); // For new request submission scenario if onSave is provided
+      toast({
+        title: "Request Submitted",
+        description: "Material movement request logged and sent for approval and receipt confirmation.",
+      });
+      form.reset(); // Reset only for new submissions
+      setEWayBillFile(null);
+    } else { // Fallback for direct usage on /new page
+       console.log("Material Movement Data (New):", {...data, eWayBill: eWayBillFile?.name });
+       toast({
+         title: "Request Submitted",
+         description: "Material movement request logged and sent for approval and receipt confirmation.",
+       });
+       form.reset();
+       setEWayBillFile(null);
+    }
   }
 
   return (
     <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="flex items-center text-2xl font-headline">
-          <Package className="w-6 h-6 mr-2 text-primary" /> Log Material Movement Request
-        </CardTitle>
-        <CardDescription>
-          Fill the form with source, destination, item details, quantity, and value. Choose if the material is returnable. 
-          If value is over 1 Lakh INR, vehicle number is mandatory. Upload E-Way bill if applicable. The request will include approval and receipt confirmation steps.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+      {!isEditing && (
+        <CardHeader>
+          <CardTitle className="flex items-center text-2xl font-headline">
+            <Package className="w-6 h-6 mr-2 text-primary" /> Log Material Movement Request
+          </CardTitle>
+          <CardDescription>
+            Fill the form with source, destination, item details, quantity, and value. Choose if the material is returnable.
+            If value &gt; 1,00,000 INR vehicle number is mandatory. Upload E-Way bill if applicable. The request will include approval and receipt confirmation steps.
+          </CardDescription>
+        </CardHeader>
+      )}
+      <CardContent className={cn(isEditing && "pt-6")}>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -226,18 +257,23 @@ export function MaterialMovementForm() {
                 />
               )}
                <div className="md:col-span-2">
-                <FileUpload 
-                  onFileChange={setEWayBillFile} 
+                <FileUpload
+                  onFileChange={setEWayBillFile}
                   label="E-Way Bill / Supporting Documents (Optional)"
                   accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
                   dataAiHint="document invoice"
                 />
               </div>
             </div>
-            
-            <CardFooter className="px-0 pt-6">
+
+            <CardFooter className="px-0 pt-6 flex justify-end gap-2">
+              {isEditing && onCancel && (
+                <Button type="button" variant="outline" onClick={onCancel} disabled={form.formState.isSubmitting}>
+                  <Ban className="w-4 h-4 mr-2" /> Cancel
+                </Button>
+              )}
               <Button type="submit" className="w-full md:w-auto" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Submitting...</> : <><Send className="w-4 h-4 mr-2" /> Submit Request</>}
+                {form.formState.isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Submitting...</> : (isEditing ? <><Save className="w-4 h-4 mr-2" /> Save Changes</> : <><Send className="w-4 h-4 mr-2" /> Submit Request</>)}
               </Button>
             </CardFooter>
           </form>

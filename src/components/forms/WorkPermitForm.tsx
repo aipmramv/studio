@@ -1,10 +1,11 @@
+
 // src/components/forms/WorkPermitForm.tsx
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as React from "react";
-import { Building, ListChecks, Send, FileText, Loader2, MapPin, CalendarDays, CalendarIcon } from "lucide-react";
+import { Building, ListChecks, Send, FileText, Loader2, MapPin, CalendarDays, CalendarIcon, Save, Ban } from "lucide-react";
 import { format } from "date-fns";
 
 import { Button } from "@/components/ui/button";
@@ -28,14 +29,20 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 
+interface WorkPermitFormProps {
+  initialData?: WorkPermitFormData;
+  isEditing?: boolean;
+  onSave?: (data: WorkPermitFormData) => void;
+  onCancel?: () => void;
+}
 
-export function WorkPermitForm() {
+export function WorkPermitForm({ initialData, isEditing, onSave, onCancel }: WorkPermitFormProps) {
   const { toast } = useToast();
   const [attachmentsFile, setAttachmentsFile] = React.useState<File | null>(null);
 
   const form = useForm<WorkPermitFormData>({
     resolver: zodResolver(WorkPermitSchema),
-    defaultValues: {
+    defaultValues: initialData || {
       building: undefined,
       activityType: undefined,
       activityDetails: "",
@@ -44,24 +51,53 @@ export function WorkPermitForm() {
     },
   });
 
+  React.useEffect(() => {
+    if (initialData) {
+      // Ensure date is correctly formatted if it's a string from mock data
+      const dataToReset = {
+        ...initialData,
+        permitValidity: initialData.permitValidity ? new Date(initialData.permitValidity) : undefined,
+      };
+      form.reset(dataToReset);
+    }
+  }, [initialData, form]);
+
   function onSubmit(data: WorkPermitFormData) {
-    console.log("Work Permit Data:", { ...data, attachments: attachmentsFile?.name });
-    toast({
-      title: "Request Submitted",
-      description: "Work permit request logged successfully and sent for approval.",
-    });
-    form.reset();
-    setAttachmentsFile(null);
+     if (isEditing && onSave) {
+      onSave(data);
+      toast({
+        title: "Request Updated",
+        description: "Work permit request has been updated.",
+      });
+    } else if (onSave) { // For new request submission scenario if onSave is provided
+      onSave(data);
+      toast({
+        title: "Request Submitted",
+        description: "Work permit request logged successfully and sent for approval.",
+      });
+      form.reset();
+      setAttachmentsFile(null);
+    } else { // Fallback for direct usage on /new page
+      console.log("Work Permit Data (New):", { ...data, attachments: attachmentsFile?.name });
+      toast({
+        title: "Request Submitted",
+        description: "Work permit request logged successfully and sent for approval.",
+      });
+      form.reset();
+      setAttachmentsFile(null);
+    }
   }
 
   return (
     <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="flex items-center text-2xl font-headline">
-          <FileText className="w-6 h-6 mr-2 text-primary" /> Request Work Permit
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
+      {!isEditing && (
+        <CardHeader>
+          <CardTitle className="flex items-center text-2xl font-headline">
+            <FileText className="w-6 h-6 mr-2 text-primary" /> Request Work Permit
+          </CardTitle>
+        </CardHeader>
+      )}
+      <CardContent className={cn(isEditing && "pt-6")}>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -163,7 +199,7 @@ export function WorkPermitForm() {
               <div className="md:col-span-2">
                  <FormField
                     control={form.control}
-                    name="activityDetails" 
+                    name="activityDetails"
                     render={({ field }) => (
                     <FormItem>
                         <FormLabel>Activity Details & Scope</FormLabel>
@@ -180,18 +216,23 @@ export function WorkPermitForm() {
                 />
                </div>
               <div className="md:col-span-2">
-                <FileUpload 
-                  onFileChange={setAttachmentsFile} 
+                <FileUpload
+                  onFileChange={setAttachmentsFile}
                   label="Attachments (Work Orders, Safety Instructions, Diagrams etc.)"
                   accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
                   dataAiHint="safety document diagram"
                 />
               </div>
             </div>
-            
-            <CardFooter className="px-0 pt-6">
+
+            <CardFooter className="px-0 pt-6 flex justify-end gap-2">
+               {isEditing && onCancel && (
+                <Button type="button" variant="outline" onClick={onCancel} disabled={form.formState.isSubmitting}>
+                  <Ban className="w-4 h-4 mr-2" /> Cancel
+                </Button>
+              )}
               <Button type="submit" className="w-full md:w-auto" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Submitting...</> : <><Send className="w-4 h-4 mr-2" /> Submit Request</>}
+                {form.formState.isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Submitting...</> : (isEditing ? <><Save className="w-4 h-4 mr-2" /> Save Changes</> : <><Send className="w-4 h-4 mr-2" /> Submit Request</>)}
               </Button>
             </CardFooter>
           </form>

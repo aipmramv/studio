@@ -21,17 +21,17 @@ interface MonthlyBudgetChartProps {
 export function MonthlyBudgetChart({ data, title, description }: MonthlyBudgetChartProps) {
   const chartConfig = {
     forecasted: {
-      label: "Forecasted",
+      label: "Forecasted (INR)",
       color: "hsl(var(--chart-2))", // Accent color
     },
     actual: {
-      label: "Actual",
+      label: "Actual (INR)",
       color: "hsl(var(--chart-1))", // Primary color
     },
   } satisfies ChartConfig;
 
   const currencyTickFormatter = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', notation: 'compact', compactDisplay: 'short' }).format(value);
-  
+
   const currencyTooltipFormatter = (value: number, name: string) => {
     const label = chartConfig[name as keyof typeof chartConfig]?.label || name;
     const formattedValue = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
@@ -49,17 +49,17 @@ export function MonthlyBudgetChart({ data, title, description }: MonthlyBudgetCh
         <ResponsiveContainer width="100%" height={350}>
           <LineChart data={data} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis 
-              dataKey="monthName" 
-              stroke="hsl(var(--foreground))" 
-              fontSize={12} 
-              tickLine={false} 
-              axisLine={false} 
+            <XAxis
+              dataKey="monthName"
+              stroke="hsl(var(--foreground))"
+              fontSize={12}
+              tickLine={false}
+              axisLine={false}
             />
-            <YAxis 
-              stroke="hsl(var(--foreground))" 
-              fontSize={12} 
-              tickLine={false} 
+            <YAxis
+              stroke="hsl(var(--foreground))"
+              fontSize={12}
+              tickLine={false}
               axisLine={false}
               tickFormatter={currencyTickFormatter}
             />
@@ -69,22 +69,22 @@ export function MonthlyBudgetChart({ data, title, description }: MonthlyBudgetCh
               formatter={currencyTooltipFormatter}
             />
             <Legend wrapperStyle={{ fontSize: '0.875rem' }} />
-            <Line 
-              type="monotone" 
-              dataKey="forecasted" 
-              stroke={chartConfig.forecasted.color} 
-              strokeWidth={2} 
-              dot={{ r: 4, fill: chartConfig.forecasted.color }} 
-              activeDot={{ r: 6 }} 
+            <Line
+              type="monotone"
+              dataKey="forecasted"
+              stroke={chartConfig.forecasted.color}
+              strokeWidth={2}
+              dot={{ r: 4, fill: chartConfig.forecasted.color }}
+              activeDot={{ r: 6 }}
               name={chartConfig.forecasted.label}
             />
-            <Line 
-              type="monotone" 
-              dataKey="actual" 
-              stroke={chartConfig.actual.color} 
-              strokeWidth={2} 
-              dot={{ r: 4, fill: chartConfig.actual.color }} 
-              activeDot={{ r: 6 }} 
+            <Line
+              type="monotone"
+              dataKey="actual"
+              stroke={chartConfig.actual.color}
+              strokeWidth={2}
+              dot={{ r: 4, fill: chartConfig.actual.color }}
+              activeDot={{ r: 6 }}
               name={chartConfig.actual.label}
             />
           </LineChart>
@@ -94,4 +94,4 @@ export function MonthlyBudgetChart({ data, title, description }: MonthlyBudgetCh
   );
 }
 
-    
+

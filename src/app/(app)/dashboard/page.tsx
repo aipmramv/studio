@@ -90,7 +90,7 @@ const mockApprovalsData: ApprovalItem[] = [
   },
   {
     id: "SM002", requestType: "Scrap Request", requesterName: "Praveen S.", requesterDepartment: "Maintenance", submissionDate: "2024-07-27T14:30:00Z",
-    currentStepId: "sm_finance_approval", currentStepName: "Finance Approval", currentAssignees: ["finance_team", "admin"], workflowTemplateId: "scrap_default", 
+    currentStepId: "sm_finance_approval", currentStepName: "Finance Approval", currentAssignees: ["finance_team", "admin"], workflowTemplateId: "scrap_default",
     payload: { scrapType: "E-waste", description: "Old monitors and keyboards", quantity: 10, weight: 50, gatePassNumber: "GP12345" } as ScrapMovementFormData,
     history: [
         { stepId: "submission", stepName:"Submitted", actor: "Praveen S.", action: "submitted", timestamp: "2024-07-27T14:30:00Z" },
@@ -142,7 +142,7 @@ const renderRequestPayloadDetailsDialog = (payload: RequestPayload, requestType:
         details.push({ key: "Source", value: mmPayload.source });
         details.push({ key: "Destination", value: mmPayload.destination });
         details.push({ key: "Quantity", value: mmPayload.quantity });
-        details.push({ key: "Value", value: mmPayload.value.toLocaleString('en-IN', formattingOptions) });
+        details.push({ key: "Value (INR)", value: mmPayload.value.toLocaleString('en-IN', formattingOptions) });
         details.push({ key: "Returnable", value: mmPayload.isReturnable });
         if (mmPayload.vehicleNumber) details.push({ key: "Vehicle No.", value: mmPayload.vehicleNumber });
         break;
@@ -176,7 +176,7 @@ const renderRequestPayloadDetailsDialog = (payload: RequestPayload, requestType:
         if(poPayload.segment) details.push({ key: "Segment", value: poPayload.segment });
         details.push({ key: "Items", value: (
           <Table className="mt-2 text-xs">
-            <TableHeader><TableRow><TableHead>Item</TableHead><TableHead>Qty</TableHead><TableHead className="text-right">Price</TableHead><TableHead>HSN/SAC</TableHead><TableHead className="text-right">GST%</TableHead><TableHead className="text-right">Total</TableHead></TableRow></TableHeader>
+            <TableHeader><TableRow><TableHead>Item</TableHead><TableHead>Qty</TableHead><TableHead className="text-right">Price (INR)</TableHead><TableHead>HSN/SAC</TableHead><TableHead className="text-right">GST%</TableHead><TableHead className="text-right">Total (INR)</TableHead></TableRow></TableHeader>
             <TableBody>
             {poPayload.items.map((item, idx) => {
               const itemTotal = (item.quantity || 0) * (item.unitPrice || 0);
@@ -187,7 +187,7 @@ const renderRequestPayloadDetailsDialog = (payload: RequestPayload, requestType:
               );
             })}
             </TableBody>
-             <TableFooter><TableRow><TableCell colSpan={5} className="text-right font-bold">Grand Total</TableCell><TableCell className="text-right font-bold">{poPayload.items.reduce((sum, i) => {
+             <TableFooter><TableRow><TableCell colSpan={5} className="text-right font-bold">Grand Total (INR)</TableCell><TableCell className="text-right font-bold">{poPayload.items.reduce((sum, i) => {
                 const itemTotal = (i.quantity || 0) * (i.unitPrice || 0);
                 const itemGst = itemTotal * ((i.gstPercentage || 0) / 100);
                 return sum + itemTotal + itemGst;
@@ -205,13 +205,13 @@ const renderRequestPayloadDetailsDialog = (payload: RequestPayload, requestType:
         details.push({ key: "Purpose", value: <p className="whitespace-pre-wrap">{soPayload.purpose}</p> });
         details.push({ key: "Cost Center", value: soPayload.costCenter });
         details.push({ key: "IO Number", value: soPayload.ioNumber });
-        details.push({ key: "Budget Amount", value: soPayload.budgetAmount.toLocaleString('en-IN', formattingOptions) });
+        details.push({ key: "Budget Amount (INR)", value: soPayload.budgetAmount.toLocaleString('en-IN', formattingOptions) });
         details.push({ key: "Material Req. Date", value: new Date(soPayload.materialRequiredDate).toLocaleDateString() });
         details.push({ key: "Dept. Head Approval", value: soPayload.departmentHeadApproval });
         details.push({ key: "Delivery To", value: soPayload.deliveryTo });
          details.push({ key: "Items", value: (
             <Table className="mt-2 text-xs">
-            <TableHeader><TableRow><TableHead>Item</TableHead><TableHead>Qty</TableHead><TableHead className="text-right">Price</TableHead><TableHead>HSN/SAC</TableHead><TableHead className="text-right">GST%</TableHead><TableHead className="text-right">Total</TableHead></TableRow></TableHeader>
+            <TableHeader><TableRow><TableHead>Item</TableHead><TableHead>Qty</TableHead><TableHead className="text-right">Price (INR)</TableHead><TableHead>HSN/SAC</TableHead><TableHead className="text-right">GST%</TableHead><TableHead className="text-right">Total (INR)</TableHead></TableRow></TableHeader>
             <TableBody>
             {soPayload.items.map((item, idx) => {
               const itemTotal = (item.quantity || 0) * (item.unitPrice || 0);
@@ -222,7 +222,7 @@ const renderRequestPayloadDetailsDialog = (payload: RequestPayload, requestType:
               );
             })}
             </TableBody>
-            <TableFooter><TableRow><TableCell colSpan={5} className="text-right font-bold">Grand Total</TableCell><TableCell className="text-right font-bold">{soPayload.items.reduce((sum, i) => {
+            <TableFooter><TableRow><TableCell colSpan={5} className="text-right font-bold">Grand Total (INR)</TableCell><TableCell className="text-right font-bold">{soPayload.items.reduce((sum, i) => {
                 const itemTotal = (i.quantity || 0) * (i.unitPrice || 0);
                 const itemGst = itemTotal * ((i.gstPercentage || 0) / 100);
                 return sum + itemTotal + itemGst;
@@ -246,38 +246,46 @@ const renderWorkflowProgress = (request: ApprovalItem) => {
     if (!workflow) return <p className="text-sm text-muted-foreground">Workflow details not available.</p>;
 
     const currentStepIndex = workflow.steps.findIndex(step => step.id === request.currentStepId);
-    
+
     return (
       <div className="space-y-0">
         {workflow.steps.map((step, index) => {
           const historyForStep = request.history.filter(h => h.stepId === step.id && h.action === "approve");
           const isCompleted = historyForStep.length > 0;
-          const isCurrent = step.id === request.currentStepId && !isCompleted && 
+          const isCurrent = step.id === request.currentStepId && !isCompleted &&
                            (request.history.some(h => h.stepId === step.id && (h.action === "system_auto_proceed" || h.action === "submitted")) || currentStepIndex === index );
-          
-          let icon;
-          let textClass = "text-muted-foreground/80"; 
-          let roleClass = "text-muted-foreground/80"; 
-          let lineClass = "bg-border"; 
+          const isVoidedOrRejected = request.currentStepName === "Request Voided" || request.currentStepName === "Request Rejected";
 
-          if (isCompleted) {
+
+          let icon;
+          let textClass = "text-muted-foreground/80";
+          let roleClass = "text-muted-foreground/80";
+          let lineClass = "bg-border";
+
+          if (isVoidedOrRejected && step.id === request.currentStepId) {
+             icon = <X className="w-5 h-5 text-destructive" />;
+             textClass = "text-destructive font-semibold";
+             roleClass = "text-destructive";
+             lineClass = "bg-destructive";
+          } else if (isCompleted) {
             icon = <CheckCircle className="w-5 h-5 text-primary" />;
             textClass = "text-primary";
             roleClass = "text-primary";
             lineClass = "bg-primary";
           } else if (isCurrent) {
-            icon = <Clock className="w-5 h-5 text-[hsl(var(--chart-2))] animate-pulse" />; 
+            icon = <Clock className="w-5 h-5 text-[hsl(var(--chart-2))] animate-pulse" />;
             textClass = "text-[hsl(var(--chart-2))] font-semibold";
             roleClass = "text-[hsl(var(--chart-2))]";
             lineClass = "bg-[hsl(var(--chart-2))]";
-          } else { 
+          } else {
             icon = <Circle className="w-5 h-5 text-muted-foreground/60" />;
           }
-          
+
           const isInitialCurrentStep = isCurrent && index === 0 && request.history.every(h => h.stepId === step.id ? (h.action === "system_auto_proceed" || h.action === "submitted") : true);
-          if(isInitialCurrentStep && !isCompleted) {
-             lineClass = "bg-[hsl(var(--chart-2))]"; 
+          if(isInitialCurrentStep && !isCompleted && !isVoidedOrRejected) {
+             lineClass = "bg-[hsl(var(--chart-2))]";
           }
+
 
           return (
             <div key={step.id} className="flex items-start">
@@ -322,9 +330,9 @@ export default function ApprovalsDashboardPage() {
 
   const userVisibleApprovals = React.useMemo(() => {
     if (!user) return [];
-    if(user.role === 'admin') return approvals; 
-    return approvals.filter(item => 
-      item.currentAssignees.includes(user.role) || 
+    if(user.role === 'admin') return approvals;
+    return approvals.filter(item =>
+      item.currentAssignees.includes(user.role) ||
       (item.currentAssignees.includes('department_head') && user.department && item.requesterDepartment === user.department)
     );
   }, [approvals, user]);
@@ -346,7 +354,7 @@ export default function ApprovalsDashboardPage() {
         timestamp: new Date().toISOString(),
         comment: comment,
     };
-    
+
     const currentWorkflow = MOCK_WORKFLOW_TEMPLATES.find(wf => wf.id === item.workflowTemplateId);
     const currentStepConfig = currentWorkflow?.steps.find(s => s.id === item.currentStepId);
     let nextStep: WorkflowStep | undefined;
@@ -358,7 +366,7 @@ export default function ApprovalsDashboardPage() {
         nextStep = currentWorkflow?.steps.find(s => s.id === currentStepConfig.rejectionLeadsToStepId);
     } else if (action === 'reject' && !currentStepConfig?.rejectionLeadsToStepId) { // Rejection leads to request closure or back to requester if no specific step
         // For mock, simply remove from list. Real app might set a 'rejected_closed' status
-        updatedApprovals = approvals.map(ap => 
+        updatedApprovals = approvals.map(ap =>
             ap.id === itemId ? {
                 ...ap,
                 currentStepId: "request_rejected_final", // Fictional final rejected state
@@ -378,7 +386,7 @@ export default function ApprovalsDashboardPage() {
 
 
     if (nextStep) {
-        updatedApprovals = approvals.map(ap => 
+        updatedApprovals = approvals.map(ap =>
             ap.id === itemId ? {
                 ...ap,
                 currentStepId: nextStep!.id,
@@ -395,7 +403,7 @@ export default function ApprovalsDashboardPage() {
         );
         setApprovals(updatedApprovals);
     } else { // This handles final approval where there's no nextStepId
-        updatedApprovals = approvals.map(ap => 
+        updatedApprovals = approvals.map(ap =>
             ap.id === itemId ? {
                 ...ap,
                 currentStepId: "request_approved_final", // Fictional final approved state
@@ -406,7 +414,7 @@ export default function ApprovalsDashboardPage() {
         ).filter(ap => ap.id !== itemId); // For mock, remove from active list
         setApprovals(updatedApprovals);
     }
-    
+
     toast({
       title: `Request ${action === "approve" ? "Approved" : "Rejected"}`,
       description: `Request ID ${itemId} has been processed.`,
@@ -424,9 +432,9 @@ export default function ApprovalsDashboardPage() {
       history: [
         ...selectedRequestDetail.history,
         {
-          stepId: selectedRequestDetail.currentStepId, 
+          stepId: selectedRequestDetail.currentStepId,
           stepName: `Comment on: ${selectedRequestDetail.currentStepName}`,
-          actor: user.displayName || "Current User (Ram Kumar)", 
+          actor: user.displayName || "Current User (Ram Kumar)",
           action: "commented" as const,
           timestamp: new Date().toISOString(),
           comment: newComment,
@@ -476,7 +484,7 @@ export default function ApprovalsDashboardPage() {
   const renderRequestPayloadSummary = (item: ApprovalItem): string => {
     const { requestType, payload } = item;
     const currencyFormattingOptions: Intl.NumberFormatOptions = { style: 'currency', currency: 'INR', minimumFractionDigits: 2, maximumFractionDigits: 2 };
-  
+
     switch (requestType) {
       case "Material Movement":
         const mm = payload as MaterialMovementFormData;
@@ -494,7 +502,7 @@ export default function ApprovalsDashboardPage() {
           const itemGst = itemTotal * ((i.gstPercentage || 0) / 100);
           return sum + itemTotal + itemGst;
         }, 0);
-        return `PO for ${po.vendorName}. ${po.items.length} item(s). Total: ${poTotal.toLocaleString('en-IN', currencyFormattingOptions)}`;
+        return `PO for ${po.vendorName}. ${po.items.length} item(s). Total (INR): ${poTotal.toLocaleString('en-IN', currencyFormattingOptions)}`;
       case "Sale Order":
         const so = payload as SaleOrderFormData;
         const soTotal = so.items.reduce((sum, i) => {
@@ -502,12 +510,12 @@ export default function ApprovalsDashboardPage() {
           const itemGst = itemTotal * ((i.gstPercentage || 0) / 100);
           return sum + itemTotal + itemGst;
         }, 0);
-        return `SO for ${so.customerName}. ${so.items.length} item(s). Total: ${soTotal.toLocaleString('en-IN', currencyFormattingOptions)}`;
+        return `SO for ${so.customerName}. ${so.items.length} item(s). Total (INR): ${soTotal.toLocaleString('en-IN', currencyFormattingOptions)}`;
       default:
         return "Details not available.";
     }
   };
-  
+
 
   return (
     <div className="space-y-8">
@@ -661,8 +669,8 @@ export default function ApprovalsDashboardPage() {
         <Dialog open={isDetailDialogOpen} onOpenChange={(isOpen) => {
           setIsDetailDialogOpen(isOpen);
           if (!isOpen) {
-            setSelectedRequestDetail(null); 
-            setNewComment(""); 
+            setSelectedRequestDetail(null);
+            setNewComment("");
           }
         }}>
           <DialogContent className="sm:max-w-3xl">
@@ -678,7 +686,7 @@ export default function ApprovalsDashboardPage() {
             </DialogHeader>
             <ScrollArea className="max-h-[calc(100vh-20rem)] pr-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-4">
-                <div className="md:col-span-2 space-y-4"> 
+                <div className="md:col-span-2 space-y-4">
                   <Card>
                     <CardHeader><CardTitle className="text-lg flex items-center"><Info className="w-5 h-5 mr-2 text-primary"/>Basic Information</CardTitle></CardHeader>
                     <CardContent className="space-y-1 text-sm">
@@ -713,7 +721,7 @@ export default function ApprovalsDashboardPage() {
                       )}
                     </CardContent>
                   </Card>
-                  
+
                   <Separator />
 
                   <div className="space-y-3">
@@ -738,7 +746,7 @@ export default function ApprovalsDashboardPage() {
                       </div>
                   </div>
                 </div>
-                <div className="md:col-span-1"> 
+                <div className="md:col-span-1">
                    <Card>
                     <CardHeader><CardTitle className="text-lg flex items-center"><WorkflowIcon className="w-5 h-5 mr-2 text-primary"/>Workflow Progress</CardTitle></CardHeader>
                     <CardContent>
@@ -760,4 +768,3 @@ export default function ApprovalsDashboardPage() {
     </div>
   );
 }
-

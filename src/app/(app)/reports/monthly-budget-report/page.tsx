@@ -36,13 +36,13 @@ interface ReportDataRow {
 
 export default function MonthlyBudgetReportPage() {
   const { user } = useAuth();
-  
-  const initialDepartment = user?.role === 'department_head' && user.department && DEPARTMENTS.includes(user.department as Department) 
-    ? user.department as Department 
+
+  const initialDepartment = user?.role === 'department_head' && user.department && DEPARTMENTS.includes(user.department as Department)
+    ? user.department as Department
     : (user?.role === 'admin' ? DEPARTMENTS[0] : undefined);
 
   const [selectedDepartment, setSelectedDepartment] = React.useState<Department | undefined>(initialDepartment);
-  const [selectedYear, setSelectedYear] = React.useState<FiscalYear>(FISCAL_YEARS[FISCAL_YEARS.length - 1]); 
+  const [selectedYear, setSelectedYear] = React.useState<FiscalYear>(FISCAL_YEARS[FISCAL_YEARS.length - 1]);
   const [selectedMonthDataForDrilldown, setSelectedMonthDataForDrilldown] = React.useState<MonthlyBudgetRecord | null>(null);
   const [isDrilldownModalOpen, setIsDrilldownModalOpen] = React.useState(false);
 
@@ -57,9 +57,9 @@ export default function MonthlyBudgetReportPage() {
       .sort((a, b) => a.monthIndex - b.monthIndex)
       .map(item => {
         const varianceAmount = item.actualAmount - item.forecastedAmount;
-        const variancePercentage = item.forecastedAmount !== 0 
-          ? (varianceAmount / item.forecastedAmount) * 100 
-          : (item.actualAmount > 0 ? Infinity : 0); 
+        const variancePercentage = item.forecastedAmount !== 0
+          ? (varianceAmount / item.forecastedAmount) * 100
+          : (item.actualAmount > 0 ? Infinity : 0);
         return {
           monthIndex: item.monthIndex,
           monthName: getFiscalMonthName(item.monthIndex),
@@ -100,7 +100,7 @@ export default function MonthlyBudgetReportPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Monthly Budget Forecast vs Actuals"
+        title="Monthly Budget Forecast vs Actuals (INR)"
         description="Track and analyze departmental budget performance on a monthly basis. Click on a month name to see user-wise breakdown."
       />
 
@@ -145,7 +145,7 @@ export default function MonthlyBudgetReportPage() {
           ) : (
             <div className="space-y-8">
               <div>
-                <h3 className="text-xl font-semibold mb-4 text-foreground">Data Table: {selectedDepartment} - {selectedYear}</h3>
+                <h3 className="text-xl font-semibold mb-4 text-foreground">Data Table: {selectedDepartment} - {selectedYear} (Amounts in INR)</h3>
                 <div className="overflow-x-auto border rounded-md">
                   <Table>
                     <TableHeader>
@@ -161,8 +161,8 @@ export default function MonthlyBudgetReportPage() {
                       {reportData.map((row) => (
                         <TableRow key={row.monthName}>
                           <TableCell className="font-medium">
-                             <Button 
-                                variant="link" 
+                             <Button
+                                variant="link"
                                 className="p-0 h-auto text-foreground hover:text-primary"
                                 onClick={() => handleMonthClick(row)}
                             >
@@ -173,7 +173,7 @@ export default function MonthlyBudgetReportPage() {
                           <TableCell className="text-right">
                             {row.actualAmount.toLocaleString('en-IN', currencyFormattingOptions)}
                           </TableCell>
-                          <TableCell 
+                          <TableCell
                             className={cn(
                               "text-right",
                               row.varianceAmount > 0 ? "text-destructive" : row.varianceAmount < 0 ? "text-green-600" : "text-foreground"
@@ -181,7 +181,7 @@ export default function MonthlyBudgetReportPage() {
                           >
                             {row.varianceAmount.toLocaleString('en-IN', currencyFormattingOptions)}
                           </TableCell>
-                          <TableCell 
+                          <TableCell
                              className={cn(
                               "text-right",
                                row.variancePercentage > 0 ? "text-destructive" : row.variancePercentage < 0 ? "text-green-600" : "text-foreground"
@@ -197,7 +197,7 @@ export default function MonthlyBudgetReportPage() {
                         <TableCell>Total / Average</TableCell>
                         <TableCell className="text-right">{totals.forecasted.toLocaleString('en-IN', currencyFormattingOptions)}</TableCell>
                         <TableCell className="text-right">{totals.actual.toLocaleString('en-IN', currencyFormattingOptions)}</TableCell>
-                        <TableCell 
+                        <TableCell
                           className={cn(
                             "text-right",
                             totalVarianceAmount > 0 ? "text-destructive" : totalVarianceAmount < 0 ? "text-green-600" : "text-foreground"
@@ -205,7 +205,7 @@ export default function MonthlyBudgetReportPage() {
                         >
                           {totalVarianceAmount.toLocaleString('en-IN', currencyFormattingOptions)}
                         </TableCell>
-                        <TableCell 
+                        <TableCell
                           className={cn(
                             "text-right",
                              totalVariancePercentage > 0 ? "text-destructive" : totalVariancePercentage < 0 ? "text-green-600" : "text-foreground"
@@ -219,9 +219,9 @@ export default function MonthlyBudgetReportPage() {
                 </div>
               </div>
               <div>
-                 <MonthlyBudgetChart 
+                 <MonthlyBudgetChart
                     data={chartData}
-                    title={`Forecast vs. Actuals: ${selectedDepartment} - ${selectedYear}`}
+                    title={`Forecast vs. Actuals (INR): ${selectedDepartment} - ${selectedYear}`}
                     description="Monthly comparison of budgeted and spent amounts."
                  />
               </div>
@@ -241,7 +241,7 @@ export default function MonthlyBudgetReportPage() {
             <DialogHeader>
               <DialogTitle className="flex items-center">
                 <UsersIcon className="w-5 h-5 mr-2 text-primary" />
-                User-wise Actuals: {getFiscalMonthName(selectedMonthDataForDrilldown.monthIndex)} - {selectedMonthDataForDrilldown.department} ({selectedMonthDataForDrilldown.year})
+                User-wise Actuals (INR): {getFiscalMonthName(selectedMonthDataForDrilldown.monthIndex)} - {selectedMonthDataForDrilldown.department} ({selectedMonthDataForDrilldown.year})
               </DialogTitle>
               <DialogDescription>
                 Breakdown of actual expenditure by user for the selected month.
@@ -253,7 +253,7 @@ export default function MonthlyBudgetReportPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>User Name</TableHead>
-                      <TableHead className="text-right">Actual Amount</TableHead>
+                      <TableHead className="text-right">Actual Amount (INR)</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -288,5 +288,4 @@ export default function MonthlyBudgetReportPage() {
     </div>
   );
 }
-
 

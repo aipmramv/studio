@@ -1,3 +1,4 @@
+
 // src/components/charts/SampleBarChart.tsx
 "use client"
 
@@ -21,7 +22,23 @@ export function SampleBarChart({ data, title, description, dataKeyX, dataKeyY, f
       color: fillColor,
     },
   } satisfies ChartConfig;
-  
+
+  const currencyTooltipFormatter = (value: number, name: string, props: any) => {
+    if (props.payload.name?.toLowerCase().includes("budget (inr)") || props.payload.name?.toLowerCase().includes("utilized (inr)")) {
+       const formattedValue = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
+       return [formattedValue, chartConfig[name as keyof typeof chartConfig]?.label || name];
+    }
+    return [value.toLocaleString(), chartConfig[name as keyof typeof chartConfig]?.label || name];
+  };
+
+  const currencyTickFormatter = (value: any) => {
+    if (typeof value === 'number' && (title.toLowerCase().includes("budget") || title.toLowerCase().includes("utilization"))) {
+      return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', notation: 'compact', compactDisplay: 'short' }).format(value);
+    }
+    return value.toLocaleString();
+  };
+
+
   return (
      <Card className="shadow-lg">
       <CardHeader>
@@ -33,13 +50,14 @@ export function SampleBarChart({ data, title, description, dataKeyX, dataKeyY, f
           <BarChart data={data}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis dataKey={dataKeyX} stroke="hsl(var(--foreground))" fontSize={12} tickLine={false} axisLine={false} />
-            <YAxis stroke="hsl(var(--foreground))" fontSize={12} tickLine={false} axisLine={false} />
+            <YAxis stroke="hsl(var(--foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={currencyTickFormatter}/>
             <Tooltip
               cursor={{ fill: 'hsl(var(--muted))' }}
               contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)'}}
+              formatter={currencyTooltipFormatter}
             />
             <Legend wrapperStyle={{ fontSize: '0.875rem' }} />
-            <Bar dataKey={dataKeyY} fill={chartConfig[dataKeyY].color} radius={[4, 4, 0, 0]} />
+            <Bar dataKey={dataKeyY} fill={chartConfig[dataKeyY].color} radius={[4, 4, 0, 0]} name={chartConfig[dataKeyY].label} />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>

@@ -5,7 +5,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as React from "react";
-import { PackageSearch, Scale, Send, Image as ImageIcon, Edit3, Loader2, Hash } from "lucide-react";
+import { PackageSearch, Scale, Send, Image as ImageIcon, Edit3, Loader2, Hash, Save, Ban } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -24,14 +24,22 @@ import { ScrapMovementSchema, type ScrapMovementFormData } from "@/lib/schemas";
 import { SCRAP_TYPES } from "@/lib/constants";
 import { FileUpload } from "@/components/ui/file-upload";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
-export function ScrapMovementForm() {
+interface ScrapMovementFormProps {
+  initialData?: ScrapMovementFormData;
+  isEditing?: boolean;
+  onSave?: (data: ScrapMovementFormData) => void;
+  onCancel?: () => void;
+}
+
+export function ScrapMovementForm({ initialData, isEditing, onSave, onCancel }: ScrapMovementFormProps) {
   const { toast } = useToast();
   const [photoFile, setPhotoFile] = React.useState<File | null>(null);
 
   const form = useForm<ScrapMovementFormData>({
     resolver: zodResolver(ScrapMovementSchema),
-    defaultValues: {
+    defaultValues: initialData || {
       scrapType: undefined,
       description: "",
       quantity: 1,
@@ -40,28 +48,52 @@ export function ScrapMovementForm() {
     },
   });
 
+  React.useEffect(() => {
+    if (initialData) {
+      form.reset(initialData);
+    }
+  }, [initialData, form]);
+
   function onSubmit(data: ScrapMovementFormData) {
-    console.log("Scrap Movement Data:", { ...data, photo: photoFile?.name });
-    toast({
-      title: "Request Submitted",
-      description: "Scrap disposal request logged successfully and sent for approval.",
-    });
-    form.reset();
-    setPhotoFile(null);
+    if (isEditing && onSave) {
+      onSave(data);
+      toast({
+        title: "Request Updated",
+        description: "Scrap disposal request has been updated.",
+      });
+    } else if (onSave) { // For new request submission scenario if onSave is provided
+      onSave(data);
+       toast({
+        title: "Request Submitted",
+        description: "Scrap disposal request logged successfully and sent for approval.",
+      });
+      form.reset();
+      setPhotoFile(null);
+    } else { // Fallback for direct usage on /new page
+      console.log("Scrap Movement Data (New):", { ...data, photo: photoFile?.name });
+      toast({
+        title: "Request Submitted",
+        description: "Scrap disposal request logged successfully and sent for approval.",
+      });
+      form.reset();
+      setPhotoFile(null);
+    }
   }
 
   return (
     <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="flex items-center text-2xl font-headline">
-          <PackageSearch className="w-6 h-6 mr-2 text-primary" /> Log Scrap Disposal Request
-        </CardTitle>
-        <CardDescription>
-          Select scrap type, describe, quantify, and weigh the scrap. Attach photos/documents (e.g., weight measurement photo) and provide Gate Pass Number if available.
-          Operational steps like segregation by Housekeeping and weighing in presence of Security are assumed before or during this request.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+      {!isEditing && (
+        <CardHeader>
+          <CardTitle className="flex items-center text-2xl font-headline">
+            <PackageSearch className="w-6 h-6 mr-2 text-primary" /> Log Scrap Disposal Request
+          </CardTitle>
+          <CardDescription>
+            Select scrap type, describe, quantify, and weigh the scrap. Attach photos/documents (e.g., weight measurement photo) and provide Gate Pass Number if available.
+            Operational steps like segregation by Housekeeping and weighing in presence of Security are assumed before or during this request.
+          </CardDescription>
+        </CardHeader>
+      )}
+      <CardContent className={cn(isEditing && "pt-6")}>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -94,7 +126,7 @@ export function ScrapMovementForm() {
                   <FormItem>
                     <FormLabel>Quantity (Units/Pieces)</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="e.g., 10" {...field} />
+                      <Input type="number" placeholder="e.g., 10" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10) || 0)} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -107,7 +139,7 @@ export function ScrapMovementForm() {
                   <FormItem>
                     <FormLabel className="flex items-center"><Scale className="w-4 h-4 mr-1" /> Weight (e.g., KG, Tons)</FormLabel>
                     <FormControl>
-                      <Input type="number" step="0.1" placeholder="e.g., 50.5" {...field} />
+                      <Input type="number" step="0.1" placeholder="e.g., 50.5" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -146,18 +178,23 @@ export function ScrapMovementForm() {
                 />
               </div>
               <div className="md:col-span-2">
-                <FileUpload 
-                  onFileChange={setPhotoFile} 
+                <FileUpload
+                  onFileChange={setPhotoFile}
                   label="Photo for Weight Measurement / Supporting Documents (Optional)"
                   accept="image/*,.pdf,.doc,.docx"
                   dataAiHint="scrap weight document"
                 />
               </div>
             </div>
-            
-            <CardFooter className="px-0 pt-6">
+
+            <CardFooter className="px-0 pt-6 flex justify-end gap-2">
+              {isEditing && onCancel && (
+                <Button type="button" variant="outline" onClick={onCancel} disabled={form.formState.isSubmitting}>
+                  <Ban className="w-4 h-4 mr-2" /> Cancel
+                </Button>
+              )}
               <Button type="submit" className="w-full md:w-auto" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Submitting...</> : <><Send className="w-4 h-4 mr-2" /> Submit Request</>}
+                {form.formState.isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Submitting...</> : (isEditing ? <><Save className="w-4 h-4 mr-2" /> Save Changes</> : <><Send className="w-4 h-4 mr-2" /> Submit Request</>)}
               </Button>
             </CardFooter>
           </form>

@@ -5,7 +5,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useFieldArray } from "react-hook-form";
 import * as React from "react";
-import { CalendarIcon, PlusCircle, Send, ShoppingCart, Trash2, Loader2, Briefcase, Tag, Hash, Users, Percent, FileType, Info, Building } from "lucide-react";
+import { CalendarIcon, PlusCircle, Send, ShoppingCart, Trash2, Loader2, Briefcase, Tag, Hash, Users, Percent, FileType, Info, Building, Save, Ban } from "lucide-react";
 import { format } from "date-fns";
 
 import { Button } from "@/components/ui/button";
@@ -21,36 +21,51 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { PurchaseOrderSchema, type PurchaseOrderFormData, type OrderItem } from "@/lib/schemas";
 import { DEPARTMENTS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { FileUpload } from "@/components/ui/file-upload"; 
+import { FileUpload } from "@/components/ui/file-upload";
 
-export function PurchaseOrderForm() {
+interface PurchaseOrderFormProps {
+  initialData?: PurchaseOrderFormData;
+  isEditing?: boolean;
+  onSave?: (data: PurchaseOrderFormData) => void;
+  onCancel?: () => void;
+}
+
+export function PurchaseOrderForm({ initialData, isEditing, onSave, onCancel }: PurchaseOrderFormProps) {
   const { toast } = useToast();
   const [attachments, setAttachments] = React.useState<File | null>(null);
 
   const form = useForm<PurchaseOrderFormData>({
     resolver: zodResolver(PurchaseOrderSchema),
-    defaultValues: {
-      poCategory: "",
-      department: undefined,
-      vendorName: "",
-      kmKmgCode: "",
-      costCenter: "",
-      ioNumber: "",
-      poDate: new Date(),
-      items: [{ itemName: "", quantity: 1, unitPrice: 0, hsnSacCode: "", gstPercentage: undefined }],
-      deliveryAddress: "",
-      segment: "",
-      paymentTerms: "",
-      remarks: "",
-    },
+    defaultValues: initialData ? 
+      { ...initialData, poDate: initialData.poDate ? new Date(initialData.poDate) : new Date() } 
+      : {
+          poCategory: "",
+          department: undefined,
+          vendorName: "",
+          kmKmgCode: "",
+          costCenter: "",
+          ioNumber: "",
+          poDate: new Date(),
+          items: [{ itemName: "", quantity: 1, unitPrice: 0, hsnSacCode: "", gstPercentage: undefined }],
+          deliveryAddress: "",
+          segment: "",
+          paymentTerms: "",
+          remarks: "",
+        },
   });
+
+  React.useEffect(() => {
+    if (initialData) {
+      form.reset({ ...initialData, poDate: initialData.poDate ? new Date(initialData.poDate) : new Date() });
+    }
+  }, [initialData, form]);
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -75,28 +90,46 @@ export function PurchaseOrderForm() {
   const { subTotal, totalGst, grandTotal } = calculateTotalValue();
 
   function onSubmit(data: PurchaseOrderFormData) {
-    console.log("Purchase Order Data:", { ...data, attachmentName: attachments?.name });
-    toast({
-      title: "Purchase Order Request Submitted",
-      description: "Your PO request has been submitted for approval.",
-    });
-    form.reset();
-    setAttachments(null);
+    if (isEditing && onSave) {
+      onSave(data);
+      toast({
+        title: "Purchase Order Updated",
+        description: "Your PO request has been successfully updated.",
+      });
+    } else if (onSave) { // For new request submission scenario if onSave is provided
+      onSave(data);
+      toast({
+        title: "Purchase Order Request Submitted",
+        description: "Your PO request has been submitted for approval.",
+      });
+      form.reset();
+      setAttachments(null);
+    } else { // Fallback for direct usage on /new page
+      console.log("Purchase Order Data (New):", { ...data, attachmentName: attachments?.name });
+      toast({
+        title: "Purchase Order Request Submitted",
+        description: "Your PO request has been submitted for approval.",
+      });
+      form.reset();
+      setAttachments(null);
+    }
   }
-  
+
   const currencyFormattingOptions: Intl.NumberFormatOptions = { style: 'currency', currency: 'INR', minimumFractionDigits: 2, maximumFractionDigits: 2 };
 
   return (
     <Card className="w-full shadow-xl">
-      <CardHeader>
-        <CardTitle className="flex items-center text-2xl font-headline">
-          <ShoppingCart className="w-6 h-6 mr-2 text-primary" /> Create Purchase Order Request
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-muted-foreground mb-6">
-          This form is to request approval for a new Purchase Order. After internal approval, the PO will be created in SAP, and the SAP PO number will be associated with this request for tracking.
-        </p>
+      {!isEditing && (
+        <CardHeader>
+          <CardTitle className="flex items-center text-2xl font-headline">
+            <ShoppingCart className="w-6 h-6 mr-2 text-primary" /> Create Purchase Order Request
+          </CardTitle>
+          <CardDescription>
+            This form is to request approval for a new Purchase Order. After internal approval, the PO will be created in SAP, and the SAP PO number will be associated with this request for tracking.
+          </CardDescription>
+        </CardHeader>
+      )}
+      <CardContent className={cn(isEditing && "pt-6")}>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -204,7 +237,7 @@ export function PurchaseOrderForm() {
                             )}
                           >
                             {field.value ? (
-                              format(field.value, "PPP")
+                              format(new Date(field.value), "PPP") // Ensure it's a Date object
                             ) : (
                               <span>Pick a date</span>
                             )}
@@ -215,7 +248,7 @@ export function PurchaseOrderForm() {
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                           mode="single"
-                          selected={field.value}
+                          selected={field.value ? new Date(field.value) : undefined}
                           onSelect={field.onChange}
                           disabled={(date) =>
                             date > new Date() || date < new Date("1900-01-01")
@@ -266,7 +299,7 @@ export function PurchaseOrderForm() {
                       name={`items.${index}.unitPrice`}
                       render={({ field }) => (
                         <FormItem className="md:col-span-2">
-                          <FormLabel>Unit Price</FormLabel>
+                          <FormLabel>Unit Price (INR)</FormLabel>
                           <FormControl>
                             <Input type="number" placeholder="0.00" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)}/>
                           </FormControl>
@@ -322,10 +355,10 @@ export function PurchaseOrderForm() {
             <div className="p-4 mt-4 border rounded-lg bg-muted/50">
                 <h4 className="mb-2 text-md font-semibold text-foreground">PO Value Summary</h4>
                 <div className="space-y-1 text-sm">
-                    <div className="flex justify-between"><span>Subtotal:</span> <span>{subTotal.toLocaleString('en-IN', currencyFormattingOptions)}</span></div>
-                    <div className="flex justify-between"><span>Total GST:</span> <span>{totalGst.toLocaleString('en-IN', currencyFormattingOptions)}</span></div>
+                    <div className="flex justify-between"><span>Subtotal (INR):</span> <span>{subTotal.toLocaleString('en-IN', currencyFormattingOptions)}</span></div>
+                    <div className="flex justify-between"><span>Total GST (INR):</span> <span>{totalGst.toLocaleString('en-IN', currencyFormattingOptions)}</span></div>
                     <div className="flex justify-between pt-1 mt-1 border-t border-border">
-                        <span className="font-bold">Grand Total:</span>
+                        <span className="font-bold">Grand Total (INR):</span>
                         <span className="font-bold">{grandTotal.toLocaleString('en-IN', currencyFormattingOptions)}</span>
                     </div>
                 </div>
@@ -396,9 +429,14 @@ export function PurchaseOrderForm() {
               )}
             />
 
-            <CardFooter className="px-0 pt-8 border-t">
+            <CardFooter className="px-0 pt-8 border-t flex justify-end gap-2">
+               {isEditing && onCancel && (
+                <Button type="button" variant="outline" onClick={onCancel} disabled={form.formState.isSubmitting}>
+                  <Ban className="w-4 h-4 mr-2" /> Cancel
+                </Button>
+              )}
               <Button type="submit" className="w-full md:w-auto" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Submitting...</> : <><Send className="w-4 h-4 mr-2" /> Submit Purchase Order</>}
+                {form.formState.isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Submitting...</> : (isEditing ? <><Save className="w-4 h-4 mr-2" /> Save Changes</> : <><Send className="w-4 h-4 mr-2" /> Submit Purchase Order</>)}
               </Button>
             </CardFooter>
           </form>
@@ -407,4 +445,3 @@ export function PurchaseOrderForm() {
     </Card>
   );
 }
-
