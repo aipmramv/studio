@@ -5,7 +5,7 @@ import * as React from "react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, CardFooter as UICardFooter } from "@/components/ui/card";
-import { Check, X, User, CalendarDays, Filter, LayoutGrid, List, Briefcase, Package, ShieldCheck, ShoppingCart, Tags, Recycle, Edit3, DollarSign, Truck, ChevronsUpDown, Eye, MessageSquare, Bell, ChevronsUp, Send, Info, History, Workflow as WorkflowIcon, Clock, Circle, CheckCircle, CircleDot, Loader2, Hash } from "lucide-react";
+import { Check, X, User, CalendarDays, Filter, LayoutGrid, List, Briefcase, Package, ShieldCheck, ShoppingCart, Tags, Recycle, Edit3, Truck, ChevronsUpDown, Eye, MessageSquare, Bell, ChevronsUp, Send, Info, History, Workflow as WorkflowIcon, Clock, Circle, CheckCircle, CircleDot, Loader2, Hash } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { type RequestType, type UserRole, DEPARTMENTS, MOCK_WORKFLOW_TEMPLATES, USER_ACTIONS, type UserAction, type WorkflowStep } from "@/lib/constants";
@@ -133,7 +133,7 @@ const getRequestTypeIcon = (requestType: RequestType, className?: string) => {
 
 const renderRequestPayloadDetailsDialog = (payload: RequestPayload, requestType: RequestType) => {
     const details: {key: string, value: string | number | undefined | React.ReactNode }[] = [];
-    const formattingOptions: Intl.NumberFormatOptions = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
+    const formattingOptions: Intl.NumberFormatOptions = { style: 'currency', currency: 'INR', minimumFractionDigits: 2, maximumFractionDigits: 2 };
 
     switch (requestType) {
       case "Material Movement":
@@ -475,12 +475,12 @@ export default function ApprovalsDashboardPage() {
 
   const renderRequestPayloadSummary = (item: ApprovalItem): string => {
     const { requestType, payload } = item;
-    const formattingOptions: Intl.NumberFormatOptions = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
+    const currencyFormattingOptions: Intl.NumberFormatOptions = { style: 'currency', currency: 'INR', minimumFractionDigits: 2, maximumFractionDigits: 2 };
   
     switch (requestType) {
       case "Material Movement":
         const mm = payload as MaterialMovementFormData;
-        return `Move ${mm.quantity} x ${mm.materialType} from ${mm.source} to ${mm.destination}. Value: ${mm.value.toLocaleString('en-IN', formattingOptions)}`;
+        return `Move ${mm.quantity} x ${mm.materialType} from ${mm.source} to ${mm.destination}. Value: ${mm.value.toLocaleString('en-IN', currencyFormattingOptions)}`;
       case "Scrap Request":
         const sm = payload as ScrapMovementFormData;
         return `Dispose ${sm.quantity} units of ${sm.scrapType} (${sm.weight} units weight). ${sm.gatePassNumber ? `GP: ${sm.gatePassNumber}`: ''}`;
@@ -494,7 +494,7 @@ export default function ApprovalsDashboardPage() {
           const itemGst = itemTotal * ((i.gstPercentage || 0) / 100);
           return sum + itemTotal + itemGst;
         }, 0);
-        return `PO for ${po.vendorName}. ${po.items.length} item(s). Total: ${poTotal.toLocaleString('en-IN', formattingOptions)}`;
+        return `PO for ${po.vendorName}. ${po.items.length} item(s). Total: ${poTotal.toLocaleString('en-IN', currencyFormattingOptions)}`;
       case "Sale Order":
         const so = payload as SaleOrderFormData;
         const soTotal = so.items.reduce((sum, i) => {
@@ -502,7 +502,7 @@ export default function ApprovalsDashboardPage() {
           const itemGst = itemTotal * ((i.gstPercentage || 0) / 100);
           return sum + itemTotal + itemGst;
         }, 0);
-        return `SO for ${so.customerName}. ${so.items.length} item(s). Total: ${soTotal.toLocaleString('en-IN', formattingOptions)}`;
+        return `SO for ${so.customerName}. ${so.items.length} item(s). Total: ${soTotal.toLocaleString('en-IN', currencyFormattingOptions)}`;
       default:
         return "Details not available.";
     }
@@ -760,3 +760,4 @@ export default function ApprovalsDashboardPage() {
     </div>
   );
 }
+

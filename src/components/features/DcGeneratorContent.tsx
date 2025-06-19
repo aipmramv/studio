@@ -120,7 +120,7 @@ export function DcGeneratorContent() {
   };
 
   const totalValue = dcDetails?.materials.reduce((sum, item) => sum + item.value, 0) || 0;
-  const formattingOptions = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
+  const currencyFormattingOptions: Intl.NumberFormatOptions = { style: 'currency', currency: 'INR', minimumFractionDigits: 2, maximumFractionDigits: 2 };
 
   const handleSubmitDc = () => {
     if (!dcDetails) {
@@ -318,14 +318,14 @@ export function DcGeneratorContent() {
                           <TableCell className="font-medium">{item.description}</TableCell>
                           <TableCell className="text-right">{item.quantity}</TableCell>
                           <TableCell>{item.uom}</TableCell>
-                          <TableCell className="text-right">{item.value.toLocaleString('en-IN', formattingOptions)}</TableCell>
+                          <TableCell className="text-right">{item.value.toLocaleString('en-IN', currencyFormattingOptions)}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
                     <TableFooter>
                         <TableRow>
                             <TableCell colSpan={4} className="text-right font-semibold">Total Value</TableCell>
-                            <TableCell className="text-right font-semibold">{totalValue.toLocaleString('en-IN', formattingOptions)}</TableCell>
+                            <TableCell className="text-right font-semibold">{totalValue.toLocaleString('en-IN', currencyFormattingOptions)}</TableCell>
                         </TableRow>
                     </TableFooter>
                   </Table>
@@ -355,3 +355,4 @@ export function DcGeneratorContent() {
     </Card>
   );
 }
+

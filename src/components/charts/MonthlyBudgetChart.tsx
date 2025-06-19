@@ -30,6 +30,15 @@ export function MonthlyBudgetChart({ data, title, description }: MonthlyBudgetCh
     },
   } satisfies ChartConfig;
 
+  const currencyTickFormatter = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', notation: 'compact', compactDisplay: 'short' }).format(value);
+  
+  const currencyTooltipFormatter = (value: number, name: string) => {
+    const label = chartConfig[name as keyof typeof chartConfig]?.label || name;
+    const formattedValue = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
+    return [formattedValue, label];
+  };
+
+
   return (
     <Card className="shadow-lg">
       <CardHeader>
@@ -52,12 +61,12 @@ export function MonthlyBudgetChart({ data, title, description }: MonthlyBudgetCh
               fontSize={12} 
               tickLine={false} 
               axisLine={false}
-              tickFormatter={(value) => new Intl.NumberFormat('en-IN', { notation: 'compact', compactDisplay: 'short' }).format(value)}
+              tickFormatter={currencyTickFormatter}
             />
             <Tooltip
               cursor={{ stroke: 'hsl(var(--muted))', strokeWidth: 1.5 }}
               contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)'}}
-              formatter={(value: number, name: string) => [value.toLocaleString('en-IN'), chartConfig[name as keyof typeof chartConfig]?.label || name]}
+              formatter={currencyTooltipFormatter}
             />
             <Legend wrapperStyle={{ fontSize: '0.875rem' }} />
             <Line 

@@ -42,7 +42,7 @@ export default function DepartmentBudgetsMasterPage() {
   const [editingBudget, setEditingBudget] = React.useState<DepartmentBudget | null>(null);
   const [budgetToDelete, setBudgetToDelete] = React.useState<DepartmentBudget | null>(null);
   const { toast } = useToast();
-  const formattingOptions = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
+  const currencyFormattingOptions: Intl.NumberFormatOptions = { style: 'currency', currency: 'INR', minimumFractionDigits: 2, maximumFractionDigits: 2 };
 
   const form = useForm<DepartmentBudgetFormData>({
     resolver: zodResolver(DepartmentBudgetSchema),
@@ -218,11 +218,11 @@ export default function DepartmentBudgetsMasterPage() {
                     <TableRow key={budget.id}>
                       <TableCell className="font-medium">{budget.department}</TableCell>
                       <TableCell>{budget.year}</TableCell>
-                      <TableCell className="text-right">{budget.q1Budget.toLocaleString('en-IN', formattingOptions)}</TableCell>
-                      <TableCell className="text-right">{budget.q2Budget.toLocaleString('en-IN', formattingOptions)}</TableCell>
-                      <TableCell className="text-right">{budget.q3Budget.toLocaleString('en-IN', formattingOptions)}</TableCell>
-                      <TableCell className="text-right">{budget.q4Budget.toLocaleString('en-IN', formattingOptions)}</TableCell>
-                      <TableCell className="text-right font-semibold">{totalAnnual.toLocaleString('en-IN', formattingOptions)}</TableCell>
+                      <TableCell className="text-right">{budget.q1Budget.toLocaleString('en-IN', currencyFormattingOptions)}</TableCell>
+                      <TableCell className="text-right">{budget.q2Budget.toLocaleString('en-IN', currencyFormattingOptions)}</TableCell>
+                      <TableCell className="text-right">{budget.q3Budget.toLocaleString('en-IN', currencyFormattingOptions)}</TableCell>
+                      <TableCell className="text-right">{budget.q4Budget.toLocaleString('en-IN', currencyFormattingOptions)}</TableCell>
+                      <TableCell className="text-right font-semibold">{totalAnnual.toLocaleString('en-IN', currencyFormattingOptions)}</TableCell>
                       <TableCell className="text-right space-x-2">
                         <Button variant="outline" size="sm" onClick={() => openEditDialog(budget)}>
                           <Edit className="w-3 h-3 mr-1" /> Edit
@@ -245,3 +245,4 @@ export default function DepartmentBudgetsMasterPage() {
     </div>
   );
 }
+

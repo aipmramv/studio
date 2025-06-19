@@ -56,7 +56,7 @@ export function DeliveryNoteGeneratorContent() {
   const canSubmit = currentTime < submissionDeadline;
 
   const totalValue = deliveryNoteData.materials.reduce((sum, item) => sum + item.value, 0);
-  const formattingOptions = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
+  const currencyFormattingOptions: Intl.NumberFormatOptions = { style: 'currency', currency: 'INR', minimumFractionDigits: 2, maximumFractionDigits: 2 };
 
   const handleSubmitDeliveryNote = () => {
     if (!canSubmit) {
@@ -157,12 +157,12 @@ export function DeliveryNoteGeneratorContent() {
                   <TableCell className="font-medium">{item.description}</TableCell>
                   <TableCell className="text-right">{item.quantity}</TableCell>
                   <TableCell>{item.uom}</TableCell>
-                  <TableCell className="text-right">{item.value.toLocaleString('en-IN', formattingOptions)}</TableCell>
+                  <TableCell className="text-right">{item.value.toLocaleString('en-IN', currencyFormattingOptions)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
              <TableCaption className="p-2 text-right bg-muted/50">
-              <strong>Total Value: {totalValue.toLocaleString('en-IN', formattingOptions)}</strong>
+              <strong>Total Value: {totalValue.toLocaleString('en-IN', currencyFormattingOptions)}</strong>
             </TableCaption>
           </Table>
         </div>
@@ -182,3 +182,4 @@ export function DeliveryNoteGeneratorContent() {
     </Card>
   );
 }
+

@@ -27,7 +27,7 @@ const mockSaleOrders: SaleOrderItemDisplay[] = [
 
 export default function SaleOrderListPage() {
   const [saleOrders, setSaleOrders] = React.useState<SaleOrderItemDisplay[]>(mockSaleOrders);
-  const formattingOptions = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
+  const currencyFormattingOptions: Intl.NumberFormatOptions = { style: 'currency', currency: 'INR', minimumFractionDigits: 2, maximumFractionDigits: 2 };
 
   return (
     <div className="space-y-8">
@@ -67,7 +67,7 @@ export default function SaleOrderListPage() {
                     <TableCell>{so.customerName}</TableCell>
                     <TableCell>{new Date(so.soDate).toLocaleDateString()}</TableCell>
                      <TableCell className="text-right">
-                       {so.totalAmount.toLocaleString('en-IN', formattingOptions)}
+                       {so.totalAmount.toLocaleString('en-IN', currencyFormattingOptions)}
                     </TableCell>
                     <TableCell>
                       <Badge
@@ -106,3 +106,4 @@ export default function SaleOrderListPage() {
     </div>
   );
 }
+

@@ -47,7 +47,7 @@ export default function MonthlyBudgetReportPage() {
   const [isDrilldownModalOpen, setIsDrilldownModalOpen] = React.useState(false);
 
 
-  const formattingOptions = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
+  const currencyFormattingOptions: Intl.NumberFormatOptions = { style: 'currency', currency: 'INR', minimumFractionDigits: 2, maximumFractionDigits: 2 };
 
   const reportData = React.useMemo((): ReportDataRow[] => {
     if (!selectedDepartment || !selectedYear) return [];
@@ -169,9 +169,9 @@ export default function MonthlyBudgetReportPage() {
                                 {row.monthName}
                             </Button>
                           </TableCell>
-                          <TableCell className="text-right">{row.forecastedAmount.toLocaleString('en-IN', formattingOptions)}</TableCell>
+                          <TableCell className="text-right">{row.forecastedAmount.toLocaleString('en-IN', currencyFormattingOptions)}</TableCell>
                           <TableCell className="text-right">
-                            {row.actualAmount.toLocaleString('en-IN', formattingOptions)}
+                            {row.actualAmount.toLocaleString('en-IN', currencyFormattingOptions)}
                           </TableCell>
                           <TableCell 
                             className={cn(
@@ -179,7 +179,7 @@ export default function MonthlyBudgetReportPage() {
                               row.varianceAmount > 0 ? "text-destructive" : row.varianceAmount < 0 ? "text-green-600" : "text-foreground"
                             )}
                           >
-                            {row.varianceAmount.toLocaleString('en-IN', formattingOptions)}
+                            {row.varianceAmount.toLocaleString('en-IN', currencyFormattingOptions)}
                           </TableCell>
                           <TableCell 
                              className={cn(
@@ -195,15 +195,15 @@ export default function MonthlyBudgetReportPage() {
                     <TableFooter>
                       <TableRow className="font-semibold">
                         <TableCell>Total / Average</TableCell>
-                        <TableCell className="text-right">{totals.forecasted.toLocaleString('en-IN', formattingOptions)}</TableCell>
-                        <TableCell className="text-right">{totals.actual.toLocaleString('en-IN', formattingOptions)}</TableCell>
+                        <TableCell className="text-right">{totals.forecasted.toLocaleString('en-IN', currencyFormattingOptions)}</TableCell>
+                        <TableCell className="text-right">{totals.actual.toLocaleString('en-IN', currencyFormattingOptions)}</TableCell>
                         <TableCell 
                           className={cn(
                             "text-right",
                             totalVarianceAmount > 0 ? "text-destructive" : totalVarianceAmount < 0 ? "text-green-600" : "text-foreground"
                           )}
                         >
-                          {totalVarianceAmount.toLocaleString('en-IN', formattingOptions)}
+                          {totalVarianceAmount.toLocaleString('en-IN', currencyFormattingOptions)}
                         </TableCell>
                         <TableCell 
                           className={cn(
@@ -260,13 +260,13 @@ export default function MonthlyBudgetReportPage() {
                     {selectedMonthDataForDrilldown.userBreakdown.map((item, index) => (
                       <TableRow key={item.userId + index}>
                         <TableCell className="font-medium">{item.userName}</TableCell>
-                        <TableCell className="text-right">{item.actualAmount.toLocaleString('en-IN', formattingOptions)}</TableCell>
+                        <TableCell className="text-right">{item.actualAmount.toLocaleString('en-IN', currencyFormattingOptions)}</TableCell>
                       </TableRow>
                     ))}
                      <TableRow className="font-semibold bg-muted/50">
                         <TableCell>Total for Month</TableCell>
                         <TableCell className="text-right">
-                          {selectedMonthDataForDrilldown.actualAmount.toLocaleString('en-IN', formattingOptions)}
+                          {selectedMonthDataForDrilldown.actualAmount.toLocaleString('en-IN', currencyFormattingOptions)}
                         </TableCell>
                       </TableRow>
                   </TableBody>
@@ -288,4 +288,5 @@ export default function MonthlyBudgetReportPage() {
     </div>
   );
 }
+
 

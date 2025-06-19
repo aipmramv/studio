@@ -48,7 +48,7 @@ export default function KpiDashboardPage() {
   const [selectedYear, setSelectedYear] = React.useState<FiscalYear>(FISCAL_YEARS[FISCAL_YEARS.length-1]); // Default to latest year
   const [selectedQuarter, setSelectedQuarter] = React.useState<Quarter>("Full Year");
 
-  const formattingOptions: Intl.NumberFormatOptions = { minimumFractionDigits: 0, maximumFractionDigits: 0 };
+  const currencyFormattingOptions: Intl.NumberFormatOptions = { style: 'currency', currency: 'INR', minimumFractionDigits: 0, maximumFractionDigits: 0 };
 
 
   const departmentBudget = React.useMemo(() => {
@@ -153,15 +153,15 @@ export default function KpiDashboardPage() {
                 <div className="lg:col-span-1 space-y-4">
                     <Card>
                         <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Total Budget</CardTitle></CardHeader>
-                        <CardContent><p className="text-2xl font-bold text-foreground">{budgetDataForPeriod.total.toLocaleString('en-IN', formattingOptions)}</p></CardContent>
+                        <CardContent><p className="text-2xl font-bold text-foreground">{budgetDataForPeriod.total.toLocaleString('en-IN', currencyFormattingOptions)}</p></CardContent>
                     </Card>
                      <Card>
                         <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground text-primary">Utilized Budget</CardTitle></CardHeader>
-                        <CardContent><p className="text-2xl font-bold text-primary">{budgetDataForPeriod.utilized.toLocaleString('en-IN', formattingOptions)}</p></CardContent>
+                        <CardContent><p className="text-2xl font-bold text-primary">{budgetDataForPeriod.utilized.toLocaleString('en-IN', currencyFormattingOptions)}</p></CardContent>
                     </Card>
                      <Card>
                         <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground text-accent">Unutilized Budget</CardTitle></CardHeader>
-                        <CardContent><p className="text-2xl font-bold text-accent">{budgetDataForPeriod.unutilized.toLocaleString('en-IN', formattingOptions)}</p></CardContent>
+                        <CardContent><p className="text-2xl font-bold text-accent">{budgetDataForPeriod.unutilized.toLocaleString('en-IN', currencyFormattingOptions)}</p></CardContent>
                     </Card>
                 </div>
                 <div className="lg:col-span-2">
@@ -217,3 +217,4 @@ export default function KpiDashboardPage() {
     </div>
   );
 }
+

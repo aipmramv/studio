@@ -27,7 +27,7 @@ const mockPurchaseOrders: PurchaseOrderItemDisplay[] = [
 
 export default function PurchaseOrderListPage() {
   const [purchaseOrders, setPurchaseOrders] = React.useState<PurchaseOrderItemDisplay[]>(mockPurchaseOrders);
-  const formattingOptions = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
+  const currencyFormattingOptions: Intl.NumberFormatOptions = { style: 'currency', currency: 'INR', minimumFractionDigits: 2, maximumFractionDigits: 2 };
 
   return (
     <div className="space-y-8">
@@ -67,7 +67,7 @@ export default function PurchaseOrderListPage() {
                     <TableCell>{po.vendorName}</TableCell>
                     <TableCell>{new Date(po.poDate).toLocaleDateString()}</TableCell>
                     <TableCell className="text-right">
-                       {po.totalAmount.toLocaleString('en-IN', formattingOptions)}
+                       {po.totalAmount.toLocaleString('en-IN', currencyFormattingOptions)}
                     </TableCell>
                     <TableCell>
                       <Badge
@@ -106,3 +106,4 @@ export default function PurchaseOrderListPage() {
     </div>
   );
 }
+

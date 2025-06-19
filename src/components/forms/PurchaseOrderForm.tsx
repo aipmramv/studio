@@ -84,7 +84,7 @@ export function PurchaseOrderForm() {
     setAttachments(null);
   }
   
-  const formattingOptions = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
+  const currencyFormattingOptions: Intl.NumberFormatOptions = { style: 'currency', currency: 'INR', minimumFractionDigits: 2, maximumFractionDigits: 2 };
 
   return (
     <Card className="w-full shadow-xl">
@@ -322,11 +322,11 @@ export function PurchaseOrderForm() {
             <div className="p-4 mt-4 border rounded-lg bg-muted/50">
                 <h4 className="mb-2 text-md font-semibold text-foreground">PO Value Summary</h4>
                 <div className="space-y-1 text-sm">
-                    <div className="flex justify-between"><span>Subtotal:</span> <span>{subTotal.toLocaleString('en-IN', formattingOptions)}</span></div>
-                    <div className="flex justify-between"><span>Total GST:</span> <span>{totalGst.toLocaleString('en-IN', formattingOptions)}</span></div>
+                    <div className="flex justify-between"><span>Subtotal:</span> <span>{subTotal.toLocaleString('en-IN', currencyFormattingOptions)}</span></div>
+                    <div className="flex justify-between"><span>Total GST:</span> <span>{totalGst.toLocaleString('en-IN', currencyFormattingOptions)}</span></div>
                     <div className="flex justify-between pt-1 mt-1 border-t border-border">
                         <span className="font-bold">Grand Total:</span>
-                        <span className="font-bold">{grandTotal.toLocaleString('en-IN', formattingOptions)}</span>
+                        <span className="font-bold">{grandTotal.toLocaleString('en-IN', currencyFormattingOptions)}</span>
                     </div>
                 </div>
             </div>
@@ -407,3 +407,4 @@ export function PurchaseOrderForm() {
     </Card>
   );
 }
+

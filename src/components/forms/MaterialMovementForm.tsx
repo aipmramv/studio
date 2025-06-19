@@ -78,7 +78,7 @@ export function MaterialMovementForm() {
         </CardTitle>
         <CardDescription>
           Fill the form with source, destination, item details, quantity, and value. Choose if the material is returnable. 
-          If value is over ₹1 Lakh, vehicle number is mandatory. Upload E-Way bill if applicable. The request will include approval and receipt confirmation steps.
+          If value is over 1 Lakh INR, vehicle number is mandatory. Upload E-Way bill if applicable. The request will include approval and receipt confirmation steps.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -169,12 +169,12 @@ export function MaterialMovementForm() {
                 name="value"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="flex items-center">Material Value (₹)</FormLabel>
+                    <FormLabel className="flex items-center">Material Value (INR)</FormLabel>
                     <FormControl>
                       <Input type="number" placeholder="e.g., 50000" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />
                     </FormControl>
                     <FormDescription>
-                      If value &gt; ₹1,00,000 vehicle number is mandatory.
+                      If value &gt; 1,00,000 INR vehicle number is mandatory.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -246,3 +246,4 @@ export function MaterialMovementForm() {
     </Card>
   );
 }
+

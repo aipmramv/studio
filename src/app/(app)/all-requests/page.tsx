@@ -149,12 +149,12 @@ const getRequestTypeIcon = (requestType: RequestType, className?: string) => {
 
 const renderRequestSummary = (item: ApprovalItem): string => {
   const { requestType, payload } = item;
-  const formattingOptions: Intl.NumberFormatOptions = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
+  const currencyFormattingOptions: Intl.NumberFormatOptions = { style: 'currency', currency: 'INR', minimumFractionDigits: 2, maximumFractionDigits: 2 };
 
   switch (requestType) {
     case "Material Movement":
       const mm = payload as MaterialMovementFormData;
-      return `Move ${mm.quantity} x ${mm.materialType} from ${mm.source} to ${mm.destination}. Value: ${mm.value.toLocaleString('en-IN', formattingOptions)}`;
+      return `Move ${mm.quantity} x ${mm.materialType} from ${mm.source} to ${mm.destination}. Value: ${mm.value.toLocaleString('en-IN', currencyFormattingOptions)}`;
     case "Scrap Request":
       const sm = payload as ScrapMovementFormData;
       return `${sm.quantity} units of ${sm.scrapType} (${sm.weight} units weight). Desc: ${sm.description.substring(0,50)}... ${sm.gatePassNumber ? `GP: ${sm.gatePassNumber}` : ''}`;
@@ -168,7 +168,7 @@ const renderRequestSummary = (item: ApprovalItem): string => {
         const itemGst = itemTotal * ((i.gstPercentage || 0) / 100);
         return sum + itemTotal + itemGst;
       }, 0);
-      return `Vendor: ${po.vendorName}. ${po.items.length} item(s). Total: ${poTotal.toLocaleString('en-IN', formattingOptions)}`;
+      return `Vendor: ${po.vendorName}. ${po.items.length} item(s). Total: ${poTotal.toLocaleString('en-IN', currencyFormattingOptions)}`;
     case "Sale Order":
       const so = payload as SaleOrderFormData;
       const soTotal = so.items.reduce((sum, i) => {
@@ -176,7 +176,7 @@ const renderRequestSummary = (item: ApprovalItem): string => {
         const itemGst = itemTotal * ((i.gstPercentage || 0) / 100);
         return sum + itemTotal + itemGst;
       }, 0);
-      return `Customer: ${so.customerName}. ${so.items.length} item(s). Total: ${soTotal.toLocaleString('en-IN', formattingOptions)}`;
+      return `Customer: ${so.customerName}. ${so.items.length} item(s). Total: ${soTotal.toLocaleString('en-IN', currencyFormattingOptions)}`;
     default:
       return "Details not available.";
   }
@@ -184,7 +184,7 @@ const renderRequestSummary = (item: ApprovalItem): string => {
 
 const renderRequestPayloadDetailsDialog = (payload: RequestPayload, requestType: RequestType) => {
     const details: {key: string, value: string | number | undefined | React.ReactNode }[] = [];
-    const formattingOptions: Intl.NumberFormatOptions = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
+    const currencyFormattingOptions: Intl.NumberFormatOptions = { style: 'currency', currency: 'INR', minimumFractionDigits: 2, maximumFractionDigits: 2 };
 
     switch (requestType) {
       case "Material Movement":
@@ -193,7 +193,7 @@ const renderRequestPayloadDetailsDialog = (payload: RequestPayload, requestType:
         details.push({ key: "Source", value: mmPayload.source });
         details.push({ key: "Destination", value: mmPayload.destination });
         details.push({ key: "Quantity", value: mmPayload.quantity });
-        details.push({ key: "Value", value: mmPayload.value.toLocaleString('en-IN', formattingOptions) });
+        details.push({ key: "Value", value: mmPayload.value.toLocaleString('en-IN', currencyFormattingOptions) });
         details.push({ key: "Returnable", value: mmPayload.isReturnable });
         if (mmPayload.vehicleNumber) details.push({ key: "Vehicle No.", value: mmPayload.vehicleNumber });
         break;
@@ -235,7 +235,7 @@ const renderRequestPayloadDetailsDialog = (payload: RequestPayload, requestType:
               const itemGst = itemTotal * ((item.gstPercentage || 0) / 100);
               const lineTotal = itemTotal + itemGst;
               return (
-              <TableRow key={idx}><TableCell>{item.itemName}</TableCell><TableCell>{item.quantity}</TableCell><TableCell className="text-right">{item.unitPrice.toLocaleString('en-IN', formattingOptions)}</TableCell><TableCell>{item.hsnSacCode || 'N/A'}</TableCell><TableCell className="text-right">{item.gstPercentage ? `${item.gstPercentage}%` : 'N/A'}</TableCell><TableCell className="text-right">{lineTotal.toLocaleString('en-IN', formattingOptions)}</TableCell></TableRow>
+              <TableRow key={idx}><TableCell>{item.itemName}</TableCell><TableCell>{item.quantity}</TableCell><TableCell className="text-right">{item.unitPrice.toLocaleString('en-IN', currencyFormattingOptions)}</TableCell><TableCell>{item.hsnSacCode || 'N/A'}</TableCell><TableCell className="text-right">{item.gstPercentage ? `${item.gstPercentage}%` : 'N/A'}</TableCell><TableCell className="text-right">{lineTotal.toLocaleString('en-IN', currencyFormattingOptions)}</TableCell></TableRow>
               );
             })}
             </TableBody>
@@ -243,7 +243,7 @@ const renderRequestPayloadDetailsDialog = (payload: RequestPayload, requestType:
                 const itemTotal = (i.quantity || 0) * (i.unitPrice || 0);
                 const itemGst = itemTotal * ((i.gstPercentage || 0) / 100);
                 return sum + itemTotal + itemGst;
-             }, 0).toLocaleString('en-IN', formattingOptions)}</TableCell></TableRow></TableFooter>
+             }, 0).toLocaleString('en-IN', currencyFormattingOptions)}</TableCell></TableRow></TableFooter>
           </Table>
         )});
         if(poPayload.remarks) details.push({ key: "Remarks", value: <p className="whitespace-pre-wrap">{poPayload.remarks}</p> });
@@ -257,7 +257,7 @@ const renderRequestPayloadDetailsDialog = (payload: RequestPayload, requestType:
         details.push({ key: "Purpose", value: <p className="whitespace-pre-wrap">{soPayload.purpose}</p> });
         details.push({ key: "Cost Center", value: soPayload.costCenter });
         details.push({ key: "IO Number", value: soPayload.ioNumber });
-        details.push({ key: "Budget Amount", value: soPayload.budgetAmount.toLocaleString('en-IN', formattingOptions) });
+        details.push({ key: "Budget Amount", value: soPayload.budgetAmount.toLocaleString('en-IN', currencyFormattingOptions) });
         details.push({ key: "Material Req. Date", value: new Date(soPayload.materialRequiredDate).toLocaleDateString() });
         details.push({ key: "Dept. Head Approval", value: soPayload.departmentHeadApproval });
         details.push({ key: "Delivery To", value: soPayload.deliveryTo });
@@ -270,7 +270,7 @@ const renderRequestPayloadDetailsDialog = (payload: RequestPayload, requestType:
               const itemGst = itemTotal * ((item.gstPercentage || 0) / 100);
               const lineTotal = itemTotal + itemGst;
               return(
-              <TableRow key={idx}><TableCell>{item.itemName}</TableCell><TableCell>{item.quantity}</TableCell><TableCell className="text-right">{item.unitPrice.toLocaleString('en-IN', formattingOptions)}</TableCell><TableCell>{item.hsnSacCode || 'N/A'}</TableCell><TableCell className="text-right">{item.gstPercentage ? `${item.gstPercentage}%` : 'N/A'}</TableCell><TableCell className="text-right">{lineTotal.toLocaleString('en-IN', formattingOptions)}</TableCell></TableRow>
+              <TableRow key={idx}><TableCell>{item.itemName}</TableCell><TableCell>{item.quantity}</TableCell><TableCell className="text-right">{item.unitPrice.toLocaleString('en-IN', currencyFormattingOptions)}</TableCell><TableCell>{item.hsnSacCode || 'N/A'}</TableCell><TableCell className="text-right">{item.gstPercentage ? `${item.gstPercentage}%` : 'N/A'}</TableCell><TableCell className="text-right">{lineTotal.toLocaleString('en-IN', currencyFormattingOptions)}</TableCell></TableRow>
               );
             })}
             </TableBody>
@@ -278,7 +278,7 @@ const renderRequestPayloadDetailsDialog = (payload: RequestPayload, requestType:
                 const itemTotal = (i.quantity || 0) * (i.unitPrice || 0);
                 const itemGst = itemTotal * ((i.gstPercentage || 0) / 100);
                 return sum + itemTotal + itemGst;
-            }, 0).toLocaleString('en-IN', formattingOptions)}</TableCell></TableRow></TableFooter>
+            }, 0).toLocaleString('en-IN', currencyFormattingOptions)}</TableCell></TableRow></TableFooter>
           </Table>
         )});
         if(soPayload.remarks) details.push({ key: "Remarks", value: <p className="whitespace-pre-wrap">{soPayload.remarks}</p> });
@@ -513,10 +513,10 @@ export default function AllRequestsPage() {
     );
   };
 
-  const handleExport = (format: 'excel' | 'pdf') => {
+  const handleExport = (formatType: 'excel' | 'pdf') => {
     toast({
-      title: `Exporting to ${format.toUpperCase()}...`,
-      description: `Preparing all requests for ${format} export. This is a mock action.`,
+      title: `Exporting to ${formatType.toUpperCase()}...`,
+      description: `Preparing all requests for ${formatType} export. This is a mock action.`,
     });
   };
 
@@ -810,3 +810,4 @@ export default function AllRequestsPage() {
     </div>
   );
 }
+
