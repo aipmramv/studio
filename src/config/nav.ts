@@ -37,13 +37,13 @@ export const mainNavItems: NavItem[] = [
   },
   {
     title: 'Requests',
-    href: '/material-movement/new',
+    href: '/material-movement/list', // Default to list view
     icon: ClipboardCheck,
     description: "Manage all types of requests.",
     items: [
       {
         title: 'Material Movement',
-        href: '/material-movement/new',
+        href: '/material-movement/list',
         icon: Truck,
         description: "Log and track material movements.",
         items: [
@@ -53,7 +53,7 @@ export const mainNavItems: NavItem[] = [
       },
       {
         title: 'Scrap Disposal',
-        href: '/scrap-movement/new',
+        href: '/scrap-movement/list',
         icon: Recycle,
         description: "Log and track scrap disposals.",
         items: [
@@ -63,7 +63,7 @@ export const mainNavItems: NavItem[] = [
       },
       {
         title: 'Work Permit',
-        href: '/work-permit/new',
+        href: '/work-permit/list',
         icon: ShieldCheck,
         description: "Request and manage work permits.",
         items: [
@@ -73,7 +73,7 @@ export const mainNavItems: NavItem[] = [
       },
       {
         title: 'Purchase Order',
-        href: '/purchase-order/new',
+        href: '/purchase-order/list', // Primary link to the list page
         icon: ShoppingCart,
         description: "Manage Purchase Orders.",
         items: [
@@ -83,7 +83,7 @@ export const mainNavItems: NavItem[] = [
       },
       {
         title: 'Sale Order',
-        href: '/sale-order/new',
+        href: '/sale-order/list',
         icon: Tags,
         description: "Manage Sale Orders.",
         items: [
@@ -238,3 +238,4 @@ export const userNavItems: NavItem[] = [
         description: "Sign out of your account."
     }
 ];
+

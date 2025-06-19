@@ -58,7 +58,7 @@ export type ActivityTypeWorkPermit = typeof ACTIVITY_TYPES_WORK_PERMIT[number];
 export const REQUEST_TYPES = ["Purchase Order", "Sale Order", "Material Movement", "Work Permit", "Scrap Request"] as const;
 export type RequestType = typeof REQUEST_TYPES[number];
 
-export const REQUEST_STATUSES = ["Pending", "Approved", "Rejected", "In Progress", "Completed", "Cancelled"] as const;
+export const REQUEST_STATUSES = ["Pending", "Approved", "Rejected", "In Progress", "Completed", "Cancelled", "Voided"] as const;
 export type RequestStatus = typeof REQUEST_STATUSES[number];
 
 
@@ -89,7 +89,7 @@ export const MOCK_WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
       { id: "mm_dept_head_approval", name: "Department Head Approval", assignedRoles: ["department_head", "admin"], nextStepId: "mm_dispatch_team_coordination", rejectionLeadsToStepId: "mm_dept_head_approval" },
       { id: "mm_dispatch_team_coordination", name: "Dispatch Team Coordination", assignedRoles: ["dispatch_team", "admin"], nextStepId: "mm_finance_check", rejectionLeadsToStepId: "mm_dept_head_approval" },
       { id: "mm_finance_check", name: "Finance Check (If Applicable)", assignedRoles: ["finance_team", "admin"], nextStepId: "mm_receipt_confirmation", rejectionLeadsToStepId: "mm_dept_head_approval" },
-      { id: "mm_receipt_confirmation", name: "Receipt Confirmation", assignedRoles: ["requester", "dispatch_team", "admin"] } 
+      { id: "mm_receipt_confirmation", name: "Receipt Confirmation", assignedRoles: ["requester", "dispatch_team", "admin"] }
     ],
   },
   {
@@ -110,7 +110,9 @@ export const MOCK_WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
     initialStepId: "po_dept_head",
     steps: [
       { id: "po_dept_head", name: "Dept. Head Approval", assignedRoles: ["department_head", "admin"], nextStepId: "po_finance", rejectionLeadsToStepId: "po_dept_head" },
-      { id: "po_finance", name: "Finance Approval", assignedRoles: ["finance_team", "admin"] },
+      { id: "po_finance", name: "Finance Approval (Budget)", assignedRoles: ["finance_team", "admin"], nextStepId: "po_sap_creation", rejectionLeadsToStepId: "po_dept_head" },
+      { id: "po_sap_creation", name: "SAP PO Creation & Update", assignedRoles: ["admin", "finance_team"], nextStepId: "po_fulfilled" },
+      { id: "po_fulfilled", name: "Order Fulfilled/Closed", assignedRoles: ["admin", "requester"] },
     ]
   },
   {
@@ -131,8 +133,9 @@ export const MOCK_WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
     initialStepId: "so_manager_approval",
     steps: [
       { id: "so_manager_approval", name: "Sales Manager Approval", assignedRoles: ["department_head", "admin"], nextStepId: "so_finance_review", rejectionLeadsToStepId: "so_manager_approval" },
-      { id: "so_finance_review", name: "Finance Review", assignedRoles: ["finance_team", "admin"], nextStepId: "so_dispatch_prep", rejectionLeadsToStepId: "so_manager_approval" },
-      { id: "so_dispatch_prep", name: "Dispatch Preparation", assignedRoles: ["dispatch_team", "admin"] },
+      { id: "so_finance_review", name: "Finance Review (Pricing & Terms)", assignedRoles: ["finance_team", "admin"], nextStepId: "so_sap_creation", rejectionLeadsToStepId: "so_manager_approval" },
+      { id: "so_sap_creation", name: "SAP SO Creation & Update", assignedRoles: ["admin", "finance_team"], nextStepId: "so_shipped" },
+      { id: "so_shipped", name: "Order Shipped/Delivered", assignedRoles: ["dispatch_team", "admin"] },
     ],
   }
 ];
@@ -266,7 +269,7 @@ export const MOCK_MONTHLY_BUDGET_DATA: MonthlyBudgetRecord[] = [
   {
     id: "MB007", department: "IT", year: "2024-2025", monthIndex: 0, forecastedAmount: 60000, actualAmount: 58000,  // Apr
     userBreakdown: [
-      { userId: "user_ram_admin", userName: "Ram Kumar", actualAmount: 30000 }, 
+      { userId: "user_ram_admin", userName: "Ram Kumar", actualAmount: 30000 },
       { userId: "user_sashikanth_it_head", userName: "Sashikanth M.", actualAmount: 28000 },
     ]
   },
@@ -308,8 +311,8 @@ export interface RequestStatusSummaryItem {
   pending: number;
   approved: number;
   rejected: number;
-  inProgress?: number; 
-  completed?: number; 
+  inProgress?: number;
+  completed?: number;
 }
 
 export const MOCK_REQUEST_STATUS_SUMMARY: RequestStatusSummaryItem[] = [
@@ -401,3 +404,4 @@ export const MOCK_WORK_PERMIT_TEMPLATES: WorkPermitTemplate[] = [
     ]
   }
 ];
+
