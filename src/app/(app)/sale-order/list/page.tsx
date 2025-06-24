@@ -36,9 +36,9 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { Eye, Edit, Trash2, PlusCircle, Filter as FilterIcon, CalendarDays, Search, Tags, ChevronsLeft, ChevronsRight, AlertCircle, Package, Info, History, Workflow as WorkflowIcon, MessageSquare, Save, Ban } from "lucide-react";
+import { Eye, Edit, Trash2, PlusCircle, Filter as FilterIcon, CalendarDays, Search, Tags, ChevronsLeft, ChevronsRight, AlertCircle, Package, Info, History, Workflow as WorkflowIcon, MessageSquare, Save, Ban, Send, Loader2 } from "lucide-react";
 import { type RequestType, type UserRole, type UserAction, MOCK_WORKFLOW_TEMPLATES, type WorkflowStep, DEPARTMENTS, REQUEST_STATUSES, type RequestStatus } from "@/lib/constants";
-import { type MaterialMovementFormData, type ScrapMovementFormData, type WorkPermitFormData, type PurchaseOrderFormData, type SaleOrderFormData, type OrderItem } from "@/lib/schemas";
+import { type SaleOrderFormData } from "@/lib/schemas";
 import { SaleOrderForm } from "@/components/forms/SaleOrderForm";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -68,6 +68,7 @@ export default function SaleOrderListPage() {
   const [isVoidDialogOpen, setIsVoidDialogOpen] = React.useState(false);
   const [voidReason, setVoidReason] = React.useState("");
   const [newComment, setNewComment] = React.useState("");
+  const [sapNumberInput, setSapNumberInput] = React.useState("");
 
   const [searchTerm, setSearchTerm] = React.useState("");
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>(undefined);
@@ -90,7 +91,7 @@ export default function SaleOrderListPage() {
     }
     if (filterStatus) {
        if (filterStatus === "Voided") {
-         tempItems = tempItems.filter(item => item.currentStepName === "Request Voided");
+         tempItems = tempItems.filter(item => item.isVoided || item.currentStepName === "Request Voided");
       } else {
          tempItems = tempItems.filter(item => item.currentStepName.toLowerCase().includes(filterStatus.toLowerCase()) || ( MOCK_WORKFLOW_TEMPLATES.find(wt => wt.id === item.workflowTemplateId)?.steps.find(s => s.id === item.currentStepId && !s.nextStepId) && filterStatus === "Completed" && item.currentStepName !== "Request Voided" && item.currentStepName !== "Request Rejected" ));
       }
@@ -198,13 +199,38 @@ export default function SaleOrderListPage() {
     setNewComment("");
     toast({ title: "Comment Added", description: `Comment added to request ${selectedRequestDetail.id}.` });
   };
+  
+  const handleUpdateSapNumber = () => {
+    if (!selectedRequestDetail || !sapNumberInput.trim() || !user) return;
+    const workflow = MOCK_WORKFLOW_TEMPLATES.find(wt => wt.id === selectedRequestDetail.workflowTemplateId);
+    const currentStep = workflow?.steps.find(s => s.id === selectedRequestDetail.currentStepId);
+    const nextStep = workflow?.steps.find(s => s.id === currentStep?.nextStepId);
+    if (!nextStep) {
+        toast({ title: "Workflow Error", description: "Could not determine the next step.", variant: "destructive"});
+        return;
+    }
+    const updatedRequest: SaleOrderDisplayItem = {
+      ...selectedRequestDetail,
+      payload: { ...selectedRequestDetail.payload, sapOrderNumber: sapNumberInput, },
+      currentStepId: nextStep.id,
+      currentStepName: nextStep.name,
+      currentAssignees: nextStep.assignedRoles,
+      history: [ ...selectedRequestDetail.history, { stepId: selectedRequestDetail.currentStepId, stepName: "SAP SO Number Updated", action: "approve", actor: user.displayName || "System", timestamp: new Date().toISOString(), comment: `SAP SO Number updated to: ${sapNumberInput}`, }, ],
+    };
+    const globalIndex = allRequestsSource.findIndex(req => req.id === selectedRequestDetail.id);
+    if (globalIndex !== -1) { allRequestsSource[globalIndex] = updatedRequest as GlobalApprovalItem; }
+    setSaleOrders(prev => prev.map(r => r.id === updatedRequest.id ? updatedRequest : r));
+    setSelectedRequestDetail(updatedRequest);
+    setSapNumberInput("");
+    toast({ title: "SAP Number Updated", description: `Request ${selectedRequestDetail.id} moved to next step: ${nextStep.name}.` });
+  };
 
   const getStatusBadgeVariantForSO = (statusName: string, workflowTemplateId: string, currentStepId: string) => {
     const workflow = MOCK_WORKFLOW_TEMPLATES.find(wt => wt.id === workflowTemplateId);
     const isFinalStep = workflow?.steps.find(s => s.id === currentStepId && !s.nextStepId);
     if (statusName === "Request Voided" || statusName === "Request Rejected") return "destructive";
     if (isFinalStep) return "default";
-    if (statusName.toLowerCase().includes("pending") || statusName.toLowerCase().includes("approval") || statusName.toLowerCase().includes("review")) return "secondary";
+    if (statusName.toLowerCase().includes("pending") || statusName.toLowerCase().includes("approval") || statusName.toLowerCase().includes("review") || statusName.toLowerCase().includes("creation")) return "secondary";
     return "outline";
   };
   
@@ -219,7 +245,7 @@ export default function SaleOrderListPage() {
     <div className="space-y-8">
       <PageHeader
         title="Sale Order Requests"
-        description="Manage and track all Sale Order requests."
+        description="Request approval for a Sale Order. Once approved and created in SAP, the SO number will be updated here for tracking."
         actions={
           <Button asChild>
             <Link href="/sale-order/new">
@@ -338,10 +364,7 @@ export default function SaleOrderListPage() {
       {selectedRequestDetail && (
         <Dialog open={isDetailDialogOpen} onOpenChange={(isOpen) => { setIsDetailDialogOpen(isOpen); if (!isOpen) { setSelectedRequestDetail(null); setNewComment(""); } }}>
           <DialogContent className="sm:max-w-3xl">
-            <DialogHeader>
-              <DialogTitle className="flex items-center">{getRequestTypeIcon(selectedRequestDetail.requestType, "w-6 h-6 mr-2 text-primary")}Sale Order Details: {selectedRequestDetail.id}</DialogTitle>
-              <DialogDescription>Detailed information for Sale Order {selectedRequestDetail.id}.</DialogDescription>
-            </DialogHeader>
+            <DialogHeader><DialogTitle className="flex items-center">{getRequestTypeIcon(selectedRequestDetail.requestType, "w-6 h-6 mr-2 text-primary")}Sale Order Details: {selectedRequestDetail.id}</DialogTitle><DialogDescription>Detailed information for Sale Order {selectedRequestDetail.id}.</DialogDescription></DialogHeader>
             <ScrollArea className="max-h-[calc(100vh-20rem)] pr-6">
                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-4">
                 <div className="md:col-span-2 space-y-4">
@@ -352,6 +375,20 @@ export default function SaleOrderListPage() {
                       <p><strong>Submitted:</strong> {new Date(selectedRequestDetail.submissionDate).toLocaleString()}</p>
                       <p><strong>Current Step:</strong> {selectedRequestDetail.currentStepName}</p>
                       {selectedRequestDetail.isVoided && selectedRequestDetail.voidReason && <p className="text-destructive"><strong>Void Reason:</strong> {selectedRequestDetail.voidReason}</p>}
+                      {selectedRequestDetail.payload.sapOrderNumber ? (
+                        <p><strong>SAP SO Number:</strong> <span className='font-bold text-primary'>{selectedRequestDetail.payload.sapOrderNumber}</span></p>
+                      ) : (
+                          selectedRequestDetail.currentStepId === 'so_sap_creation' && (user?.role === 'admin' || user?.role === 'finance_team') && (
+                          <div className="mt-4 p-4 border-t bg-amber-50 rounded-md">
+                            <h4 className="font-semibold text-foreground flex items-center"><Send className="w-4 h-4 mr-2" />Update SAP Number</h4>
+                            <p className="text-xs text-muted-foreground mb-2">Enter the SAP SO number to proceed to the next step.</p>
+                            <div className="flex gap-2 mt-2">
+                                <Input value={sapNumberInput} onChange={(e) => setSapNumberInput(e.target.value)} placeholder="Enter SAP SO Number"/>
+                                <Button onClick={handleUpdateSapNumber} disabled={!sapNumberInput.trim()}>Update</Button>
+                            </div>
+                          </div>
+                        )
+                      )}
                     </CardContent>
                   </Card>
                   <Card>
@@ -384,7 +421,7 @@ export default function SaleOrderListPage() {
 
       {editingRequest && isEditDialogOpen && (
         <Dialog open={isEditDialogOpen} onOpenChange={(isOpen) => { if (!isOpen) { setEditingRequest(null); setIsEditDialogOpen(false); } }}>
-          <DialogContent className="sm:max-w-lg">
+          <DialogContent className="sm:max-w-3xl">
             <DialogHeader>
               <DialogTitle className="flex items-center"><Edit className="w-5 h-5 mr-2 text-primary" /> Edit Sale Order: {editingRequest.id}</DialogTitle>
               <DialogDescription>Modify the details of this Sale Order request.</DialogDescription>

@@ -77,6 +77,7 @@ export const PurchaseOrderSchema = z.object({
   segment: z.string().optional(),
   paymentTerms: z.string().optional(),
   remarks: z.string().optional(),
+  sapOrderNumber: z.string().optional(),
 });
 export type PurchaseOrderFormData = z.infer<typeof PurchaseOrderSchema>;
 
@@ -96,6 +97,7 @@ export const SaleOrderSchema = z.object({
   shippingAddress: z.string().min(1, "Shipping address is required."),
   billingAddress: z.string().min(1, "Billing address is required."),
   remarks: z.string().optional(),
+  sapOrderNumber: z.string().optional(),
 });
 export type SaleOrderFormData = z.infer<typeof SaleOrderSchema>;
 

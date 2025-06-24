@@ -5,7 +5,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useFieldArray } from "react-hook-form";
 import * as React from "react";
-import { CalendarIcon, PlusCircle, Send, Tags, Trash2, User, Home, Loader2, FileText, Target, Briefcase, Hash, CalendarClock, UserCheck, MessageSquare, Tag, Save, Ban } from "lucide-react";
+import { CalendarIcon, PlusCircle, Send, Tags, Trash2, User, Home, Loader2, FileText, Target, Briefcase, Hash, CalendarClock, UserCheck, MessageSquare, Tag, Save, Ban, Percent } from "lucide-react";
 import { format } from "date-fns";
 
 import { Button } from "@/components/ui/button";
@@ -332,12 +332,12 @@ export function SaleOrderForm({ initialData, isEditing, onSave, onCancel }: Sale
             <div>
               <h3 className="mb-2 text-lg font-medium">Material Purchase List / Items</h3>
               {fields.map((item, index) => (
-                <div key={item.id} className="grid grid-cols-1 gap-4 p-4 mb-4 border rounded-md md:grid-cols-7">
+                <div key={item.id} className="grid grid-cols-1 gap-4 p-4 mb-4 border rounded-md md:grid-cols-12">
                   <FormField
                     control={form.control}
                     name={`items.${index}.itemName`}
                     render={({ field }) => (
-                      <FormItem className="md:col-span-3">
+                      <FormItem className="md:col-span-4">
                         <FormLabel>Item Name</FormLabel>
                         <FormControl>
                           <Input placeholder="Product/Service name" {...field} />
@@ -372,6 +372,32 @@ export function SaleOrderForm({ initialData, isEditing, onSave, onCancel }: Sale
                       </FormItem>
                     )}
                   />
+                  <FormField
+                      control={form.control}
+                      name={`items.${index}.hsnSacCode`}
+                      render={({ field }) => (
+                        <FormItem className="md:col-span-2">
+                          <FormLabel>HSN/SAC Code</FormLabel>
+                          <FormControl>
+                            <Input placeholder="e.g., 998313" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name={`items.${index}.gstPercentage`}
+                      render={({ field }) => (
+                        <FormItem className="md:col-span-2">
+                          <FormLabel className="flex items-center"><Percent className="w-3 h-3 mr-1" />GST %</FormLabel>
+                          <FormControl>
+                            <Input type="number" placeholder="e.g., 18" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   <div className="flex items-end md:col-span-1">
                     <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)} className="w-full">
                       <Trash2 className="w-4 h-4" />

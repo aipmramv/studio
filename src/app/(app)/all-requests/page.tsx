@@ -249,6 +249,7 @@ export const renderRequestPayloadDetailsDialog = (payload: RequestPayload, reque
         break;
       case "Purchase Order":
         const poPayload = payload as PurchaseOrderFormData;
+        if(poPayload.sapOrderNumber) details.push({ key: "SAP PO Number", value: <span className='font-bold text-primary'>{poPayload.sapOrderNumber}</span> });
         details.push({ key: "PO Category", value: poPayload.poCategory });
         details.push({ key: "Department", value: poPayload.department });
         details.push({ key: "Vendor", value: poPayload.vendorName });
@@ -284,6 +285,7 @@ export const renderRequestPayloadDetailsDialog = (payload: RequestPayload, reque
         break;
       case "Sale Order":
         const soPayload = payload as SaleOrderFormData;
+        if(soPayload.sapOrderNumber) details.push({ key: "SAP SO Number", value: <span className='font-bold text-primary'>{soPayload.sapOrderNumber}</span> });
         details.push({ key: "Customer", value: soPayload.customerName });
         details.push({ key: "SO Date", value: new Date(soPayload.soDate).toLocaleDateString() });
         details.push({ key: "Project/CR No.", value: soPayload.projectOrCrNo });
@@ -873,4 +875,3 @@ export default function AllRequestsPage() {
     </div>
   );
 }
-
