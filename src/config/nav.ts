@@ -7,7 +7,7 @@ import {
   Store, PackagePlus, PackageMinus, Undo2, SearchCheck, SlidersHorizontal, GitFork,
   Users, Mail, UserCog, Layers, FileArchive, PackageSearch,
   Building2, Users2, TagIcon, ScaleIcon, Landmark, AreaChart, PieChart, BarChartHorizontalBig,
-  FileSpreadsheet, FileCheck
+  FileSpreadsheet, FileCheck, Clock, ArchiveRestore, Send
 } from 'lucide-react';
 
 export interface NavItem {
@@ -151,6 +151,27 @@ export const mainNavItems: NavItem[] = [
         roles: ['admin', 'mm_team', 'department_head', 'finance_team'],
       },
       {
+        title: 'Material Ready to Scrap',
+        href: '/reports/material-ready-to-scrap',
+        icon: ArchiveRestore,
+        description: 'Approved scrap awaiting dispatch.',
+        roles: ['admin', 'mm_team'],
+      },
+      {
+        title: 'PO Yet to Receive',
+        href: '/reports/po-yet-to-receive',
+        icon: Clock,
+        description: 'Approved POs awaiting fulfillment.',
+        roles: ['admin', 'mm_team', 'finance_team'],
+      },
+      {
+        title: 'SO Yet to Dispatch',
+        href: '/reports/so-yet-to-dispatch',
+        icon: Send,
+        description: 'Approved SOs awaiting dispatch.',
+        roles: ['admin', 'mm_team', 'finance_team'],
+      },
+      {
         title: 'Audit Logs',
         href: '/administration/audit-logs',
         icon: FileArchive,
@@ -238,4 +259,3 @@ export const userNavItems: NavItem[] = [
         description: "Sign out of your account."
     }
 ];
-
