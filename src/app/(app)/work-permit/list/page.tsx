@@ -36,14 +36,14 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Eye, Edit, Trash2, PlusCircle, Filter as FilterIcon, CalendarDays, Search, ShieldCheck, ChevronsLeft, ChevronsRight, AlertCircle, Package, Info, History, Workflow as WorkflowIcon, MessageSquare, Save, Ban } from "lucide-react";
-import { type RequestType, type UserRole, type UserAction, MOCK_WORKFLOW_TEMPLATES, type WorkflowStep, DEPARTMENTS, REQUEST_STATUSES, type RequestStatus, ACTIVITY_TYPES_WORK_PERMIT } from "@/lib/constants";
+import { MOCK_WORKFLOW_TEMPLATES, REQUEST_STATUSES, type RequestStatus, ACTIVITY_TYPES_WORK_PERMIT } from "@/lib/constants";
 import { type WorkPermitFormData } from "@/lib/schemas";
 import { WorkPermitForm } from "@/components/forms/WorkPermitForm";
 import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
 import type { DateRange } from "react-day-picker";
 import { useAuth } from "@/hooks/useAuth";
-import { allRequestsSource, renderRequestPayloadDetailsDialog, renderWorkflowProgress, getRequestTypeIcon, type ApprovalItem as GlobalApprovalItem } from '@/lib/mock-data';
+import { allRequestsSource, type ApprovalItem as GlobalApprovalItem } from '@/lib/mock-data';
+import { getRequestTypeIcon, renderRequestPayloadDetailsDialog, renderWorkflowProgress } from '@/lib/request-helpers';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -76,7 +76,7 @@ export default function WorkPermitListPage() {
   const [isFiltersApplied, setIsFiltersApplied] = React.useState(false);
 
   const filteredWorkPermits = React.useMemo(() => {
-    let tempItems = workPermits.filter(item => user?.role === 'admin' || item.requesterName === user?.displayName || MOCK_WORKFLOW_TEMPLATES.find(wt => wt.id === item.workflowTemplateId)?.steps.find(s => s.id === item.currentStepId)?.assignedRoles.includes(user?.role as UserRole) );
+    let tempItems = workPermits.filter(item => user?.role === 'admin' || item.requesterName === user?.displayName || MOCK_WORKFLOW_TEMPLATES.find(wt => wt.id === item.workflowTemplateId)?.steps.find(s => s.id === item.currentStepId)?.assignedRoles.includes(user?.role as string) );
 
     if (dateRange?.from) {
       tempItems = tempItems.filter(item => new Date(item.submissionDate) >= dateRange.from!);

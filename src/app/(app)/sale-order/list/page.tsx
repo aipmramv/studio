@@ -36,14 +36,14 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Eye, Edit, Trash2, PlusCircle, Filter as FilterIcon, CalendarDays, Search, Tags, ChevronsLeft, ChevronsRight, AlertCircle, Package, Info, History, Workflow as WorkflowIcon, MessageSquare, Save, Ban, Send, Loader2 } from "lucide-react";
-import { type RequestType, type UserRole, type UserAction, MOCK_WORKFLOW_TEMPLATES, type WorkflowStep, DEPARTMENTS, REQUEST_STATUSES, type RequestStatus } from "@/lib/constants";
+import { MOCK_WORKFLOW_TEMPLATES, REQUEST_STATUSES, type RequestStatus } from "@/lib/constants";
 import { type SaleOrderFormData } from "@/lib/schemas";
 import { SaleOrderForm } from "@/components/forms/SaleOrderForm";
 import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
 import type { DateRange } from "react-day-picker";
 import { useAuth } from "@/hooks/useAuth";
-import { allRequestsSource, renderRequestPayloadDetailsDialog, renderWorkflowProgress, getRequestTypeIcon, type ApprovalItem as GlobalApprovalItem } from '@/lib/mock-data';
+import { allRequestsSource, type ApprovalItem as GlobalApprovalItem } from '@/lib/mock-data';
+import { getRequestTypeIcon, renderRequestPayloadDetailsDialog, renderWorkflowProgress } from '@/lib/request-helpers';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -78,7 +78,7 @@ export default function SaleOrderListPage() {
   const currencyFormattingOptions: Intl.NumberFormatOptions = { style: 'currency', currency: 'INR', minimumFractionDigits: 2, maximumFractionDigits: 2 };
 
   const filteredSaleOrders = React.useMemo(() => {
-    let tempItems = saleOrders.filter(item => user?.role === 'admin' || item.requesterName === user?.displayName || MOCK_WORKFLOW_TEMPLATES.find(wt => wt.id === item.workflowTemplateId)?.steps.find(s => s.id === item.currentStepId)?.assignedRoles.includes(user?.role as UserRole) );
+    let tempItems = saleOrders.filter(item => user?.role === 'admin' || item.requesterName === user?.displayName || MOCK_WORKFLOW_TEMPLATES.find(wt => wt.id === item.workflowTemplateId)?.steps.find(s => s.id === item.currentStepId)?.assignedRoles.includes(user?.role as string) );
 
     if (dateRange?.from) {
       tempItems = tempItems.filter(item => new Date(item.submissionDate) >= dateRange.from!);

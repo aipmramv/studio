@@ -36,14 +36,15 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Eye, Edit, Trash2, PlusCircle, Filter as FilterIcon, CalendarDays, Search, Truck, ChevronsLeft, ChevronsRight, AlertCircle, Package, Info, History, Workflow as WorkflowIcon, MessageSquare, Ban, Save } from "lucide-react";
-import { type RequestType, type UserRole, type UserAction, MOCK_WORKFLOW_TEMPLATES, type WorkflowStep, DEPARTMENTS, REQUEST_STATUSES, type RequestStatus } from "@/lib/constants";
+import { MOCK_WORKFLOW_TEMPLATES, REQUEST_STATUSES, type RequestStatus } from "@/lib/constants";
 import { type MaterialMovementFormData } from "@/lib/schemas";
 import { MaterialMovementForm } from "@/components/forms/MaterialMovementForm";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import type { DateRange } from "react-day-picker";
 import { useAuth } from "@/hooks/useAuth";
-import { allRequestsSource, renderRequestPayloadDetailsDialog, renderWorkflowProgress, getRequestTypeIcon, type ApprovalItem as GlobalApprovalItem } from '@/lib/mock-data';
+import { allRequestsSource, type ApprovalItem as GlobalApprovalItem } from '@/lib/mock-data';
+import { getRequestTypeIcon, renderRequestPayloadDetailsDialog, renderWorkflowProgress } from '@/lib/request-helpers';
 
 
 const ITEMS_PER_PAGE = 10;
@@ -78,7 +79,7 @@ export default function MaterialMovementListPage() {
   const currencyFormattingOptions: Intl.NumberFormatOptions = { style: 'currency', currency: 'INR', minimumFractionDigits: 2, maximumFractionDigits: 2 };
 
   const filteredMaterialMovements = React.useMemo(() => {
-    let tempItems = materialMovements.filter(item => user?.role === 'admin' || item.requesterName === user?.displayName || MOCK_WORKFLOW_TEMPLATES.find(wt => wt.id === item.workflowTemplateId)?.steps.find(s => s.id === item.currentStepId)?.assignedRoles.includes(user?.role as UserRole) );
+    let tempItems = materialMovements.filter(item => user?.role === 'admin' || item.requesterName === user?.displayName || MOCK_WORKFLOW_TEMPLATES.find(wt => wt.id === item.workflowTemplateId)?.steps.find(s => s.id === item.currentStepId)?.assignedRoles.includes(user?.role as string) );
 
     if (dateRange?.from) {
       tempItems = tempItems.filter(item => new Date(item.submissionDate) >= dateRange.from!);
@@ -371,7 +372,6 @@ export default function MaterialMovementListPage() {
       {/* View Details Dialog */}
       {selectedRequestDetail && (
         <Dialog open={isDetailDialogOpen} onOpenChange={(isOpen) => {
-          setIsDetailDialogOpen(isOpen);
           if (!isOpen) { setSelectedRequestDetail(null); setNewComment(""); }
         }}>
           <DialogContent className="sm:max-w-3xl">

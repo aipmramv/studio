@@ -36,14 +36,14 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Eye, Edit, Trash2, PlusCircle, Filter as FilterIcon, CalendarDays, Search, ShoppingCart, ChevronsLeft, ChevronsRight, AlertCircle, Package, Info, History, Workflow as WorkflowIcon, MessageSquare, Ban, Save, Send, Hash, Loader2 } from "lucide-react";
-import { type RequestType, type UserRole, type UserAction, MOCK_WORKFLOW_TEMPLATES, type WorkflowStep, DEPARTMENTS, REQUEST_STATUSES, type RequestStatus } from "@/lib/constants";
+import { MOCK_WORKFLOW_TEMPLATES, REQUEST_STATUSES, type RequestStatus } from "@/lib/constants";
 import { type PurchaseOrderFormData } from "@/lib/schemas";
 import { PurchaseOrderForm } from "@/components/forms/PurchaseOrderForm";
 import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
 import type { DateRange } from "react-day-picker";
 import { useAuth } from "@/hooks/useAuth";
-import { allRequestsSource, renderRequestPayloadDetailsDialog, renderWorkflowProgress, getRequestTypeIcon, type ApprovalItem as GlobalApprovalItem } from '@/lib/mock-data';
+import { allRequestsSource, type ApprovalItem as GlobalApprovalItem } from '@/lib/mock-data';
+import { getRequestTypeIcon, renderRequestPayloadDetailsDialog, renderWorkflowProgress } from '@/lib/request-helpers';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -78,7 +78,7 @@ export default function PurchaseOrderListPage() {
   const currencyFormattingOptions: Intl.NumberFormatOptions = { style: 'currency', currency: 'INR', minimumFractionDigits: 2, maximumFractionDigits: 2 };
 
   const filteredPurchaseOrders = React.useMemo(() => {
-    let tempPOs = purchaseOrders.filter(po => user?.role === 'admin' || po.requesterName === user?.displayName || MOCK_WORKFLOW_TEMPLATES.find(wt => wt.id === po.workflowTemplateId)?.steps.find(s => s.id === po.currentStepId)?.assignedRoles.includes(user?.role as UserRole) );
+    let tempPOs = purchaseOrders.filter(po => user?.role === 'admin' || po.requesterName === user?.displayName || MOCK_WORKFLOW_TEMPLATES.find(wt => wt.id === po.workflowTemplateId)?.steps.find(s => s.id === po.currentStepId)?.assignedRoles.includes(user?.role as string) );
 
     if (dateRange?.from) {
       tempPOs = tempPOs.filter(po => new Date(po.submissionDate) >= dateRange.from!);

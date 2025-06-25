@@ -7,11 +7,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, 
 import { Check, X, User, CalendarDays, Filter, LayoutGrid, List, Briefcase, Package, ShieldCheck, ShoppingCart, Tags, Recycle, Edit3, Truck, ChevronsUpDown, Eye, MessageSquare, Bell, ChevronsUp, Send, Info, History, Workflow as WorkflowIcon, Clock, Circle, CheckCircle, CircleDot, Loader2, Hash } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { type RequestType, type UserRole, DEPARTMENTS, MOCK_WORKFLOW_TEMPLATES, USER_ACTIONS, type UserAction, type WorkflowStep } from "@/lib/constants";
+import { type RequestType, MOCK_WORKFLOW_TEMPLATES, type UserAction, type WorkflowStep } from "@/lib/constants";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { ApprovalSchema, type ApprovalFormData, type MaterialMovementFormData, type ScrapMovementFormData, type WorkPermitFormData, type PurchaseOrderFormData, type SaleOrderFormData, type OrderItem } from "@/lib/schemas";
+import { ApprovalSchema, type ApprovalFormData } from "@/lib/schemas";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -32,7 +32,6 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-  TableFooter,
 } from "@/components/ui/table";
 import {
   Dialog,
@@ -45,8 +44,8 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils";
-import { allRequestsSource, type ApprovalItem, getRequestTypeIcon, renderRequestPayloadDetailsDialog, renderWorkflowProgress, renderRequestSummary } from "@/lib/mock-data";
+import { allRequestsSource, type ApprovalItem, renderRequestSummary } from "@/lib/mock-data";
+import { getRequestTypeIcon, renderRequestPayloadDetailsDialog, renderWorkflowProgress } from '@/lib/request-helpers';
 
 
 export default function ApprovalsDashboardPage() {
@@ -67,7 +66,7 @@ export default function ApprovalsDashboardPage() {
 
   const userVisibleApprovals = React.useMemo(() => {
     if (!user) return [];
-    if(user.role === 'admin') return approvals;
+    if(user.role === 'admin') return approvals.filter(item => item.currentAssignees.length > 0); // Admins see all pending
     return approvals.filter(item =>
       item.currentAssignees.includes(user.role) ||
       (item.currentAssignees.includes('department_head') && user.department && item.requesterDepartment === user.department)
@@ -96,32 +95,27 @@ export default function ApprovalsDashboardPage() {
     const currentStepConfig = currentWorkflow?.steps.find(s => s.id === item.currentStepId);
     let nextStep: WorkflowStep | undefined;
     let updatedApprovals = [...approvals];
+    let finalStatusStepName: string | null = null;
 
-    if (action === 'approve' && currentStepConfig?.nextStepId) {
+    if (action === 'approve') {
+      if (currentStepConfig?.nextStepId) {
         nextStep = currentWorkflow?.steps.find(s => s.id === currentStepConfig.nextStepId);
-    } else if (action === 'reject' && currentStepConfig?.rejectionLeadsToStepId) {
-        nextStep = currentWorkflow?.steps.find(s => s.id === currentStepConfig.rejectionLeadsToStepId);
-    } else if (action === 'reject' && !currentStepConfig?.rejectionLeadsToStepId) { 
-        updatedApprovals = approvals.map(ap =>
-            ap.id === itemId ? {
-                ...ap,
-                currentStepId: "request_rejected_final",
-                currentStepName: "Request Rejected",
-                currentAssignees: [], 
-                history: [...ap.history, newHistoryEntry]
-            } : ap
-        ).filter(ap => ap.id !== itemId); 
-        setApprovals(updatedApprovals);
-        toast({
-          title: `Request ${action === "approve" ? "Approved" : "Rejected"}`,
-          description: `Request ID ${itemId} has been processed.`,
-        });
-        form.reset();
-        return;
+      } else {
+        // This is the final approval step
+        finalStatusStepName = item.requestType === 'Work Permit' ? "Permit Issued" : "Request Approved & Closed";
+      }
+    } else if (action === 'reject') {
+        if (currentStepConfig?.rejectionLeadsToStepId) {
+          nextStep = currentWorkflow?.steps.find(s => s.id === currentStepConfig.rejectionLeadsToStepId);
+        } else {
+          // Rejection is final
+          finalStatusStepName = "Request Rejected";
+        }
     }
 
 
     if (nextStep) {
+        // Move to the next step
         updatedApprovals = approvals.map(ap =>
             ap.id === itemId ? {
                 ...ap,
@@ -137,19 +131,20 @@ export default function ApprovalsDashboardPage() {
                 } as any]
             } : ap
         );
-        setApprovals(updatedApprovals);
-    } else { 
+    } else if (finalStatusStepName) {
+        // Reached a final state (approved, rejected, etc.)
         updatedApprovals = approvals.map(ap =>
             ap.id === itemId ? {
                 ...ap,
-                currentStepId: "request_approved_final",
-                currentStepName: "Request Approved & Closed",
-                currentAssignees: [],
+                currentStepId: `request_${finalStatusStepName.toLowerCase().replace(/ /g, '_')}`,
+                currentStepName: finalStatusStepName,
+                currentAssignees: [], 
                 history: [...ap.history, newHistoryEntry]
             } : ap
-        ).filter(ap => ap.id !== itemId); 
-        setApprovals(updatedApprovals);
+        );
     }
+
+    setApprovals(updatedApprovals);
 
     toast({
       title: `Request ${action === "approve" ? "Approved" : "Rejected"}`,
@@ -367,7 +362,6 @@ export default function ApprovalsDashboardPage() {
 
     {selectedRequestDetail && (
         <Dialog open={isDetailDialogOpen} onOpenChange={(isOpen) => {
-          setIsDetailDialogOpen(isOpen);
           if (!isOpen) {
             setSelectedRequestDetail(null);
             setNewComment("");
