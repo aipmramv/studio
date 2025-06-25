@@ -86,7 +86,7 @@ export default function ApprovalsDashboardPage() {
         stepId: item.currentStepId,
         stepName: item.currentStepName,
         action: action,
-        actor: user.displayName || user.email || "Current User (Ram Kumar)",
+        actor: user.displayName || user.email || "Ram Kumar",
         timestamp: new Date().toISOString(),
         comment: comment,
     };
@@ -165,7 +165,7 @@ export default function ApprovalsDashboardPage() {
         {
           stepId: selectedRequestDetail.currentStepId,
           stepName: `Comment on: ${selectedRequestDetail.currentStepName}`,
-          actor: user.displayName || "Current User (Ram Kumar)",
+          actor: user.displayName || "Ram Kumar",
           action: "commented" as const,
           timestamp: new Date().toISOString(),
           comment: newComment,

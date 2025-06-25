@@ -63,11 +63,11 @@ export const allRequestsSource: ApprovalItem[] = [
     ]
   },
   {
-    id: "WP007", requestType: "Work Permit", requesterName: "Ram Kumar (Facility)", requesterDepartment: "Facility Management", submissionDate: "2024-08-02T10:00:00Z",
+    id: "WP007", requestType: "Work Permit", requesterName: "Ram Kumar", requesterDepartment: "Facility Management", submissionDate: "2024-08-02T10:00:00Z",
     currentStepId: "wp_facility_head", currentStepName: "Permit Issued by Facility Head", currentAssignees: ["facility_team", "department_head", "admin"], workflowTemplateId: "work_permit_default",
     payload: { activityType: "Civil Works (Excavation, Construction)", building: "Test Tower", activityDetails: "Area preparation for new equipment installation, minor excavation.", specificAreaOrEquipment: "Test Tower, Ground Floor, Bay 3", permitValidity: new Date("2024-08-15") } as WorkPermitFormData,
     history: [
-      { stepId: "submission", stepName: "Submitted", actor: "Ram Kumar (Facility)", action: "submitted", timestamp: "2024-08-02T10:00:00Z" },
+      { stepId: "submission", stepName: "Submitted", actor: "Ram Kumar", action: "submitted", timestamp: "2024-08-02T10:00:00Z" },
       { stepId: "wp_safety_review", stepName: "Safety Team Review", actor: "Sashikanth M.", action: "approve", timestamp: "2024-08-02T14:00:00Z", comment: "All clear." },
       { stepId: "wp_maintenance_review", stepName: "Maintenance Team Review", actor: "Prem Kumar", action: "approve", timestamp: "2024-08-03T09:00:00Z", comment: "Impact assessed, OK to proceed."},
       { stepId: "wp_facility_head", stepName: "Permit Issued by Facility Head", actor: "Kumaravel P.", action: "approve", timestamp: "2024-08-03T11:00:00Z", comment: "Permit issued."},

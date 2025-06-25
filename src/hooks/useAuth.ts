@@ -1,4 +1,3 @@
-
 // src/hooks/useAuth.ts
 "use client";
 
@@ -26,7 +25,7 @@ export function useAuth() {
       const mockUser: AuthUser = {
         uid: 'mock-user-id-ram',
         email: 'ram.admin@example.com',
-        displayName: 'Ram Kumar (Admin)',
+        displayName: 'Ram Kumar',
         role: 'admin', 
         department: 'IT', // Example department
       };
@@ -34,7 +33,7 @@ export function useAuth() {
       // const mockUser: AuthUser = {
       //   uid: 'mock-user-id-prem',
       //   email: 'prem.dh@example.com',
-      //   displayName: 'Prem Kumar (Head)',
+      //   displayName: 'Prem Kumar',
       //   role: 'department_head',
       //   department: 'Finance', 
       // };
@@ -56,7 +55,7 @@ export function useAuth() {
         setUser({
           uid: 'mock-user-id-ram',
           email: 'ram.admin@example.com',
-          displayName: 'Ram Kumar (Admin)',
+          displayName: 'Ram Kumar',
           role: 'admin',
           department: 'IT'
         });
@@ -74,7 +73,7 @@ export function useAuth() {
          setUser({
            uid: 'new-mock-user-id-nagaraj',
            email: 'nagaraj.new@example.com',
-           displayName: 'Nagaraj V. (New User)',
+           displayName: 'Nagaraj V.',
            role: 'requester', // Default role for new signups
            department: 'Production'
          });
