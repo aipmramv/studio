@@ -36,7 +36,7 @@ export function AppLayoutBase({ children }: AppLayoutBaseProps) {
   
   return (
     <SidebarProvider defaultOpen>
-        <Sidebar collapsible="icon" className="border-r border-sidebar-border"> {/* Removed shadow-lg */}
+        <Sidebar collapsible="icon" className="border-r border-sidebar-border no-print"> {/* Removed shadow-lg */}
           <SidebarHeader className="p-4 border-b border-sidebar-border">
             <div className="flex items-center justify-between">
               <Button variant="link" className="p-0 h-auto" asChild>
@@ -62,7 +62,7 @@ export function AppLayoutBase({ children }: AppLayoutBaseProps) {
           {/* Footer can be added here if needed */}
         </Sidebar>
         <SidebarInset>
-          <header className="sticky top-0 z-10 flex items-center justify-between h-16 px-4 bg-card border-b md:px-8"> {/* Removed shadow-sm for flatter KONE look */}
+          <header className="sticky top-0 z-10 flex items-center justify-between h-16 px-4 bg-card border-b md:px-8 no-print"> {/* Removed shadow-sm for flatter KONE look */}
              {/* Desktop trigger, hidden on mobile */}
             <div className="hidden md:block">
                 <SidebarTrigger />
