@@ -43,7 +43,8 @@ import { useToast } from "@/hooks/use-toast";
 import type { DateRange } from "react-day-picker";
 import { useAuth } from "@/hooks/useAuth";
 import { allRequestsSource, type ApprovalItem as GlobalApprovalItem } from '@/lib/mock-data';
-import { getRequestTypeIcon, renderRequestPayloadDetailsDialog, renderWorkflowProgress } from '@/lib/request-helpers';
+import { calculateWorkflowProgress, getRequestTypeIcon, renderRequestPayloadDetailsDialog, renderWorkflowProgress } from '@/lib/request-helpers';
+import { Progress } from "@/components/ui/progress";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -286,10 +287,9 @@ export default function PurchaseOrderListPage() {
                     <TableRow>
                       <TableHead>PO ID</TableHead>
                       <TableHead>Vendor</TableHead>
-                      <TableHead>PO Date</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Progress</TableHead>
                       <TableHead className="text-right">Total Value (INR)</TableHead>
-                      <TableHead>Status / Current Step</TableHead>
-                      <TableHead>Requester</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -300,10 +300,19 @@ export default function PurchaseOrderListPage() {
                           <Button variant="link" size="sm" className="p-0 h-auto font-medium" onClick={() => handleViewDetails(item)}>{item.id}</Button>
                         </TableCell>
                         <TableCell>{item.payload.vendorName}</TableCell>
-                        <TableCell>{format(new Date(item.payload.poDate), "yyyy-MM-dd")}</TableCell>
-                        <TableCell className="text-right">{item.payload.items.reduce((sum, i) => sum + (i.quantity * i.unitPrice), 0).toLocaleString('en-IN', currencyFormattingOptions)}</TableCell>
                         <TableCell><Badge variant={getStatusBadgeVariantForPO(item.currentStepName, item.workflowTemplateId, item.currentStepId)} className="capitalize">{item.currentStepName}</Badge></TableCell>
-                        <TableCell>{item.requesterName}</TableCell>
+                        <TableCell>
+                          {(() => {
+                              const progress = calculateWorkflowProgress(item);
+                              return (
+                                  <div className="flex items-center gap-2 min-w-[150px]">
+                                      <Progress value={progress} className="w-24" />
+                                      <span className="text-xs font-medium text-muted-foreground">{`${Math.round(progress)}%`}</span>
+                                  </div>
+                              );
+                          })()}
+                        </TableCell>
+                        <TableCell className="text-right">{item.payload.items.reduce((sum, i) => sum + (i.quantity * i.unitPrice), 0).toLocaleString('en-IN', currencyFormattingOptions)}</TableCell>
                         <TableCell className="text-right space-x-1">
                           <Button variant="ghost" size="icon" title="View Details" onClick={() => handleViewDetails(item)}><Eye className="w-4 h-4 text-primary" /></Button>
                           <Button variant="outline" size="icon" title="Edit PO" disabled={!isRequestEditable(item)} onClick={() => handleEditRequest(item)} className="text-primary border-primary hover:bg-primary/10 disabled:text-muted-foreground disabled:border-muted-foreground/50"><Edit className="w-4 h-4" /></Button>
@@ -332,11 +341,18 @@ export default function PurchaseOrderListPage() {
                 <div className="md:col-span-2 space-y-4">
                   <Card>
                     <CardHeader><CardTitle className="text-lg flex items-center"><Info className="w-5 h-5 mr-2 text-primary"/>Basic Information</CardTitle></CardHeader>
-                    <CardContent className="space-y-1 text-sm">
+                    <CardContent className="space-y-2 text-sm">
                       <p><strong>Requester:</strong> {selectedRequestDetail.requesterName} ({selectedRequestDetail.requesterDepartment})</p>
                       <p><strong>Submitted:</strong> {new Date(selectedRequestDetail.submissionDate).toLocaleString()}</p>
                       <p><strong>Current Step:</strong> {selectedRequestDetail.currentStepName}</p>
                       {selectedRequestDetail.isVoided && selectedRequestDetail.voidReason && <p className="text-destructive"><strong>Void Reason:</strong> {selectedRequestDetail.voidReason}</p>}
+                      <div className="flex items-baseline pt-2">
+                        <strong className="w-24 shrink-0">Progress:</strong>
+                        <div className="flex items-center gap-2 w-full">
+                          <Progress value={calculateWorkflowProgress(selectedRequestDetail)} className="flex-grow" />
+                          <span className="text-xs font-medium text-muted-foreground">{`${Math.round(calculateWorkflowProgress(selectedRequestDetail))}%`}</span>
+                        </div>
+                      </div>
                       {selectedRequestDetail.payload.sapOrderNumber ? (
                         <p><strong>SAP PO Number:</strong> <span className='font-bold text-primary'>{selectedRequestDetail.payload.sapOrderNumber}</span></p>
                       ) : (

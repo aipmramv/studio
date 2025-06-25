@@ -43,7 +43,8 @@ import { useToast } from "@/hooks/use-toast";
 import type { DateRange } from "react-day-picker";
 import { useAuth } from "@/hooks/useAuth";
 import { allRequestsSource, type ApprovalItem as GlobalApprovalItem } from '@/lib/mock-data';
-import { getRequestTypeIcon, renderRequestPayloadDetailsDialog, renderWorkflowProgress } from '@/lib/request-helpers';
+import { calculateWorkflowProgress, getRequestTypeIcon, renderRequestPayloadDetailsDialog, renderWorkflowProgress } from '@/lib/request-helpers';
+import { Progress } from "@/components/ui/progress";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -291,8 +292,8 @@ export default function WorkPermitListPage() {
                     <TableRow>
                       <TableHead>Permit ID</TableHead>
                       <TableHead>Activity Type</TableHead>
-                      <TableHead>Building/Location</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead>Progress</TableHead>
                       <TableHead>Requester</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -304,9 +305,19 @@ export default function WorkPermitListPage() {
                           <Button variant="link" size="sm" className="p-0 h-auto font-medium" onClick={() => handleViewDetails(item)}>{item.id}</Button>
                         </TableCell>
                         <TableCell className="max-w-xs truncate" title={item.payload.activityType}>{item.payload.activityType}</TableCell>
-                        <TableCell>{item.payload.building}</TableCell>
                         <TableCell>
                           <Badge variant={getStatusBadgeVariantForWP(item.currentStepName, item.workflowTemplateId, item.currentStepId)} className="capitalize">{item.currentStepName}</Badge>
+                        </TableCell>
+                         <TableCell>
+                          {(() => {
+                              const progress = calculateWorkflowProgress(item);
+                              return (
+                                  <div className="flex items-center gap-2 min-w-[150px]">
+                                      <Progress value={progress} className="w-24" />
+                                      <span className="text-xs font-medium text-muted-foreground">{`${Math.round(progress)}%`}</span>
+                                  </div>
+                              );
+                          })()}
                         </TableCell>
                         <TableCell>{item.requesterName}</TableCell>
                         <TableCell className="text-right space-x-1">
@@ -354,10 +365,17 @@ export default function WorkPermitListPage() {
                 <div className="md:col-span-2 space-y-4">
                   <Card>
                     <CardHeader><CardTitle className="text-lg flex items-center"><Info className="w-5 h-5 mr-2 text-primary"/>Basic Information</CardTitle></CardHeader>
-                    <CardContent className="space-y-1 text-sm">
+                    <CardContent className="space-y-2 text-sm">
                       <p><strong>Requester:</strong> {selectedRequestDetail.requesterName} ({selectedRequestDetail.requesterDepartment})</p>
                       <p><strong>Submitted:</strong> {new Date(selectedRequestDetail.submissionDate).toLocaleString()}</p>
                       <p><strong>Current Step:</strong> {selectedRequestDetail.currentStepName}</p>
+                      <div className="flex items-baseline pt-2">
+                        <strong className="w-24 shrink-0">Progress:</strong>
+                        <div className="flex items-center gap-2 w-full">
+                          <Progress value={calculateWorkflowProgress(selectedRequestDetail)} className="flex-grow" />
+                          <span className="text-xs font-medium text-muted-foreground">{`${Math.round(calculateWorkflowProgress(selectedRequestDetail))}%`}</span>
+                        </div>
+                      </div>
                       {selectedRequestDetail.isVoided && selectedRequestDetail.voidReason && <p className="text-destructive"><strong>Void Reason:</strong> {selectedRequestDetail.voidReason}</p>}
                     </CardContent>
                   </Card>

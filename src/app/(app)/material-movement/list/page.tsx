@@ -40,11 +40,11 @@ import { MOCK_WORKFLOW_TEMPLATES, REQUEST_STATUSES, type RequestStatus } from "@
 import { type MaterialMovementFormData } from "@/lib/schemas";
 import { MaterialMovementForm } from "@/components/forms/MaterialMovementForm";
 import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
 import type { DateRange } from "react-day-picker";
 import { useAuth } from "@/hooks/useAuth";
 import { allRequestsSource, type ApprovalItem as GlobalApprovalItem } from '@/lib/mock-data';
-import { getRequestTypeIcon, renderRequestPayloadDetailsDialog, renderWorkflowProgress } from '@/lib/request-helpers';
+import { calculateWorkflowProgress, getRequestTypeIcon, renderRequestPayloadDetailsDialog, renderWorkflowProgress } from '@/lib/request-helpers';
+import { Progress } from "@/components/ui/progress";
 
 
 const ITEMS_PER_PAGE = 10;
@@ -298,10 +298,9 @@ export default function MaterialMovementListPage() {
                     <TableRow>
                       <TableHead>Request ID</TableHead>
                       <TableHead>Material Type</TableHead>
-                      <TableHead>Source</TableHead>
-                      <TableHead>Destination</TableHead>
-                      <TableHead className="text-right">Value (INR)</TableHead>
-                      <TableHead>Status / Current Step</TableHead>
+                      <TableHead>Source & Destination</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Progress</TableHead>
                       <TableHead>Requester</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -315,15 +314,22 @@ export default function MaterialMovementListPage() {
                           </Button>
                         </TableCell>
                         <TableCell>{item.payload.materialType}</TableCell>
-                        <TableCell>{item.payload.source}</TableCell>
-                        <TableCell>{item.payload.destination}</TableCell>
-                        <TableCell className="text-right">
-                          {item.payload.value.toLocaleString('en-IN', currencyFormattingOptions)}
-                        </TableCell>
+                        <TableCell>{item.payload.source} → {item.payload.destination}</TableCell>
                         <TableCell>
                           <Badge variant={getStatusBadgeVariantForMM(item.currentStepName, item.workflowTemplateId, item.currentStepId)} className="capitalize">
                             {item.currentStepName}
                           </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {(() => {
+                              const progress = calculateWorkflowProgress(item);
+                              return (
+                                  <div className="flex items-center gap-2 min-w-[150px]">
+                                      <Progress value={progress} className="w-24" />
+                                      <span className="text-xs font-medium text-muted-foreground">{`${Math.round(progress)}%`}</span>
+                                  </div>
+                              );
+                          })()}
                         </TableCell>
                         <TableCell>{item.requesterName}</TableCell>
                         <TableCell className="text-right space-x-1">
@@ -389,11 +395,18 @@ export default function MaterialMovementListPage() {
                 <div className="md:col-span-2 space-y-4">
                   <Card>
                     <CardHeader><CardTitle className="text-lg flex items-center"><Info className="w-5 h-5 mr-2 text-primary"/>Basic Information</CardTitle></CardHeader>
-                    <CardContent className="space-y-1 text-sm">
+                    <CardContent className="space-y-2 text-sm">
                       <p><strong>Requester:</strong> {selectedRequestDetail.requesterName} ({selectedRequestDetail.requesterDepartment})</p>
                       <p><strong>Submitted:</strong> {new Date(selectedRequestDetail.submissionDate).toLocaleString()}</p>
                       <p><strong>Current Step:</strong> {selectedRequestDetail.currentStepName}</p>
                       {selectedRequestDetail.isVoided && selectedRequestDetail.voidReason && <p className="text-destructive"><strong>Void Reason:</strong> {selectedRequestDetail.voidReason}</p>}
+                       <div className="flex items-baseline pt-2">
+                        <strong className="w-24 shrink-0">Progress:</strong>
+                        <div className="flex items-center gap-2 w-full">
+                          <Progress value={calculateWorkflowProgress(selectedRequestDetail)} className="flex-grow" />
+                          <span className="text-xs font-medium text-muted-foreground">{`${Math.round(calculateWorkflowProgress(selectedRequestDetail))}%`}</span>
+                        </div>
+                      </div>
                     </CardContent>
                   </Card>
                   <Card>

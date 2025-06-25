@@ -29,8 +29,9 @@ import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { DateRange } from "react-day-picker";
 import { useAuth } from "@/hooks/useAuth";
-import { allRequestsSource, renderRequestSummary, type ApprovalItem as GlobalApprovalItem } from '@/lib/mock-data';
-import { getRequestTypeIcon, renderRequestPayloadDetailsDialog, renderWorkflowProgress } from '@/lib/request-helpers';
+import { allRequestsSource, type ApprovalItem as GlobalApprovalItem } from '@/lib/mock-data';
+import { calculateWorkflowProgress, getRequestTypeIcon, renderRequestPayloadDetailsDialog, renderWorkflowProgress } from '@/lib/request-helpers';
+import { Progress } from "@/components/ui/progress";
 
 
 const ITEMS_PER_PAGE = 10;
@@ -323,8 +324,8 @@ export default function AllRequestsPage() {
                     <TableHead>ID</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead>Requester</TableHead>
-                    <TableHead>Submitted</TableHead>
                     <TableHead>Status / Current Step</TableHead>
+                    <TableHead>Progress</TableHead>
                     <TableHead>Summary</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -342,11 +343,21 @@ export default function AllRequestsPage() {
                         {item.requestType}
                       </TableCell>
                       <TableCell>{item.requesterName} ({item.requesterDepartment})</TableCell>
-                      <TableCell>{format(new Date(item.submissionDate), "yyyy-MM-dd HH:mm")}</TableCell>
                       <TableCell>
                         <Badge variant={getStatusBadgeVariant(item.currentStepName, item.workflowTemplateId, item.currentStepId)} className="capitalize">
                           {item.currentStepName}
                         </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {(() => {
+                            const progress = calculateWorkflowProgress(item);
+                            return (
+                                <div className="flex items-center gap-2 min-w-[150px]">
+                                    <Progress value={progress} className="w-24" />
+                                    <span className="text-xs font-medium text-muted-foreground">{`${Math.round(progress)}%`}</span>
+                                </div>
+                            );
+                        })()}
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground max-w-xs truncate" title={renderRequestSummary(item)}>
                         {renderRequestSummary(item)}
@@ -428,11 +439,18 @@ export default function AllRequestsPage() {
                 <div className="md:col-span-2 space-y-4">
                   <Card>
                     <CardHeader><CardTitle className="text-lg flex items-center"><Info className="w-5 h-5 mr-2 text-primary"/>Basic Information</CardTitle></CardHeader>
-                    <CardContent className="space-y-1 text-sm">
+                    <CardContent className="space-y-2 text-sm">
                       <p><strong>Requester:</strong> {selectedRequest.requesterName} ({selectedRequest.requesterDepartment})</p>
                       <p><strong>Submitted:</strong> {new Date(selectedRequest.submissionDate).toLocaleString()}</p>
                       <p><strong>Current Step:</strong> {selectedRequest.currentStepName}</p>
                       {selectedRequest.isVoided && selectedRequest.voidReason && <p className="text-destructive"><strong>Void Reason:</strong> {selectedRequest.voidReason}</p>}
+                      <div className="flex items-baseline pt-2">
+                        <strong className="w-24 shrink-0">Progress:</strong>
+                        <div className="flex items-center gap-2 w-full">
+                          <Progress value={calculateWorkflowProgress(selectedRequest)} className="flex-grow" />
+                          <span className="text-xs font-medium text-muted-foreground">{`${Math.round(calculateWorkflowProgress(selectedRequest))}%`}</span>
+                        </div>
+                      </div>
                     </CardContent>
                   </Card>
 

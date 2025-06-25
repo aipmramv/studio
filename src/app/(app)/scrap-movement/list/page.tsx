@@ -43,7 +43,8 @@ import { useToast } from "@/hooks/use-toast";
 import type { DateRange } from "react-day-picker";
 import { useAuth } from "@/hooks/useAuth";
 import { allRequestsSource, type ApprovalItem as GlobalApprovalItem } from '@/lib/mock-data';
-import { getRequestTypeIcon, renderRequestPayloadDetailsDialog, renderWorkflowProgress } from '@/lib/request-helpers';
+import { calculateWorkflowProgress, getRequestTypeIcon, renderRequestPayloadDetailsDialog, renderWorkflowProgress } from '@/lib/request-helpers';
+import { Progress } from "@/components/ui/progress";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -297,11 +298,9 @@ export default function ScrapMovementListPage() {
                     <TableRow>
                       <TableHead>Request ID</TableHead>
                       <TableHead>Scrap Type</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead className="text-right">Qty</TableHead>
-                      <TableHead className="text-right">Weight</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Requester</TableHead>
+                      <TableHead>Progress</TableHead>
+                      <TableHead className="text-right">Weight</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -314,15 +313,23 @@ export default function ScrapMovementListPage() {
                           </Button>
                         </TableCell>
                         <TableCell>{item.payload.scrapType}</TableCell>
-                        <TableCell className="max-w-xs truncate" title={item.payload.description}>{item.payload.description}</TableCell>
-                        <TableCell className="text-right">{item.payload.quantity}</TableCell>
-                        <TableCell className="text-right">{item.payload.weight}</TableCell>
                         <TableCell>
                           <Badge variant={getStatusBadgeVariantForScrap(item.currentStepName, item.workflowTemplateId, item.currentStepId)} className="capitalize">
                             {item.currentStepName}
                           </Badge>
                         </TableCell>
-                        <TableCell>{item.requesterName}</TableCell>
+                        <TableCell>
+                          {(() => {
+                              const progress = calculateWorkflowProgress(item);
+                              return (
+                                  <div className="flex items-center gap-2 min-w-[150px]">
+                                      <Progress value={progress} className="w-24" />
+                                      <span className="text-xs font-medium text-muted-foreground">{`${Math.round(progress)}%`}</span>
+                                  </div>
+                              );
+                          })()}
+                        </TableCell>
+                        <TableCell className="text-right">{item.payload.weight}</TableCell>
                         <TableCell className="text-right space-x-1">
                           <Button variant="ghost" size="icon" title="View Details" onClick={() => handleViewDetails(item)}><Eye className="w-4 h-4 text-primary" /></Button>
                           <Button variant="outline" size="icon" title="Edit Request" disabled={!isRequestEditable(item)} onClick={() => handleEditRequest(item)} className="text-primary border-primary hover:bg-primary/10 disabled:text-muted-foreground disabled:border-muted-foreground/50">
@@ -375,10 +382,17 @@ export default function ScrapMovementListPage() {
                 <div className="md:col-span-2 space-y-4">
                   <Card>
                     <CardHeader><CardTitle className="text-lg flex items-center"><Info className="w-5 h-5 mr-2 text-primary"/>Basic Information</CardTitle></CardHeader>
-                    <CardContent className="space-y-1 text-sm">
+                    <CardContent className="space-y-2 text-sm">
                       <p><strong>Requester:</strong> {selectedRequestDetail.requesterName} ({selectedRequestDetail.requesterDepartment})</p>
                       <p><strong>Submitted:</strong> {new Date(selectedRequestDetail.submissionDate).toLocaleString()}</p>
                       <p><strong>Current Step:</strong> {selectedRequestDetail.currentStepName}</p>
+                      <div className="flex items-baseline pt-2">
+                        <strong className="w-24 shrink-0">Progress:</strong>
+                        <div className="flex items-center gap-2 w-full">
+                          <Progress value={calculateWorkflowProgress(selectedRequestDetail)} className="flex-grow" />
+                          <span className="text-xs font-medium text-muted-foreground">{`${Math.round(calculateWorkflowProgress(selectedRequestDetail))}%`}</span>
+                        </div>
+                      </div>
                        {(selectedRequestDetail.payload as ScrapMovementFormData).gatePassNumber && <p><strong>Gate Pass No.:</strong> <span className='flex items-center'><Hash className='w-3 h-3 mr-1'/>{(selectedRequestDetail.payload as ScrapMovementFormData).gatePassNumber}</span></p>}
                       {selectedRequestDetail.isVoided && selectedRequestDetail.voidReason && <p className="text-destructive"><strong>Void Reason:</strong> {selectedRequestDetail.voidReason}</p>}
                     </CardContent>
@@ -449,10 +463,7 @@ export default function ScrapMovementListPage() {
               <AlertDialogTitle className="flex items-center"><AlertCircle className="w-5 h-5 mr-2 text-destructive"/>Confirm Void Request</AlertDialogTitle>
               <AlertDialogDescription>Are you sure you want to void Scrap Request <strong>{requestToVoid.id}</strong>? This action cannot be undone.</AlertDialogDescription>
             </AlertDialogHeader>
-            <div className="space-y-2 my-4">
-              <label htmlFor="voidReasonScrap" className="text-sm font-medium">Reason for Voiding (Optional)</label>
-              <Textarea id="voidReasonScrap" placeholder="Enter reason..." value={voidReason} onChange={(e) => setVoidReason(e.target.value)}/>
-            </div>
+            <div className="space-y-2 my-4"><label htmlFor="voidReasonScrap" className="text-sm font-medium">Reason for Voiding (Optional)</label><Textarea id="voidReasonScrap" placeholder="Enter reason..." value={voidReason} onChange={(e) => setVoidReason(e.target.value)}/></div>
             <AlertDialogFooter><AlertDialogCancel onClick={() => { setIsVoidDialogOpen(false); setVoidReason(""); }}>Cancel</AlertDialogCancel><AlertDialogAction onClick={handleConfirmVoid} className="bg-destructive hover:bg-destructive/90">Confirm Void</AlertDialogAction></AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

@@ -21,6 +21,41 @@ export const getRequestTypeIcon = (requestType: RequestType, className?: string)
   }
 };
 
+export const calculateWorkflowProgress = (request: ApprovalItem): number => {
+  const workflow = MOCK_WORKFLOW_TEMPLATES.find(wt => wt.id === request.workflowTemplateId);
+  if (!workflow) return 0;
+
+  const currentStep = workflow.steps.find(s => s.id === request.currentStepId);
+  
+  // Handle terminal states
+  if (request.isVoided || request.currentStepName.toLowerCase().includes('rejected')) {
+    return 100;
+  }
+  
+  // If current step is the final step
+  if (currentStep && !currentStep.nextStepId) {
+    return 100;
+  }
+  
+  // Also check for final step names that don't have a formal stepId in the flow
+  if (request.currentStepName.toLowerCase().includes('closed') || request.currentStepName.toLowerCase().includes('issued') || request.currentStepName.toLowerCase().includes('fulfilled') || request.currentStepName.toLowerCase().includes('shipped')) {
+      return 100;
+  }
+
+
+  const currentStepIndex = workflow.steps.findIndex(step => step.id === request.currentStepId);
+  
+  if (currentStepIndex === -1) {
+    // If step is not in the main flow (like a closed status), but not explicitly final, treat as complete
+    if (request.currentAssignees.length === 0) return 100;
+    return 0; // Or some other default if step is unknown
+  }
+
+  const progress = ((currentStepIndex + 1) / workflow.steps.length) * 100;
+  return Math.min(progress, 100); // Cap at 100
+};
+
+
 export const renderRequestPayloadDetailsDialog = (payload: RequestPayload, requestType: RequestType): ReactNode[] => {
     const details: {key: string, value: string | number | undefined | React.ReactNode }[] = [];
     const currencyFormattingOptions: Intl.NumberFormatOptions = { style: 'currency', currency: 'INR', minimumFractionDigits: 2, maximumFractionDigits: 2 };
@@ -128,8 +163,8 @@ export const renderRequestPayloadDetailsDialog = (payload: RequestPayload, reque
         details.push({ key: "Details", value: "No specific details available for this request type." });
     }
     return details.map(detail => (
-      <div key={detail.key} className="text-sm text-muted-foreground mb-1">
-        <span className="capitalize font-medium text-foreground">{detail.key}: </span>{typeof detail.value === 'string' || typeof detail.value === 'number' ? detail.value : <div className="mt-1">{detail.value}</div>}
+      <div key={detail.key} className="text-sm">
+        <span className="capitalize font-medium text-foreground">{detail.key}: </span><span className="text-muted-foreground">{typeof detail.value === 'string' || typeof detail.value === 'number' ? detail.value : <div className="mt-1">{detail.value}</div>}</span>
       </div>
     ));
   };
@@ -144,9 +179,8 @@ export const renderWorkflowProgress = (request: ApprovalItem): ReactNode => {
       <div className="space-y-0">
         {workflow.steps.map((step, index) => {
           const historyForStep = request.history.filter(h => h.stepId === step.id && h.action === "approve");
-          const isCompleted = historyForStep.length > 0;
-          const isCurrent = step.id === request.currentStepId && !isCompleted &&
-                           (request.history.some(h => h.stepId === step.id && (h.action === "system_auto_proceed" || h.action === "submitted")) || currentStepIndex === index );
+          const isCompleted = historyForStep.length > 0 || index < currentStepIndex;
+          const isCurrent = step.id === request.currentStepId && !isCompleted;
           const isVoidedOrRejected = request.currentStepName === "Request Voided" || request.currentStepName === "Request Rejected";
 
 
