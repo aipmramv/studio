@@ -1,4 +1,3 @@
-
 // src/app/(app)/sale-order/list/page.tsx
 "use client";
 
@@ -44,7 +43,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import type { DateRange } from "react-day-picker";
 import { useAuth } from "@/hooks/useAuth";
-import { mockAllRequestsData, renderRequestPayloadDetailsDialog, renderWorkflowProgress, getRequestTypeIcon, type ApprovalItem as GlobalApprovalItem } from "@/app/(app)/all-requests/page";
+import { allRequestsSource, renderRequestPayloadDetailsDialog, renderWorkflowProgress, getRequestTypeIcon, type ApprovalItem as GlobalApprovalItem } from '@/lib/mock-data';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -57,7 +56,7 @@ export default function SaleOrderListPage() {
   const { toast } = useToast();
 
   const [saleOrders, setSaleOrders] = React.useState<SaleOrderDisplayItem[]>(
-    mockAllRequestsData.filter(req => req.requestType === "Sale Order") as SaleOrderDisplayItem[]
+    allRequestsSource.filter(req => req.requestType === "Sale Order") as SaleOrderDisplayItem[]
   );
 
   const [selectedRequestDetail, setSelectedRequestDetail] = React.useState<SaleOrderDisplayItem | null>(null);
@@ -127,9 +126,9 @@ export default function SaleOrderListPage() {
     if (!editingRequest) return;
     const updatedItem: SaleOrderDisplayItem = { ...editingRequest, payload: updatedData };
     
-    const globalIndex = mockAllRequestsData.findIndex(req => req.id === editingRequest.id);
+    const globalIndex = allRequestsSource.findIndex(req => req.id === editingRequest.id);
     if (globalIndex !== -1) {
-      mockAllRequestsData[globalIndex] = updatedItem as GlobalApprovalItem;
+      allRequestsSource[globalIndex] = updatedItem as GlobalApprovalItem;
     }
     setSaleOrders(prev => prev.map(item => item.id === editingRequest.id ? updatedItem : item));
     toast({ title: "Request Updated", description: `Sale Order ID ${editingRequest.id} has been updated.` });
@@ -163,9 +162,9 @@ export default function SaleOrderListPage() {
         },
       ],
     };
-    const globalIndex = mockAllRequestsData.findIndex(req => req.id === requestToVoid.id);
+    const globalIndex = allRequestsSource.findIndex(req => req.id === requestToVoid.id);
     if (globalIndex !== -1) {
-      mockAllRequestsData[globalIndex] = voidedItem as GlobalApprovalItem;
+      allRequestsSource[globalIndex] = voidedItem as GlobalApprovalItem;
     }
     setSaleOrders(prevItems => prevItems.map(item => item.id === requestToVoid.id ? voidedItem : item));
     toast({ title: "Sale Order Voided", description: `Sale Order ${requestToVoid.id} has been voided.` });
@@ -192,9 +191,9 @@ export default function SaleOrderListPage() {
     };
     setSelectedRequestDetail(updatedRequest);
     setSaleOrders(prev => prev.map(r => r.id === updatedRequest.id ? updatedRequest : r));
-    const globalIndex = mockAllRequestsData.findIndex(req => req.id === updatedRequest.id);
+    const globalIndex = allRequestsSource.findIndex(req => req.id === updatedRequest.id);
     if (globalIndex !== -1) {
-      mockAllRequestsData[globalIndex] = updatedRequest as GlobalApprovalItem;
+      allRequestsSource[globalIndex] = updatedRequest as GlobalApprovalItem;
     }
     setNewComment("");
     toast({ title: "Comment Added", description: `Comment added to request ${selectedRequestDetail.id}.` });

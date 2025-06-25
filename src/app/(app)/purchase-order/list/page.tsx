@@ -1,4 +1,3 @@
-
 // src/app/(app)/purchase-order/list/page.tsx
 "use client";
 
@@ -44,7 +43,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import type { DateRange } from "react-day-picker";
 import { useAuth } from "@/hooks/useAuth";
-import { mockAllRequestsData, renderRequestPayloadDetailsDialog, renderWorkflowProgress, getRequestTypeIcon, type ApprovalItem as GlobalApprovalItem } from "@/app/(app)/all-requests/page";
+import { allRequestsSource, renderRequestPayloadDetailsDialog, renderWorkflowProgress, getRequestTypeIcon, type ApprovalItem as GlobalApprovalItem } from '@/lib/mock-data';
 
 const ITEMS_PER_PAGE = 10;
 

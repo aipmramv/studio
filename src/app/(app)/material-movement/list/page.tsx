@@ -1,4 +1,3 @@
-
 // src/app/(app)/material-movement/list/page.tsx
 "use client";
 
@@ -38,13 +37,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Eye, Edit, Trash2, PlusCircle, Filter as FilterIcon, CalendarDays, Search, Truck, ChevronsLeft, ChevronsRight, AlertCircle, Package, Info, History, Workflow as WorkflowIcon, MessageSquare, Ban, Save } from "lucide-react";
 import { type RequestType, type UserRole, type UserAction, MOCK_WORKFLOW_TEMPLATES, type WorkflowStep, DEPARTMENTS, REQUEST_STATUSES, type RequestStatus } from "@/lib/constants";
-import { type MaterialMovementFormData, type ScrapMovementFormData, type WorkPermitFormData, type PurchaseOrderFormData, type SaleOrderFormData, type OrderItem } from "@/lib/schemas";
+import { type MaterialMovementFormData } from "@/lib/schemas";
 import { MaterialMovementForm } from "@/components/forms/MaterialMovementForm";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import type { DateRange } from "react-day-picker";
 import { useAuth } from "@/hooks/useAuth";
-import { mockAllRequestsData, renderRequestPayloadDetailsDialog, renderWorkflowProgress, getRequestTypeIcon, type ApprovalItem as GlobalApprovalItem } from "@/app/(app)/all-requests/page";
+import { allRequestsSource, renderRequestPayloadDetailsDialog, renderWorkflowProgress, getRequestTypeIcon, type ApprovalItem as GlobalApprovalItem } from '@/lib/mock-data';
+
 
 const ITEMS_PER_PAGE = 10;
 
@@ -57,7 +57,7 @@ export default function MaterialMovementListPage() {
   const { toast } = useToast();
 
   const [materialMovements, setMaterialMovements] = React.useState<MaterialMovementDisplayItem[]>(
-    mockAllRequestsData.filter(req => req.requestType === "Material Movement") as MaterialMovementDisplayItem[]
+    allRequestsSource.filter(req => req.requestType === "Material Movement") as MaterialMovementDisplayItem[]
   );
 
   const [selectedRequestDetail, setSelectedRequestDetail] = React.useState<MaterialMovementDisplayItem | null>(null);
@@ -128,10 +128,9 @@ export default function MaterialMovementListPage() {
     if (!editingRequest) return;
     const updatedItem: MaterialMovementDisplayItem = { ...editingRequest, payload: updatedData };
     
-    // Update in the global mock data source if necessary for cross-page consistency (simulated)
-    const globalIndex = mockAllRequestsData.findIndex(req => req.id === editingRequest.id);
+    const globalIndex = allRequestsSource.findIndex(req => req.id === editingRequest.id);
     if (globalIndex !== -1) {
-      mockAllRequestsData[globalIndex] = updatedItem as GlobalApprovalItem;
+      allRequestsSource[globalIndex] = updatedItem as GlobalApprovalItem;
     }
 
     setMaterialMovements(prev => prev.map(item => item.id === editingRequest.id ? updatedItem : item));
@@ -167,9 +166,9 @@ export default function MaterialMovementListPage() {
       ],
     };
 
-    const globalIndex = mockAllRequestsData.findIndex(req => req.id === requestToVoid.id);
+    const globalIndex = allRequestsSource.findIndex(req => req.id === requestToVoid.id);
     if (globalIndex !== -1) {
-      mockAllRequestsData[globalIndex] = voidedItem as GlobalApprovalItem;
+      allRequestsSource[globalIndex] = voidedItem as GlobalApprovalItem;
     }
     setMaterialMovements(prevItems => prevItems.map(item => item.id === requestToVoid.id ? voidedItem : item));
     toast({ title: "Request Voided", description: `Request ${requestToVoid.id} has been voided.` });
@@ -196,9 +195,9 @@ export default function MaterialMovementListPage() {
     };
     setSelectedRequestDetail(updatedRequest);
     setMaterialMovements(prev => prev.map(r => r.id === updatedRequest.id ? updatedRequest : r));
-     const globalIndex = mockAllRequestsData.findIndex(req => req.id === updatedRequest.id);
+     const globalIndex = allRequestsSource.findIndex(req => req.id === updatedRequest.id);
     if (globalIndex !== -1) {
-      mockAllRequestsData[globalIndex] = updatedRequest as GlobalApprovalItem;
+      allRequestsSource[globalIndex] = updatedRequest as GlobalApprovalItem;
     }
     setNewComment("");
     toast({ title: "Comment Added", description: `Comment added to request ${selectedRequestDetail.id}.` });
@@ -454,7 +453,6 @@ export default function MaterialMovementListPage() {
         </Dialog>
       )}
 
-      {/* Edit Request Dialog */}
       {editingRequest && isEditDialogOpen && (
         <Dialog open={isEditDialogOpen} onOpenChange={(isOpen) => {
           if (!isOpen) {
@@ -479,7 +477,6 @@ export default function MaterialMovementListPage() {
         </Dialog>
       )}
 
-      {/* Void Request Dialog */}
       {requestToVoid && (
         <AlertDialog open={isVoidDialogOpen} onOpenChange={setIsVoidDialogOpen}>
           <AlertDialogContent>

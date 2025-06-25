@@ -1,4 +1,3 @@
-
 // src/app/(app)/scrap-movement/list/page.tsx
 "use client";
 
@@ -38,13 +37,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Eye, Edit, Trash2, PlusCircle, Filter as FilterIcon, CalendarDays, Search, Recycle, ChevronsLeft, ChevronsRight, AlertCircle, Package, Info, History, Workflow as WorkflowIcon, MessageSquare, Save, Ban, Hash } from "lucide-react";
 import { type RequestType, type UserRole, type UserAction, MOCK_WORKFLOW_TEMPLATES, type WorkflowStep, DEPARTMENTS, REQUEST_STATUSES, type RequestStatus, SCRAP_TYPES } from "@/lib/constants";
-import { type MaterialMovementFormData, type ScrapMovementFormData, type WorkPermitFormData, type PurchaseOrderFormData, type SaleOrderFormData, type OrderItem } from "@/lib/schemas";
+import { type ScrapMovementFormData } from "@/lib/schemas";
 import { ScrapMovementForm } from "@/components/forms/ScrapMovementForm";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import type { DateRange } from "react-day-picker";
 import { useAuth } from "@/hooks/useAuth";
-import { mockAllRequestsData, renderRequestPayloadDetailsDialog, renderWorkflowProgress, getRequestTypeIcon, type ApprovalItem as GlobalApprovalItem } from "@/app/(app)/all-requests/page";
+import { allRequestsSource, renderRequestPayloadDetailsDialog, renderWorkflowProgress, getRequestTypeIcon, type ApprovalItem as GlobalApprovalItem } from '@/lib/mock-data';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -57,7 +56,7 @@ export default function ScrapMovementListPage() {
   const { toast } = useToast();
 
   const [scrapRequests, setScrapRequests] = React.useState<ScrapRequestDisplayItem[]>(
-    mockAllRequestsData.filter(req => req.requestType === "Scrap Request") as ScrapRequestDisplayItem[]
+    allRequestsSource.filter(req => req.requestType === "Scrap Request") as ScrapRequestDisplayItem[]
   );
 
   const [selectedRequestDetail, setSelectedRequestDetail] = React.useState<ScrapRequestDisplayItem | null>(null);
@@ -130,9 +129,9 @@ export default function ScrapMovementListPage() {
     if (!editingRequest) return;
     const updatedItem: ScrapRequestDisplayItem = { ...editingRequest, payload: updatedData };
 
-    const globalIndex = mockAllRequestsData.findIndex(req => req.id === editingRequest.id);
+    const globalIndex = allRequestsSource.findIndex(req => req.id === editingRequest.id);
     if (globalIndex !== -1) {
-      mockAllRequestsData[globalIndex] = updatedItem as GlobalApprovalItem;
+      allRequestsSource[globalIndex] = updatedItem as GlobalApprovalItem;
     }
     setScrapRequests(prev => prev.map(item => item.id === editingRequest.id ? updatedItem : item));
     toast({ title: "Request Updated", description: `Request ID ${editingRequest.id} has been updated.` });
@@ -166,9 +165,9 @@ export default function ScrapMovementListPage() {
         },
       ],
     };
-    const globalIndex = mockAllRequestsData.findIndex(req => req.id === requestToVoid.id);
+    const globalIndex = allRequestsSource.findIndex(req => req.id === requestToVoid.id);
     if (globalIndex !== -1) {
-      mockAllRequestsData[globalIndex] = voidedItem as GlobalApprovalItem;
+      allRequestsSource[globalIndex] = voidedItem as GlobalApprovalItem;
     }
     setScrapRequests(prevItems => prevItems.map(item => item.id === requestToVoid.id ? voidedItem : item));
     toast({ title: "Request Voided", description: `Request ${requestToVoid.id} has been voided.` });
@@ -195,9 +194,9 @@ export default function ScrapMovementListPage() {
     };
     setSelectedRequestDetail(updatedRequest);
     setScrapRequests(prev => prev.map(r => r.id === updatedRequest.id ? updatedRequest : r));
-    const globalIndex = mockAllRequestsData.findIndex(req => req.id === updatedRequest.id);
+    const globalIndex = allRequestsSource.findIndex(req => req.id === updatedRequest.id);
     if (globalIndex !== -1) {
-      mockAllRequestsData[globalIndex] = updatedRequest as GlobalApprovalItem;
+      allRequestsSource[globalIndex] = updatedRequest as GlobalApprovalItem;
     }
     setNewComment("");
     toast({ title: "Comment Added", description: `Comment added to request ${selectedRequestDetail.id}.` });
@@ -455,10 +454,7 @@ export default function ScrapMovementListPage() {
               <label htmlFor="voidReasonScrap" className="text-sm font-medium">Reason for Voiding (Optional)</label>
               <Textarea id="voidReasonScrap" placeholder="Enter reason..." value={voidReason} onChange={(e) => setVoidReason(e.target.value)}/>
             </div>
-            <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => { setIsVoidDialogOpen(false); setVoidReason(""); }}>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleConfirmVoid} className="bg-destructive hover:bg-destructive/90">Confirm Void</AlertDialogAction>
-            </AlertDialogFooter>
+            <AlertDialogFooter><AlertDialogCancel onClick={() => { setIsVoidDialogOpen(false); setVoidReason(""); }}>Cancel</AlertDialogCancel><AlertDialogAction onClick={handleConfirmVoid} className="bg-destructive hover:bg-destructive/90">Confirm Void</AlertDialogAction></AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
       )}

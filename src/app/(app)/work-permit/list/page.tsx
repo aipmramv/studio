@@ -1,4 +1,3 @@
-
 // src/app/(app)/work-permit/list/page.tsx
 "use client";
 
@@ -38,13 +37,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Eye, Edit, Trash2, PlusCircle, Filter as FilterIcon, CalendarDays, Search, ShieldCheck, ChevronsLeft, ChevronsRight, AlertCircle, Package, Info, History, Workflow as WorkflowIcon, MessageSquare, Save, Ban } from "lucide-react";
 import { type RequestType, type UserRole, type UserAction, MOCK_WORKFLOW_TEMPLATES, type WorkflowStep, DEPARTMENTS, REQUEST_STATUSES, type RequestStatus, ACTIVITY_TYPES_WORK_PERMIT } from "@/lib/constants";
-import { type MaterialMovementFormData, type ScrapMovementFormData, type WorkPermitFormData, type PurchaseOrderFormData, type SaleOrderFormData, type OrderItem } from "@/lib/schemas";
+import { type WorkPermitFormData } from "@/lib/schemas";
 import { WorkPermitForm } from "@/components/forms/WorkPermitForm";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import type { DateRange } from "react-day-picker";
 import { useAuth } from "@/hooks/useAuth";
-import { mockAllRequestsData, renderRequestPayloadDetailsDialog, renderWorkflowProgress, getRequestTypeIcon, type ApprovalItem as GlobalApprovalItem } from "@/app/(app)/all-requests/page";
+import { allRequestsSource, renderRequestPayloadDetailsDialog, renderWorkflowProgress, getRequestTypeIcon, type ApprovalItem as GlobalApprovalItem } from '@/lib/mock-data';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -57,7 +56,7 @@ export default function WorkPermitListPage() {
   const { toast } = useToast();
 
   const [workPermits, setWorkPermits] = React.useState<WorkPermitDisplayItem[]>(
-    mockAllRequestsData.filter(req => req.requestType === "Work Permit") as WorkPermitDisplayItem[]
+    allRequestsSource.filter(req => req.requestType === "Work Permit") as WorkPermitDisplayItem[]
   );
 
   const [selectedRequestDetail, setSelectedRequestDetail] = React.useState<WorkPermitDisplayItem | null>(null);
@@ -130,9 +129,9 @@ export default function WorkPermitListPage() {
     if (!editingRequest) return;
     const updatedItem: WorkPermitDisplayItem = { ...editingRequest, payload: updatedData };
     
-    const globalIndex = mockAllRequestsData.findIndex(req => req.id === editingRequest.id);
+    const globalIndex = allRequestsSource.findIndex(req => req.id === editingRequest.id);
     if (globalIndex !== -1) {
-      mockAllRequestsData[globalIndex] = updatedItem as GlobalApprovalItem;
+      allRequestsSource[globalIndex] = updatedItem as GlobalApprovalItem;
     }
     setWorkPermits(prev => prev.map(item => item.id === editingRequest.id ? updatedItem : item));
     toast({ title: "Request Updated", description: `Work Permit ID ${editingRequest.id} has been updated.` });
@@ -166,9 +165,9 @@ export default function WorkPermitListPage() {
         },
       ],
     };
-    const globalIndex = mockAllRequestsData.findIndex(req => req.id === requestToVoid.id);
+    const globalIndex = allRequestsSource.findIndex(req => req.id === requestToVoid.id);
     if (globalIndex !== -1) {
-      mockAllRequestsData[globalIndex] = voidedItem as GlobalApprovalItem;
+      allRequestsSource[globalIndex] = voidedItem as GlobalApprovalItem;
     }
     setWorkPermits(prevItems => prevItems.map(item => item.id === requestToVoid.id ? voidedItem : item));
     toast({ title: "Work Permit Voided", description: `Work Permit ${requestToVoid.id} has been voided.` });
@@ -195,9 +194,9 @@ export default function WorkPermitListPage() {
     };
     setSelectedRequestDetail(updatedRequest);
     setWorkPermits(prev => prev.map(r => r.id === updatedRequest.id ? updatedRequest : r));
-    const globalIndex = mockAllRequestsData.findIndex(req => req.id === updatedRequest.id);
+    const globalIndex = allRequestsSource.findIndex(req => req.id === updatedRequest.id);
     if (globalIndex !== -1) {
-      mockAllRequestsData[globalIndex] = updatedRequest as GlobalApprovalItem;
+      allRequestsSource[globalIndex] = updatedRequest as GlobalApprovalItem;
     }
     setNewComment("");
     toast({ title: "Comment Added", description: `Comment added to request ${selectedRequestDetail.id}.` });
