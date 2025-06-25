@@ -1,4 +1,3 @@
-
 // src/components/charts/MonthlyBudgetChart.tsx
 "use client";
 

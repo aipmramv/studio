@@ -1,4 +1,3 @@
-
 // src/components/charts/SampleBarChart.tsx
 "use client"
 
