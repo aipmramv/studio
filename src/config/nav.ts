@@ -165,10 +165,10 @@ export const mainNavItems: NavItem[] = [
         roles: ['admin', 'mm_team', 'finance_team'],
       },
       {
-        title: 'SO Yet to Dispatch',
-        href: '/reports/so-yet-to-dispatch',
-        icon: Send,
-        description: 'Approved SOs awaiting dispatch.',
+        title: 'SO Yet to Receive',
+        href: '/reports/so-yet-to-receive',
+        icon: ArchiveRestore,
+        description: 'Approved SOs awaiting material receipt.',
         roles: ['admin', 'mm_team', 'finance_team'],
       },
       {

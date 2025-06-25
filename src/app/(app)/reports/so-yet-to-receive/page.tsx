@@ -1,4 +1,4 @@
-// src/app/(app)/reports/so-yet-to-dispatch/page.tsx
+// src/app/(app)/reports/so-yet-to-receive/page.tsx
 "use client";
 
 import * as React from "react";
@@ -11,7 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Calendar as CalendarIcon, Filter as FilterIcon, FileText, FileSpreadsheet, Tags, Search, ChevronsLeft, ChevronsRight, Send } from "lucide-react";
+import { Calendar as CalendarIcon, Filter as FilterIcon, FileText, FileSpreadsheet, Tags, Search, ChevronsLeft, ChevronsRight, ArchiveRestore } from "lucide-react";
 import type { DateRange } from "react-day-picker";
 import { useToast } from "@/hooks/use-toast";
 import { allRequestsSource } from "@/lib/mock-data";
@@ -25,7 +25,7 @@ interface PendingSoItem extends ApprovalItem {
 
 const ITEMS_PER_PAGE = 10;
 
-export default function SoYetToDispatchReportPage() {
+export default function SoYetToReceiveReportPage() {
   const [reportData, setReportData] = React.useState<PendingSoItem[]>([]);
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>(undefined);
   const [filterCustomer, setFilterCustomer] = React.useState<string>("");
@@ -36,6 +36,9 @@ export default function SoYetToDispatchReportPage() {
   const currencyFormattingOptions: Intl.NumberFormatOptions = { style: 'currency', currency: 'INR', minimumFractionDigits: 2, maximumFractionDigits: 2 };
   
   React.useEffect(() => {
+    // This logic filters for SOs that are approved but not yet fully fulfilled,
+    // which is the stage where they would be "awaiting receipt".
+    // This might need refinement based on the exact workflow step for receiving.
     const pendingSOs = allRequestsSource.filter(
         (req): req is PendingSoItem => 
             req.requestType === 'Sale Order' && 
@@ -79,22 +82,22 @@ export default function SoYetToDispatchReportPage() {
   const handleExport = (formatType: 'excel' | 'pdf') => {
     toast({
       title: `Exporting to ${formatType.toUpperCase()}...`,
-      description: `Preparing 'SO Yet to Dispatch' report for ${formatType} export. This is a mock action.`,
+      description: `Preparing 'SO Yet to Receive' report for ${formatType} export. This is a mock action.`,
     });
   };
 
   return (
     <div className="space-y-8">
       <PageHeader
-        title="SO - Material Yet to be Dispatched"
-        description="View all Sale Orders that have been approved and are awaiting dispatch."
+        title="SO - Material Yet to be Received"
+        description="View all Sale Orders that are awaiting material receipt as part of their fulfillment process."
       />
 
       <Card>
         <CardHeader>
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <CardTitle className="font-headline flex items-center"><Send className="w-5 h-5 mr-2 text-primary"/>Pending Sale Orders</CardTitle>
+              <CardTitle className="font-headline flex items-center"><ArchiveRestore className="w-5 h-5 mr-2 text-primary"/>Pending SO Receipts</CardTitle>
               <CardDescription>Filter data by date, customer, or department.</CardDescription>
             </div>
             <div className="flex items-center gap-2">
@@ -114,7 +117,7 @@ export default function SoYetToDispatchReportPage() {
         <CardContent>
             <div className="relative flex-grow mb-6"><Search className="absolute w-4 h-4 left-3 top-1/2 -translate-y-1/2 text-muted-foreground" /><Input placeholder="Search by SO ID, Requester, Item Name..." className="pl-10" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} /></div>
           {filteredData.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">No SOs are currently awaiting dispatch.</p>
+            <p className="text-center text-muted-foreground py-8">No SOs are currently awaiting material receipt.</p>
           ) : (
             <>
             <div className="overflow-x-auto border rounded-md">
@@ -125,7 +128,7 @@ export default function SoYetToDispatchReportPage() {
                     <TableHead>SO Date</TableHead>
                     <TableHead>Customer</TableHead>
                     <TableHead>Requester</TableHead>
-                    <TableHead>Material Req. Date</TableHead>
+                    <TableHead>Material Due Date</TableHead>
                     <TableHead className="text-right">Total Value</TableHead>
                   </TableRow>
                 </TableHeader>
