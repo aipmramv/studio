@@ -48,7 +48,7 @@
     --sidebar-foreground: 0 0% 100%; /* KONE White */
     --sidebar-primary: 53 100% 63%; /* KONE Yellow (for active/hover background) */
     --sidebar-primary-foreground: 0 0% 8%; /* KONE Black (text on Yellow) */
-    --sidebar-accent: 228 93% 60%; /* Lighter KONE Blue (hover background for non-active items) */
+    --sidebar-accent: 228 93% 60%; /* Lighter KONE Blue (hover for non-active items) */
     --sidebar-accent-foreground: 0 0% 100%; /* KONE White (text on Lighter Blue) */
     --sidebar-border: 228 93% 45%; /* Darker KONE Blue shade for borders within sidebar */
     --sidebar-ring: 53 100% 63%; /* KONE Yellow for focus rings in sidebar */
@@ -120,7 +120,7 @@
   .no-print {
     display: none !important;
   }
-  .printable-dc {
+  .printable-dc, .printable-wp {
     display: block !important;
   }
   @page {

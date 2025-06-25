@@ -35,7 +35,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { Eye, Edit, Trash2, PlusCircle, Filter as FilterIcon, CalendarDays, Search, ShieldCheck, ChevronsLeft, ChevronsRight, AlertCircle, Package, Info, History, Workflow as WorkflowIcon, MessageSquare, Save, Ban } from "lucide-react";
+import { Eye, Edit, Trash2, PlusCircle, Filter as FilterIcon, CalendarDays, Search, ShieldCheck, ChevronsLeft, ChevronsRight, AlertCircle, Package, Info, History, Workflow as WorkflowIcon, MessageSquare, Save, Ban, Printer } from "lucide-react";
 import { MOCK_WORKFLOW_TEMPLATES, REQUEST_STATUSES, type RequestStatus, ACTIVITY_TYPES_WORK_PERMIT } from "@/lib/constants";
 import { type WorkPermitFormData } from "@/lib/schemas";
 import { WorkPermitForm } from "@/components/forms/WorkPermitForm";
@@ -45,10 +45,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { allRequestsSource, type ApprovalItem as GlobalApprovalItem } from '@/lib/mock-data';
 import { calculateWorkflowProgress, getRequestTypeIcon, renderRequestPayloadDetailsDialog, renderWorkflowProgress } from '@/lib/request-helpers';
 import { Progress } from "@/components/ui/progress";
+import { PrintableWorkPermit } from '@/components/shared/PrintableWorkPermit';
+
 
 const ITEMS_PER_PAGE = 10;
 
-interface WorkPermitDisplayItem extends GlobalApprovalItem {
+export interface WorkPermitDisplayItem extends GlobalApprovalItem {
   payload: WorkPermitFormData;
 }
 
@@ -68,6 +70,8 @@ export default function WorkPermitListPage() {
   const [isVoidDialogOpen, setIsVoidDialogOpen] = React.useState(false);
   const [voidReason, setVoidReason] = React.useState("");
   const [newComment, setNewComment] = React.useState("");
+  const [permitToPrint, setPermitToPrint] = React.useState<WorkPermitDisplayItem | null>(null);
+
 
   const [searchTerm, setSearchTerm] = React.useState("");
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>(undefined);
@@ -75,6 +79,28 @@ export default function WorkPermitListPage() {
   const [filterActivityType, setFilterActivityType] = React.useState<typeof ACTIVITY_TYPES_WORK_PERMIT[number] | "">("");
   const [currentPage, setCurrentPage] = React.useState(1);
   const [isFiltersApplied, setIsFiltersApplied] = React.useState(false);
+
+  const isPermitIssued = (item: WorkPermitDisplayItem) => {
+    if (!item || item.isVoided || item.currentStepName === "Request Voided" || item.currentStepName === "Request Rejected") return false;
+    const workflow = MOCK_WORKFLOW_TEMPLATES.find(wt => wt.id === item.workflowTemplateId);
+    if (!workflow) return false;
+    const currentStep = workflow.steps.find(step => step.id === item.currentStepId);
+    // It's issued if the current step is the last one in the flow
+    return !!currentStep && !currentStep.nextStepId;
+  };
+
+  React.useEffect(() => {
+    if (permitToPrint) {
+      const handleAfterPrint = () => {
+        setPermitToPrint(null);
+      };
+      window.addEventListener('afterprint', handleAfterPrint);
+      window.print();
+      return () => {
+        window.removeEventListener('afterprint', handleAfterPrint);
+      };
+    }
+  }, [permitToPrint]);
 
   const filteredWorkPermits = React.useMemo(() => {
     let tempItems = workPermits.filter(item => user?.role === 'admin' || item.requesterName === user?.displayName || MOCK_WORKFLOW_TEMPLATES.find(wt => wt.id === item.workflowTemplateId)?.steps.find(s => s.id === item.currentStepId)?.assignedRoles.includes(user?.role as string) );
@@ -221,7 +247,8 @@ export default function WorkPermitListPage() {
 
 
   return (
-    <div className="space-y-8">
+    <>
+    <div className="space-y-8 no-print">
       <PageHeader
         title="Work Permit Requests"
         description="Manage and track all Work Permit requests."
@@ -357,7 +384,14 @@ export default function WorkPermitListPage() {
         <Dialog open={isDetailDialogOpen} onOpenChange={(isOpen) => { setIsDetailDialogOpen(isOpen); if (!isOpen) { setSelectedRequestDetail(null); setNewComment(""); } }}>
           <DialogContent className="sm:max-w-3xl">
             <DialogHeader>
-              <DialogTitle className="flex items-center">{getRequestTypeIcon(selectedRequestDetail.requestType, "w-6 h-6 mr-2 text-primary")}Work Permit Details: {selectedRequestDetail.id}</DialogTitle>
+              <div className="flex items-center justify-between">
+                <DialogTitle className="flex items-center">{getRequestTypeIcon(selectedRequestDetail.requestType, "w-6 h-6 mr-2 text-primary")}Work Permit Details: {selectedRequestDetail.id}</DialogTitle>
+                {isPermitIssued(selectedRequestDetail) && (
+                  <Button variant="outline" size="sm" onClick={() => setPermitToPrint(selectedRequestDetail)}>
+                    <Printer className="w-4 h-4 mr-2" /> Print Permit
+                  </Button>
+                )}
+              </div>
               <DialogDescription>Detailed information for Work Permit {selectedRequestDetail.id}.</DialogDescription>
             </DialogHeader>
             <ScrollArea className="max-h-[calc(100vh-20rem)] pr-6">
@@ -432,5 +466,7 @@ export default function WorkPermitListPage() {
         </AlertDialog>
       )}
     </div>
+    {permitToPrint && <PrintableWorkPermit permitData={permitToPrint} />}
+    </>
   );
 }
