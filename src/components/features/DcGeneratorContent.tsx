@@ -3,10 +3,11 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption, TableFooter } from "@/components/ui/table";
-import { Printer, FileText, AlertCircle, ExternalLink, Send, Loader2, Search, CalendarDays, Truck } from "lucide-react";
+import { Printer, FileText, AlertCircle, ExternalLink, Send, Loader2, Search, CalendarDays, Truck, CheckCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -15,6 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { KoneLogo } from "../shared/KoneLogo";
 
 
 interface MaterialItem {
@@ -32,6 +34,13 @@ interface DCDetails {
   source: string;
   destination: string;
   materials: MaterialItem[];
+}
+
+interface FinalDcData extends DCDetails {
+    date: string;
+    vehicleNumber: string;
+    eWayBillRef: string;
+    totalValue: number;
 }
 
 // Mock data for selectable approved requests
@@ -68,6 +77,7 @@ const mockApprovedRequests: Array<{
 export function DcGeneratorContent() {
   const [selectedRequestId, setSelectedRequestId] = React.useState<string | undefined>(undefined);
   const [dcDetails, setDcDetails] = React.useState<DCDetails | null>(null);
+  const [submittedDcDetails, setSubmittedDcDetails] = React.useState<FinalDcData | null>(null);
   const [dcDate, setDcDate] = React.useState<Date>(new Date());
   const [vehicleNumber, setVehicleNumber] = React.useState("");
   const [eWayBillRef, setEWayBillRef] = React.useState("");
@@ -82,6 +92,7 @@ export function DcGeneratorContent() {
 
   const handleRequestSelect = (requestId: string) => {
     setSelectedRequestId(requestId);
+    setSubmittedDcDetails(null); // Clear previous submission on new selection
     if (!requestId) {
       setDcDetails(null);
       setVehicleNumber("");
@@ -141,23 +152,24 @@ export function DcGeneratorContent() {
     }
 
     setIsSubmitting(true);
-    const finalDcData = {
+    const finalDcData: FinalDcData = {
       ...dcDetails,
       date: format(dcDate, "yyyy-MM-dd"),
       vehicleNumber: vehicleNumber,
-      eWayBillLink: eWayBillRef,
+      eWayBillRef: eWayBillRef,
       totalValue: totalValue,
     };
     console.log("Submitting DC:", finalDcData);
 
     setTimeout(() => {
+      setSubmittedDcDetails(finalDcData);
       toast({
         title: "DC Submitted Successfully",
-        description: `DC ${finalDcData.dcNumber} for Request ${finalDcData.approvedRequestID} has been finalized.`,
+        description: `DC ${finalDcData.dcNumber} is finalized. You can now print it.`,
       });
       setIsSubmitting(false);
-      // Reset after submission
-      setSelectedRequestId(undefined); // This will clear the Select's displayed value
+      // Reset form part of the UI after submission
+      setSelectedRequestId(undefined); 
       setDcDetails(null);
       setVehicleNumber("");
       setEWayBillRef("");
@@ -165,194 +177,285 @@ export function DcGeneratorContent() {
     }, 1500);
   };
 
-  const handlePreviewPdf = () => {
-    if (!dcDetails) {
-      toast({ title: "No DC Data", description: "Please select a request and fill logistics details to generate DC for preview.", variant: "destructive"});
+  const handlePrint = () => {
+    if (!submittedDcDetails) {
+      toast({ title: "No DC Submitted", description: "Please submit a DC first to enable printing.", variant: "destructive"});
       return;
     }
-    toast({
-      title: "PDF Preview",
-      description: "Generating PDF preview... (This is a mock action)",
-    });
-    // In a real app, this would trigger a PDF generation library with `finalDcData`
     window.print();
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-          <div>
-            <CardTitle className="flex items-center text-2xl font-headline">
-              <FileText className="w-6 h-6 mr-2 text-primary" /> Delivery Challan (DC)
-            </CardTitle>
-            <CardDescription>Select an approved request to auto-generate DC details, then fill in logistics information.</CardDescription>
-          </div>
-           <Button onClick={handlePreviewPdf} variant="outline" disabled={!dcDetails || isSubmitting}>
-            <Printer className="w-4 h-4 mr-2" /> Preview/Print PDF
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {!canSubmit && (
-          <div className="p-4 mb-4 text-sm rounded-md bg-destructive/10 text-destructive border border-destructive flex items-center">
-            <AlertCircle className="w-5 h-5 mr-2" />
-            The deadline for DC submission (3:30 PM) has passed for today. New DCs cannot be submitted.
-          </div>
-        )}
-
-        <Card className="bg-card">
+    <>
+      <div className="no-print">
+        <Card className="w-full">
           <CardHeader>
-            <CardTitle className="text-lg flex items-center"><Search className="mr-2 h-5 w-5 text-primary"/>Select Source Request</CardTitle>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
+              <div>
+                <CardTitle className="flex items-center text-2xl font-headline">
+                  <FileText className="w-6 h-6 mr-2 text-primary" /> Delivery Challan (DC)
+                </CardTitle>
+                <CardDescription>Select an approved request to auto-generate DC details, then fill in logistics information.</CardDescription>
+              </div>
+              <Button onClick={handlePrint} variant="outline" disabled={!submittedDcDetails}>
+                <Printer className="w-4 h-4 mr-2" /> Print Last Submitted DC
+              </Button>
+            </div>
           </CardHeader>
-          <CardContent>
-            <Select onValueChange={handleRequestSelect} value={selectedRequestId} disabled={isLoadingRequest || isSubmitting}>
-              <SelectTrigger className="w-full md:w-2/3 lg:w-1/2">
-                <SelectValue placeholder="Select an approved Material Movement or Sale Order ID" />
-              </SelectTrigger>
-              <SelectContent>
-                {mockApprovedRequests.map(req => (
-                  <SelectItem key={req.id} value={req.id}>{req.id} ({req.type})</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {isLoadingRequest && <div className="flex items-center mt-2 text-sm text-muted-foreground"><Loader2 className="w-4 h-4 mr-2 animate-spin"/>Loading request details...</div>}
-          </CardContent>
-        </Card>
+          <CardContent className="space-y-6">
+            {!canSubmit && (
+              <div className="p-4 mb-4 text-sm rounded-md bg-destructive/10 text-destructive border border-destructive flex items-center">
+                <AlertCircle className="w-5 h-5 mr-2" />
+                The deadline for DC submission (3:30 PM) has passed for today. New DCs cannot be submitted.
+              </div>
+            )}
+             {submittedDcDetails && (
+              <div className="p-4 mb-4 text-sm rounded-md bg-primary/10 text-primary border border-primary flex items-center">
+                <CheckCircle className="w-5 h-5 mr-2" />
+                DC {submittedDcDetails.dcNumber} was submitted. You can now print the DC using the button above.
+              </div>
+            )}
 
-
-        {dcDetails && (
-          <>
-            <Card>
+            <Card className="bg-card">
               <CardHeader>
-                <CardTitle className="text-lg flex items-center"><FileText className="mr-2 h-5 w-5 text-primary"/>DC Information (Auto-Generated)</CardTitle>
+                <CardTitle className="text-lg flex items-center"><Search className="mr-2 h-5 w-5 text-primary"/>Select Source Request</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
-                  <div><Label className="text-sm text-muted-foreground">DC Number:</Label> <p className="font-semibold text-foreground">{dcDetails.dcNumber}</p></div>
-                  <div><Label className="text-sm text-muted-foreground">Source Request ID:</Label> <p className="text-foreground">{dcDetails.approvedRequestID} ({dcDetails.approvedRequestType})</p></div>
-                  <div><Label className="text-sm text-muted-foreground">Source Location:</Label> <p className="text-foreground">{dcDetails.source}</p></div>
-                  <div><Label className="text-sm text-muted-foreground">Destination Location:</Label> <p className="text-foreground">{dcDetails.destination}</p></div>
-                </div>
+              <CardContent>
+                <Select onValueChange={handleRequestSelect} value={selectedRequestId} disabled={isLoadingRequest || isSubmitting}>
+                  <SelectTrigger className="w-full md:w-2/3 lg:w-1/2">
+                    <SelectValue placeholder="Select an approved Material Movement or Sale Order ID" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {mockApprovedRequests.map(req => (
+                      <SelectItem key={req.id} value={req.id}>{req.id} ({req.type})</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {isLoadingRequest && <div className="flex items-center mt-2 text-sm text-muted-foreground"><Loader2 className="w-4 h-4 mr-2 animate-spin"/>Loading request details...</div>}
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center"><Truck className="mr-2 h-5 w-5 text-primary"/>Logistics Details</CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <div className="space-y-1">
-                  <Label htmlFor="dcDate" className="flex items-center text-sm font-medium"><CalendarDays className="w-4 h-4 mr-1 text-muted-foreground"/>DC Date</Label>
-                  <Popover>
-                      <PopoverTrigger asChild>
-                          <Button
-                            id="dcDate"
-                            variant={"outline"}
-                            className={cn("w-full justify-start text-left font-normal", !dcDate && "text-muted-foreground")}
-                            disabled={isSubmitting}
-                          >
-                            <CalendarDays className="w-4 h-4 mr-2" />
-                            {dcDate ? format(dcDate, "PPP") : <span>Pick a date</span>}
+            {dcDetails && (
+              <>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center"><FileText className="mr-2 h-5 w-5 text-primary"/>DC Information (Auto-Generated)</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
+                      <div><Label className="text-sm text-muted-foreground">DC Number:</Label> <p className="font-semibold text-foreground">{dcDetails.dcNumber}</p></div>
+                      <div><Label className="text-sm text-muted-foreground">Source Request ID:</Label> <p className="text-foreground">{dcDetails.approvedRequestID} ({dcDetails.approvedRequestType})</p></div>
+                      <div><Label className="text-sm text-muted-foreground">Source Location:</Label> <p className="text-foreground">{dcDetails.source}</p></div>
+                      <div><Label className="text-sm text-muted-foreground">Destination Location:</Label> <p className="text-foreground">{dcDetails.destination}</p></div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center"><Truck className="mr-2 h-5 w-5 text-primary"/>Logistics Details</CardTitle>
+                  </CardHeader>
+                  <CardContent className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                    <div className="space-y-1">
+                      <Label htmlFor="dcDate" className="flex items-center text-sm font-medium"><CalendarDays className="w-4 h-4 mr-1 text-muted-foreground"/>DC Date</Label>
+                      <Popover>
+                          <PopoverTrigger asChild>
+                              <Button
+                                id="dcDate"
+                                variant={"outline"}
+                                className={cn("w-full justify-start text-left font-normal", !dcDate && "text-muted-foreground")}
+                                disabled={isSubmitting}
+                              >
+                                <CalendarDays className="w-4 h-4 mr-2" />
+                                {dcDate ? format(dcDate, "PPP") : <span>Pick a date</span>}
+                              </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0">
+                            <Calendar mode="single" selected={dcDate} onSelect={(date) => setDcDate(date || new Date())} initialFocus />
+                          </PopoverContent>
+                        </Popover>
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="vehicleNumber" className="text-sm font-medium">Vehicle Number (Mandatory)</Label>
+                      <Input
+                        id="vehicleNumber"
+                        placeholder="e.g., MH01XY1234"
+                        value={vehicleNumber}
+                        onChange={(e) => setVehicleNumber(e.target.value.toUpperCase())}
+                        disabled={isSubmitting}
+                        className="border-input"
+                      />
+                    </div>
+                    <div className="space-y-1 md:col-span-2">
+                      <Label htmlFor="ewaybill" className="text-sm font-medium">E-Way Bill Reference/Number (Optional)</Label>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          id="ewaybill"
+                          placeholder="Enter E-Way Bill Number or Link"
+                          value={eWayBillRef}
+                          onChange={(e) => setEWayBillRef(e.target.value)}
+                          className="flex-grow border-input"
+                          disabled={isSubmitting}
+                        />
+                        {eWayBillRef && eWayBillRef.startsWith("http") && (
+                          <Button variant="outline" size="icon" asChild>
+                            <a href={eWayBillRef} target="_blank" rel="noopener noreferrer">
+                              <ExternalLink className="w-4 h-4" />
+                            </a>
                           </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar mode="single" selected={dcDate} onSelect={(date) => setDcDate(date || new Date())} initialFocus />
-                      </PopoverContent>
-                    </Popover>
-                </div>
-                 <div className="space-y-1">
-                  <Label htmlFor="vehicleNumber" className="text-sm font-medium">Vehicle Number (Mandatory)</Label>
-                  <Input
-                    id="vehicleNumber"
-                    placeholder="e.g., MH01XY1234"
-                    value={vehicleNumber}
-                    onChange={(e) => setVehicleNumber(e.target.value.toUpperCase())}
-                    disabled={isSubmitting}
-                    className="border-input"
-                  />
-                </div>
-                <div className="space-y-1 md:col-span-2">
-                  <Label htmlFor="ewaybill" className="text-sm font-medium">E-Way Bill Reference/Number (Optional)</Label>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      id="ewaybill"
-                      placeholder="Enter E-Way Bill Number or Link"
-                      value={eWayBillRef}
-                      onChange={(e) => setEWayBillRef(e.target.value)}
-                      className="flex-grow border-input"
-                      disabled={isSubmitting}
-                    />
-                    {eWayBillRef && eWayBillRef.startsWith("http") && (
-                      <Button variant="outline" size="icon" asChild>
-                        <a href={eWayBillRef} target="_blank" rel="noopener noreferrer">
-                          <ExternalLink className="w-4 h-4" />
-                        </a>
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
-            <Card>
-              <CardHeader>
-                 <CardTitle className="text-lg flex items-center"><Truck className="mr-2 h-5 w-5 text-primary"/>Material List (Value in INR)</CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[50px]">S.No.</TableHead>
-                        <TableHead>Description of Goods</TableHead>
-                        <TableHead className="text-right">Quantity</TableHead>
-                        <TableHead>UOM</TableHead>
-                        <TableHead className="text-right">Value</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {dcDetails.materials.map((item) => (
-                        <TableRow key={item.sno}>
-                          <TableCell>{item.sno}</TableCell>
-                          <TableCell className="font-medium">{item.description}</TableCell>
-                          <TableCell className="text-right">{item.quantity}</TableCell>
-                          <TableCell>{item.uom}</TableCell>
-                          <TableCell className="text-right">{item.value.toLocaleString('en-IN', currencyFormattingOptions)}</TableCell>
-                        </TableRow>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center"><Truck className="mr-2 h-5 w-5 text-primary"/>Material List (Value in INR)</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-[50px]">S.No.</TableHead>
+                            <TableHead>Description of Goods</TableHead>
+                            <TableHead className="text-right">Quantity</TableHead>
+                            <TableHead>UOM</TableHead>
+                            <TableHead className="text-right">Value (INR)</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {dcDetails.materials.map((item) => (
+                            <TableRow key={item.sno}>
+                              <TableCell>{item.sno}</TableCell>
+                              <TableCell className="font-medium">{item.description}</TableCell>
+                              <TableCell className="text-right">{item.quantity}</TableCell>
+                              <TableCell>{item.uom}</TableCell>
+                              <TableCell className="text-right">{item.value.toLocaleString('en-IN', currencyFormattingOptions)}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                        <TableFooter>
+                            <TableRow>
+                                <TableCell colSpan={4} className="text-right font-semibold">Total Value</TableCell>
+                                <TableCell className="text-right font-semibold">{totalValue.toLocaleString('en-IN', currencyFormattingOptions)}</TableCell>
+                            </TableRow>
+                        </TableFooter>
+                      </Table>
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
+            )}
+            {selectedRequestId && !dcDetails && !isLoadingRequest && (
+                <Card className="mt-4"><CardContent className="p-6 text-center text-destructive">Could not load details for selected request ID: {selectedRequestId}. Please try another.</CardContent></Card>
+            )}
+          </CardContent>
+          <CardFooter className="flex flex-col items-center gap-4 md:flex-row md:justify-end pt-6 border-t mt-6">
+            <p className="text-sm text-muted-foreground md:mr-auto">
+                Submission cut-off is 3:30 PM. Ensure all details are correct.
+              </p>
+            <Button
+              onClick={handleSubmitDc}
+              disabled={!canSubmit || isSubmitting || !dcDetails || !vehicleNumber.trim()}
+              className="w-full md:w-auto"
+              size="lg"
+            >
+              {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Submitting DC...</> : <><Send className="w-4 h-4 mr-2" /> Finalize and Submit DC</>}
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+
+      <div className="printable-dc hidden">
+        {submittedDcDetails && (
+          <div className="p-8 font-sans text-black bg-white">
+            <header className="flex justify-between items-start pb-4 border-b-2 border-black">
+              <div className="w-1/3">
+                <KoneLogo className="h-16 w-auto" />
+              </div>
+              <div className="w-1/3 text-center">
+                <h1 className="text-2xl font-bold">Delivery Challan</h1>
+                <p className="text-sm">(Original for Consignee)</p>
+              </div>
+              <div className="w-1/3 text-right">
+                <Image
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(`DC No: ${submittedDcDetails.dcNumber}, Date: ${submittedDcDetails.date}, Vehicle: ${submittedDcDetails.vehicleNumber}, Value: ${submittedDcDetails.totalValue}`)}`}
+                    alt="QR Code for DC Details"
+                    width={100}
+                    height={100}
+                />
+              </div>
+            </header>
+
+            <section className="grid grid-cols-2 gap-4 my-6 text-sm">
+                <div className="p-3 border border-black">
+                    <h2 className="font-bold mb-2">Consignor (From):</h2>
+                    <p className="font-semibold">R&D Stores (ITEC)</p>
+                    <p>{submittedDcDetails.source}</p>
+                    <p>GSTIN: 29AAAAA0000A1Z5</p>
+                </div>
+                <div className="p-3 border border-black">
+                    <h2 className="font-bold mb-2">Consignee (To):</h2>
+                    <p className="font-semibold">{submittedDcDetails.destination}</p>
+                    <p>GSTIN: 29BBBBB0000B2Z4</p>
+                </div>
+            </section>
+            
+            <section className="grid grid-cols-3 gap-4 my-6 text-sm">
+                 <div className="p-2 border border-black"><strong>DC No:</strong> {submittedDcDetails.dcNumber}</div>
+                 <div className="p-2 border border-black"><strong>DC Date:</strong> {format(new Date(submittedDcDetails.date), "dd-MMM-yyyy")}</div>
+                 <div className="p-2 border border-black"><strong>Vehicle No:</strong> {submittedDcDetails.vehicleNumber}</div>
+            </section>
+
+            <section className="my-6">
+              <table className="w-full text-sm text-left border-collapse border border-black">
+                  <thead>
+                      <tr className="bg-gray-200">
+                          <th className="p-2 border border-black">S.No.</th>
+                          <th className="p-2 border border-black">Description of Goods</th>
+                          <th className="p-2 border border-black text-right">Quantity</th>
+                          <th className="p-2 border border-black">UOM</th>
+                          <th className="p-2 border border-black text-right">Value (INR)</th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                      {submittedDcDetails.materials.map(item => (
+                          <tr key={item.sno}>
+                              <td className="p-2 border border-black">{item.sno}</td>
+                              <td className="p-2 border border-black">{item.description}</td>
+                              <td className="p-2 border border-black text-right">{item.quantity}</td>
+                              <td className="p-2 border border-black">{item.uom}</td>
+                              <td className="p-2 border border-black text-right">{item.value.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                          </tr>
                       ))}
-                    </TableBody>
-                    <TableFooter>
-                        <TableRow>
-                            <TableCell colSpan={4} className="text-right font-semibold">Total Value</TableCell>
-                            <TableCell className="text-right font-semibold">{totalValue.toLocaleString('en-IN', currencyFormattingOptions)}</TableCell>
-                        </TableRow>
-                    </TableFooter>
-                  </Table>
+                  </tbody>
+                   <tfoot>
+                      <tr className="font-bold">
+                          <td colSpan={4} className="p-2 border border-black text-right">Total Value:</td>
+                          <td className="p-2 border border-black text-right">{submittedDcDetails.totalValue.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</td>
+                      </tr>
+                  </tfoot>
+              </table>
+            </section>
+            
+            <footer className="pt-8 mt-12 text-xs text-gray-600">
+                <div className="grid grid-cols-2 gap-8">
+                    <div>
+                        <p className="mb-12">Received the above goods in good condition.</p>
+                        <p className="border-t border-gray-400 pt-2">Receiver's Signature & Stamp</p>
+                    </div>
+                     <div>
+                        <p className="text-right mb-12">For R&D Stores (ITEC)</p>
+                        <p className="border-t border-gray-400 pt-2 text-right">Authorized Signatory</p>
+                    </div>
                 </div>
-              </CardContent>
-            </Card>
-          </>
+                <p className="mt-8 text-center">This is a computer-generated challan and does not require a physical signature unless specified.</p>
+            </footer>
+          </div>
         )}
-        {selectedRequestId && !dcDetails && !isLoadingRequest && (
-             <Card className="mt-4"><CardContent className="p-6 text-center text-destructive">Could not load details for selected request ID: {selectedRequestId}. Please try another.</CardContent></Card>
-        )}
-
-      </CardContent>
-      <CardFooter className="flex flex-col items-center gap-4 md:flex-row md:justify-end pt-6 border-t mt-6">
-         <p className="text-sm text-muted-foreground md:mr-auto">
-            Submission cut-off is 3:30 PM. Ensure all details are correct.
-          </p>
-        <Button
-          onClick={handleSubmitDc}
-          disabled={!canSubmit || isSubmitting || !dcDetails || !vehicleNumber.trim()}
-          className="w-full md:w-auto"
-          size="lg"
-        >
-          {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Submitting DC...</> : <><Send className="w-4 h-4 mr-2" /> Finalize and Submit DC</>}
-        </Button>
-      </CardFooter>
-    </Card>
+      </div>
+    </>
   );
 }
-
