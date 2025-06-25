@@ -29,7 +29,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { DateRange } from "react-day-picker";
 import { useAuth } from "@/hooks/useAuth";
-import { allRequestsSource, type ApprovalItem as GlobalApprovalItem } from '@/lib/mock-data';
+import { allRequestsSource, type ApprovalItem as GlobalApprovalItem, renderRequestSummary } from '@/lib/mock-data';
 import { calculateWorkflowProgress, getRequestTypeIcon, renderRequestPayloadDetailsDialog, renderWorkflowProgress } from '@/lib/request-helpers';
 import { Progress } from "@/components/ui/progress";
 
