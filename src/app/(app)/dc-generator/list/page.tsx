@@ -63,16 +63,32 @@ export default function DeliveryChallanListPage() {
   const [dcList] = React.useState<FinalDcData[]>(mockGeneratedDcs);
   const [dcToPrint, setDcToPrint] = React.useState<FinalDcData | null>(null);
 
-  const handlePrint = (dc: FinalDcData) => {
-    setDcToPrint(dc);
-    setTimeout(() => {
-      window.print();
-      setDcToPrint(null); // Clear after printing to hide the component again
-    }, 100);
-  };
-  
   const currencyFormattingOptions: Intl.NumberFormatOptions = { style: 'currency', currency: 'INR', minimumFractionDigits: 2, maximumFractionDigits: 2 };
 
+  // This will be called when the user clicks the print button
+  const handlePrint = (dc: FinalDcData) => {
+    setDcToPrint(dc);
+  };
+
+  // This effect will run when dcToPrint changes to trigger the print dialog
+  React.useEffect(() => {
+    if (dcToPrint) {
+      const handleAfterPrint = () => {
+        setDcToPrint(null); // Reset the state after printing is done (or cancelled)
+      };
+
+      // The `afterprint` event fires after the print dialog is closed
+      window.addEventListener('afterprint', handleAfterPrint);
+      
+      // Trigger the print dialog
+      window.print();
+
+      // Cleanup the event listener when the component unmounts or dcToPrint changes
+      return () => {
+        window.removeEventListener('afterprint', handleAfterPrint);
+      };
+    }
+  }, [dcToPrint]);
 
   return (
     <>

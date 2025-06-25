@@ -165,7 +165,8 @@ export function DcGeneratorContent() {
     }
     // The PrintableDc component is rendered with the submittedDcDetails.
     // The print-specific CSS will handle showing only that component.
-    setTimeout(() => window.print(), 100);
+    // The timeout is removed as it's not the correct way to handle rendering delays.
+    window.print();
   };
 
   return (
