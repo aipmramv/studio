@@ -61,6 +61,9 @@ export type RequestType = typeof REQUEST_TYPES[number];
 export const REQUEST_STATUSES = ["Pending", "Approved", "Rejected", "In Progress", "Completed", "Cancelled", "Voided"] as const;
 export type RequestStatus = typeof REQUEST_STATUSES[number];
 
+export const LIFECYCLE_STAGES = ["Requested", "Approved", "In Transit", "Received", "In Use", "Scrap Pending", "Scrapped", "Completed"] as const;
+export type LifecycleStage = typeof LIFECYCLE_STAGES[number];
+
 
 export interface WorkflowStep {
   id: string;
@@ -404,4 +407,3 @@ export const MOCK_WORK_PERMIT_TEMPLATES: WorkPermitTemplate[] = [
     ]
   }
 ];
-

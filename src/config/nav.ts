@@ -130,6 +130,13 @@ export const mainNavItems: NavItem[] = [
         roles: ['admin', 'mm_team', 'department_head', 'finance_team'],
       },
       {
+        title: 'Material Lifecycle',
+        href: '/reports/material-lifecycle',
+        icon: PackageSearch,
+        description: "Drill-down report for material tracking.",
+        roles: ['admin', 'mm_team', 'department_head', 'finance_team'],
+      },
+      {
         title: 'Monthly Budget Report',
         href: '/reports/monthly-budget-report',
         icon: AreaChart,

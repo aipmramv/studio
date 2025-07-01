@@ -103,7 +103,7 @@ export default function RequestStatusSummaryPage() {
                   <SelectValue placeholder="All Request Types" />
                 </SelectTrigger>
                 <SelectContent>
-                  {/* <SelectItem value="">All Request Types</SelectItem> Removed to fix error */}
+                  <SelectItem value="">All Request Types</SelectItem>
                   {REQUEST_TYPES.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
                 </SelectContent>
               </Select>
@@ -184,4 +184,3 @@ export default function RequestStatusSummaryPage() {
     </div>
   );
 }
-
