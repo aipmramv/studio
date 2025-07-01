@@ -92,7 +92,9 @@ The system supports the following request types through a unified interface:
 - **Submission cut-off validation** (e.g., before 3:30 PM).
 - **Printable version** with necessary details.
 
-### Stores Lifecycle Management
+---
+
+## Stores Lifecycle Management
 - **Material Receipt:** Logging of incoming goods against POs or other documents.
 - **Material Issue:** Recording issuance of materials to departments or projects.
 - **Material Return:** Tracking the return of unused or excess materials to the store.
