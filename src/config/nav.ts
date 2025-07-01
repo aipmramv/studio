@@ -7,7 +7,7 @@ import {
   Store, PackagePlus, PackageMinus, Undo2, SearchCheck, SlidersHorizontal, GitFork,
   Users, Mail, UserCog, Layers, FileArchive, PackageSearch,
   Building2, Users2, TagIcon, ScaleIcon, Landmark, AreaChart, PieChart, BarChartHorizontalBig,
-  FileSpreadsheet, FileCheck, Clock, ArchiveRestore, Send
+  FileSpreadsheet, FileCheck, Clock, ArchiveRestore, Send, Lock
 } from 'lucide-react';
 
 export interface NavItem {
@@ -113,6 +113,7 @@ export const mainNavItems: NavItem[] = [
       { title: 'Material Issue', href: '/stores/material-issue', icon: PackageMinus, description: "Record material issues." },
       { title: 'Material Return', href: '/stores/material-returns', icon: Undo2, description: "Record material returns." },
       { title: 'Inventory Summary', href: '/stores/inventory-summary', icon: PackageSearch, description: "View material availability." },
+      { title: 'Inventory on Hold', href: '/stores/inventory-hold', icon: Lock, description: "View items on hold." },
     ]
   },
   {

@@ -222,3 +222,10 @@ export const WorkPermitTemplateMetadataSchema = z.object({
   name: z.string().min(1, "Template name is required."),
 });
 export type WorkPermitTemplateMetadataFormData = z.infer<typeof WorkPermitTemplateMetadataSchema>;
+
+export const HoldInventorySchema = z.object({
+  quantity: z.coerce.number().min(1, "Quantity to hold must be at least 1."),
+  reason: z.string().min(1, "A reason for holding is required."),
+  holdUntil: z.date({ required_error: "A 'hold until' date is required." }),
+});
+export type HoldInventoryFormData = z.infer<typeof HoldInventorySchema>;
