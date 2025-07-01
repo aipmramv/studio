@@ -1,3 +1,4 @@
+
 // src/app/(app)/material-movement/list/page.tsx
 "use client";
 
@@ -257,11 +258,12 @@ export default function MaterialMovementListPage() {
                 </div>
                 <div>
                   <label htmlFor="filter-status-mm" className="text-sm font-medium">Status</label>
-                  <Select value={filterStatus} onValueChange={(val) => setFilterStatus(val as RequestStatus)}>
+                  <Select value={filterStatus || "all"} onValueChange={(val) => setFilterStatus(val === 'all' ? '' : val as RequestStatus)}>
                     <SelectTrigger id="filter-status-mm" className="mt-1">
                       <SelectValue placeholder="All Statuses" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="all">All Statuses</SelectItem>
                       {REQUEST_STATUSES.map(status => (
                         <SelectItem key={status} value={status}>{status}</SelectItem>
                       ))}

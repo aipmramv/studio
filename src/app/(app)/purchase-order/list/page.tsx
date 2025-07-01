@@ -1,3 +1,4 @@
+
 // src/app/(app)/purchase-order/list/page.tsx
 "use client";
 
@@ -258,9 +259,12 @@ export default function PurchaseOrderListPage() {
                 </div>
                 <div>
                   <label htmlFor="filter-status-po" className="text-sm font-medium">Status</label>
-                  <Select value={filterStatus} onValueChange={(val) => setFilterStatus(val as RequestStatus)}>
+                  <Select value={filterStatus || "all"} onValueChange={(val) => setFilterStatus(val === 'all' ? '' : val as RequestStatus)}>
                     <SelectTrigger id="filter-status-po" className="mt-1"><SelectValue placeholder="All Statuses" /></SelectTrigger>
-                    <SelectContent>{REQUEST_STATUSES.map(status => (<SelectItem key={status} value={status}>{status}</SelectItem>))}</SelectContent>
+                    <SelectContent>
+                      <SelectItem value="all">All Statuses</SelectItem>
+                      {REQUEST_STATUSES.map(status => (<SelectItem key={status} value={status}>{status}</SelectItem>))}
+                    </SelectContent>
                   </Select>
                 </div>
                 <div className="flex justify-end gap-2 pt-2">

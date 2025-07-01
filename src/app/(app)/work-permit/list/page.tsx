@@ -1,3 +1,4 @@
+
 // src/app/(app)/work-permit/list/page.tsx
 "use client";
 
@@ -277,16 +278,22 @@ export default function WorkPermitListPage() {
                 </div>
                 <div>
                   <label htmlFor="filter-activity-wp" className="text-sm font-medium">Activity Type</label>
-                  <Select value={filterActivityType} onValueChange={(val) => setFilterActivityType(val as typeof ACTIVITY_TYPES_WORK_PERMIT[number] | "")}>
+                  <Select value={filterActivityType || 'all'} onValueChange={(val) => setFilterActivityType(val === 'all' ? '' : val as typeof ACTIVITY_TYPES_WORK_PERMIT[number])}>
                     <SelectTrigger id="filter-activity-wp" className="mt-1"><SelectValue placeholder="All Activity Types" /></SelectTrigger>
-                    <SelectContent>{ACTIVITY_TYPES_WORK_PERMIT.map(type => (<SelectItem key={type} value={type}>{type}</SelectItem>))}</SelectContent>
+                    <SelectContent>
+                      <SelectItem value="all">All Activity Types</SelectItem>
+                      {ACTIVITY_TYPES_WORK_PERMIT.map(type => (<SelectItem key={type} value={type}>{type}</SelectItem>))}
+                    </SelectContent>
                   </Select>
                 </div>
                 <div>
                   <label htmlFor="filter-status-wp" className="text-sm font-medium">Status</label>
-                  <Select value={filterStatus} onValueChange={(val) => setFilterStatus(val as RequestStatus)}>
+                  <Select value={filterStatus || 'all'} onValueChange={(val) => setFilterStatus(val === 'all' ? '' : val as RequestStatus)}>
                     <SelectTrigger id="filter-status-wp" className="mt-1"><SelectValue placeholder="All Statuses" /></SelectTrigger>
-                    <SelectContent>{REQUEST_STATUSES.map(status => (<SelectItem key={status} value={status}>{status}</SelectItem>))}</SelectContent>
+                    <SelectContent>
+                      <SelectItem value="all">All Statuses</SelectItem>
+                      {REQUEST_STATUSES.map(status => (<SelectItem key={status} value={status}>{status}</SelectItem>))}
+                    </SelectContent>
                   </Select>
                 </div>
                 <div className="flex justify-end gap-2 pt-2">

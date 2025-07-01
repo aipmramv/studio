@@ -1,3 +1,4 @@
+
 // src/app/(app)/all-requests/page.tsx
 "use client";
 
@@ -269,11 +270,12 @@ export default function AllRequestsPage() {
                   </div>
                    <div>
                     <label htmlFor="filter-request-type" className="text-sm font-medium">Request Type</label>
-                    <Select value={filterRequestType} onValueChange={setFilterRequestType}>
+                    <Select value={filterRequestType || "all"} onValueChange={(val) => setFilterRequestType(val === 'all' ? '' : val)}>
                       <SelectTrigger id="filter-request-type" className="mt-1">
                         <SelectValue placeholder="All Types" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="all">All Types</SelectItem>
                         {distinctRequestTypes.map(type => (
                           <SelectItem key={type} value={type}>{type}</SelectItem>
                         ))}
@@ -282,11 +284,12 @@ export default function AllRequestsPage() {
                   </div>
                    <div>
                     <label htmlFor="filter-status" className="text-sm font-medium">Current Status/Step</label>
-                    <Select value={filterStatus} onValueChange={setFilterStatus}>
+                    <Select value={filterStatus || "all"} onValueChange={(val) => setFilterStatus(val === 'all' ? '' : val)}>
                       <SelectTrigger id="filter-status" className="mt-1">
                         <SelectValue placeholder="All Statuses" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="all">All Statuses</SelectItem>
                          {distinctStatuses.map(status => (
                           <SelectItem key={status} value={status}>{status}</SelectItem>
                         ))}

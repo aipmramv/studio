@@ -157,12 +157,12 @@ export default function InventorySummaryPage() {
                 <PopoverContent className="w-80 p-4 space-y-4" align="end">
                   <div>
                     <label htmlFor="filter-store" className="text-sm font-medium">Store Location</label>
-                    <Select value={filterStoreLocation} onValueChange={setFilterStoreLocation}>
+                    <Select value={filterStoreLocation || "all"} onValueChange={(val) => setFilterStoreLocation(val === 'all' ? '' : val)}>
                       <SelectTrigger id="filter-store" className="mt-1">
                         <SelectValue placeholder="All Locations" />
                       </SelectTrigger>
                       <SelectContent>
-                        {/* <SelectItem value="">All Locations</SelectItem> Removed to fix error */}
+                        <SelectItem value="all">All Locations</SelectItem>
                         {distinctStoreLocations.map(loc => (
                           <SelectItem key={loc} value={loc}>{loc}</SelectItem>
                         ))}
@@ -171,12 +171,12 @@ export default function InventorySummaryPage() {
                   </div>
                   <div>
                     <label htmlFor="filter-category" className="text-sm font-medium">Material Category</label>
-                    <Select value={filterMaterialCategory} onValueChange={setFilterMaterialCategory}>
+                    <Select value={filterMaterialCategory || "all"} onValueChange={(val) => setFilterMaterialCategory(val === 'all' ? '' : val)}>
                       <SelectTrigger id="filter-category" className="mt-1">
                         <SelectValue placeholder="All Categories" />
                       </SelectTrigger>
                       <SelectContent>
-                        {/* <SelectItem value="">All Categories</SelectItem> Removed to fix error */}
+                        <SelectItem value="all">All Categories</SelectItem>
                         {distinctMaterialCategories.map(cat => (
                           <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                         ))}
@@ -185,12 +185,12 @@ export default function InventorySummaryPage() {
                   </div>
                   <div>
                     <label htmlFor="filter-availability" className="text-sm font-medium">Availability Status</label>
-                    <Select value={filterAvailability} onValueChange={(value) => setFilterAvailability(value as AvailabilityStatus | "")}>
+                    <Select value={filterAvailability || "all"} onValueChange={(val) => setFilterAvailability(val === 'all' ? '' : val as AvailabilityStatus)}>
                       <SelectTrigger id="filter-availability" className="mt-1">
                         <SelectValue placeholder="All Statuses" />
                       </SelectTrigger>
                       <SelectContent>
-                        {/* <SelectItem value="">All Statuses</SelectItem> Removed to fix error */}
+                        <SelectItem value="all">All Statuses</SelectItem>
                         {availabilityStatuses.map(status => (
                           <SelectItem key={status} value={status}>{status}</SelectItem>
                         ))}

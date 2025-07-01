@@ -1,3 +1,4 @@
+
 // src/app/(app)/reports/so-yet-to-receive/page.tsx
 "use client";
 
@@ -110,8 +111,8 @@ export default function SoYetToReceiveReportPage() {
                 <PopoverTrigger asChild><Button variant={"outline"} className="w-full sm:w-auto justify-start text-left font-normal"><CalendarIcon className="mr-2 h-4 w-4" />{dateRange?.from ? (dateRange.to ? <>{format(dateRange.from, "LLL dd, y")} - {format(dateRange.to, "LLL dd, y")}</> : format(dateRange.from, "LLL dd, y")) : (<span>Pick SO Date Range</span>)}</Button></PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start"><Calendar initialFocus mode="range" defaultMonth={dateRange?.from} selected={dateRange} onSelect={setDateRange} numberOfMonths={2} /></PopoverContent>
               </Popover>
-              <Select value={filterCustomer} onValueChange={setFilterCustomer}><SelectTrigger className="w-full sm:w-[180px]"><SelectValue placeholder="All Customers" /></SelectTrigger><SelectContent>{customers.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent></Select>
-              <Select value={filterDepartment} onValueChange={setFilterDepartment}><SelectTrigger className="w-full sm:w-[180px]"><SelectValue placeholder="All Departments" /></SelectTrigger><SelectContent>{DEPARTMENTS.map(dept => <SelectItem key={dept} value={dept}>{dept}</SelectItem>)}</SelectContent></Select>
+              <Select value={filterCustomer || "all"} onValueChange={(val) => setFilterCustomer(val === 'all' ? '' : val)}><SelectTrigger className="w-full sm:w-[180px]"><SelectValue placeholder="All Customers" /></SelectTrigger><SelectContent><SelectItem value="all">All Customers</SelectItem>{customers.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent></Select>
+              <Select value={filterDepartment || "all"} onValueChange={(val) => setFilterDepartment(val === 'all' ? '' : val)}><SelectTrigger className="w-full sm:w-[180px]"><SelectValue placeholder="All Departments" /></SelectTrigger><SelectContent><SelectItem value="all">All Departments</SelectItem>{DEPARTMENTS.map(dept => <SelectItem key={dept} value={dept}>{dept}</SelectItem>)}</SelectContent></Select>
           </div>
         </CardHeader>
         <CardContent>

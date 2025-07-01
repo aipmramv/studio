@@ -200,12 +200,12 @@ export default function AuditLogsPage() {
                   </div>
                    <div>
                     <label htmlFor="filter-action" className="text-sm font-medium">Action Type</label>
-                    <Select value={filterAction} onValueChange={setFilterAction}>
+                    <Select value={filterAction || "all"} onValueChange={(val) => setFilterAction(val === 'all' ? '' : val)}>
                       <SelectTrigger id="filter-action" className="mt-1">
                         <SelectValue placeholder="All Actions" />
                       </SelectTrigger>
                       <SelectContent>
-                        {/* <SelectItem value="">All Actions</SelectItem> Removed to fix error */}
+                        <SelectItem value="all">All Actions</SelectItem>
                         {distinctActions.map(action => (
                           <SelectItem key={action} value={action}>{action}</SelectItem>
                         ))}
@@ -214,12 +214,12 @@ export default function AuditLogsPage() {
                   </div>
                    <div>
                     <label htmlFor="filter-entity" className="text-sm font-medium">Entity Type</label>
-                    <Select value={filterEntityType} onValueChange={setFilterEntityType}>
+                    <Select value={filterEntityType || "all"} onValueChange={(val) => setFilterEntityType(val === 'all' ? '' : val)}>
                       <SelectTrigger id="filter-entity" className="mt-1">
                         <SelectValue placeholder="All Entities" />
                       </SelectTrigger>
                       <SelectContent>
-                        {/* <SelectItem value="">All Entities</SelectItem> Removed to fix error */}
+                        <SelectItem value="all">All Entities</SelectItem>
                          {distinctEntityTypes.map(type => (
                           <SelectItem key={type} value={type}>{type}</SelectItem>
                         ))}

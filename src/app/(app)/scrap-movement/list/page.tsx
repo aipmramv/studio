@@ -1,3 +1,4 @@
+
 // src/app/(app)/scrap-movement/list/page.tsx
 "use client";
 
@@ -256,16 +257,22 @@ export default function ScrapMovementListPage() {
                 </div>
                  <div>
                   <label htmlFor="filter-scrap-type" className="text-sm font-medium">Scrap Type</label>
-                  <Select value={filterScrapType} onValueChange={(val) => setFilterScrapType(val as typeof SCRAP_TYPES[number] | "")}>
+                  <Select value={filterScrapType || 'all'} onValueChange={(val) => setFilterScrapType(val === 'all' ? '' : val as typeof SCRAP_TYPES[number])}>
                     <SelectTrigger id="filter-scrap-type" className="mt-1"><SelectValue placeholder="All Scrap Types" /></SelectTrigger>
-                    <SelectContent>{SCRAP_TYPES.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}</SelectContent>
+                    <SelectContent>
+                      <SelectItem value="all">All Scrap Types</SelectItem>
+                      {SCRAP_TYPES.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
+                    </SelectContent>
                   </Select>
                 </div>
                 <div>
                   <label htmlFor="filter-status-scrap" className="text-sm font-medium">Status</label>
-                  <Select value={filterStatus} onValueChange={(val) => setFilterStatus(val as RequestStatus)}>
+                  <Select value={filterStatus || 'all'} onValueChange={(val) => setFilterStatus(val === 'all' ? '' : val as RequestStatus)}>
                     <SelectTrigger id="filter-status-scrap" className="mt-1"><SelectValue placeholder="All Statuses" /></SelectTrigger>
-                    <SelectContent>{REQUEST_STATUSES.map(status => (<SelectItem key={status} value={status}>{status}</SelectItem>))}</SelectContent>
+                    <SelectContent>
+                      <SelectItem value="all">All Statuses</SelectItem>
+                      {REQUEST_STATUSES.map(status => (<SelectItem key={status} value={status}>{status}</SelectItem>))}
+                    </SelectContent>
                   </Select>
                 </div>
                 <div className="flex justify-end gap-2 pt-2">

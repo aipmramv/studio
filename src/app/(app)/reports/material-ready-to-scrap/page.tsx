@@ -1,3 +1,4 @@
+
 // src/app/(app)/reports/material-ready-to-scrap/page.tsx
 "use client";
 
@@ -107,8 +108,8 @@ export default function MaterialReadyToScrapReportPage() {
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start"><Calendar initialFocus mode="range" defaultMonth={dateRange?.from} selected={dateRange} onSelect={setDateRange} numberOfMonths={2} /></PopoverContent>
               </Popover>
-              <Select value={filterScrapType} onValueChange={setFilterScrapType}><SelectTrigger className="w-full sm:w-[180px]"><SelectValue placeholder="All Scrap Types" /></SelectTrigger><SelectContent>{SCRAP_TYPES.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}</SelectContent></Select>
-              <Select value={filterDepartment} onValueChange={setFilterDepartment}><SelectTrigger className="w-full sm:w-[180px]"><SelectValue placeholder="All Departments" /></SelectTrigger><SelectContent>{DEPARTMENTS.map(dept => <SelectItem key={dept} value={dept}>{dept}</SelectItem>)}</SelectContent></Select>
+              <Select value={filterScrapType || "all"} onValueChange={(val) => setFilterScrapType(val === 'all' ? '' : val)}><SelectTrigger className="w-full sm:w-[180px]"><SelectValue placeholder="All Scrap Types" /></SelectTrigger><SelectContent><SelectItem value="all">All Scrap Types</SelectItem>{SCRAP_TYPES.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}</SelectContent></Select>
+              <Select value={filterDepartment || "all"} onValueChange={(val) => setFilterDepartment(val === 'all' ? '' : val)}><SelectTrigger className="w-full sm:w-[180px]"><SelectValue placeholder="All Departments" /></SelectTrigger><SelectContent><SelectItem value="all">All Departments</SelectItem>{DEPARTMENTS.map(dept => <SelectItem key={dept} value={dept}>{dept}</SelectItem>)}</SelectContent></Select>
           </div>
         </CardHeader>
         <CardContent>

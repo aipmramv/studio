@@ -1,3 +1,4 @@
+
 // src/app/(app)/reports/po-yet-to-receive/page.tsx
 "use client";
 
@@ -108,8 +109,8 @@ export default function PoYetToReceiveReportPage() {
                 <PopoverTrigger asChild><Button variant={"outline"} className="w-full sm:w-auto justify-start text-left font-normal"><CalendarIcon className="mr-2 h-4 w-4" />{dateRange?.from ? (dateRange.to ? <>{format(dateRange.from, "LLL dd, y")} - {format(dateRange.to, "LLL dd, y")}</> : format(dateRange.from, "LLL dd, y")) : (<span>Pick PO Date Range</span>)}</Button></PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start"><Calendar initialFocus mode="range" defaultMonth={dateRange?.from} selected={dateRange} onSelect={setDateRange} numberOfMonths={2} /></PopoverContent>
               </Popover>
-              <Select value={filterVendor} onValueChange={setFilterVendor}><SelectTrigger className="w-full sm:w-[180px]"><SelectValue placeholder="All Vendors" /></SelectTrigger><SelectContent>{vendors.map(v => <SelectItem key={v} value={v}>{v}</SelectItem>)}</SelectContent></Select>
-              <Select value={filterDepartment} onValueChange={setFilterDepartment}><SelectTrigger className="w-full sm:w-[180px]"><SelectValue placeholder="All Departments" /></SelectTrigger><SelectContent>{DEPARTMENTS.map(dept => <SelectItem key={dept} value={dept}>{dept}</SelectItem>)}</SelectContent></Select>
+              <Select value={filterVendor || "all"} onValueChange={(val) => setFilterVendor(val === 'all' ? '' : val)}><SelectTrigger className="w-full sm:w-[180px]"><SelectValue placeholder="All Vendors" /></SelectTrigger><SelectContent><SelectItem value="all">All Vendors</SelectItem>{vendors.map(v => <SelectItem key={v} value={v}>{v}</SelectItem>)}</SelectContent></Select>
+              <Select value={filterDepartment || "all"} onValueChange={(val) => setFilterDepartment(val === 'all' ? '' : val)}><SelectTrigger className="w-full sm:w-[180px]"><SelectValue placeholder="All Departments" /></SelectTrigger><SelectContent><SelectItem value="all">All Departments</SelectItem>{DEPARTMENTS.map(dept => <SelectItem key={dept} value={dept}>{dept}</SelectItem>)}</SelectContent></Select>
           </div>
         </CardHeader>
         <CardContent>

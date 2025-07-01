@@ -98,12 +98,12 @@ export default function RequestStatusSummaryPage() {
                     />
                 </PopoverContent>
                 </Popover>
-              <Select value={filterRequestType} onValueChange={(val) => setFilterRequestType(val as RequestType | "")}>
+              <Select value={filterRequestType || "all"} onValueChange={(val) => setFilterRequestType(val === 'all' ? '' : (val as RequestType))}>
                 <SelectTrigger className="w-full sm:w-[200px]">
                   <SelectValue placeholder="All Request Types" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Request Types</SelectItem>
+                  <SelectItem value="all">All Request Types</SelectItem>
                   {REQUEST_TYPES.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
                 </SelectContent>
               </Select>
