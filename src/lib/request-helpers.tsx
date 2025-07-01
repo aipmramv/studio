@@ -237,3 +237,39 @@ export const renderWorkflowProgress = (request: ApprovalItem): ReactNode => {
       </div>
     );
   };
+
+
+export const renderRequestSummary = (item: ApprovalItem): string => {
+  const { requestType, payload } = item;
+  const currencyFormattingOptions: Intl.NumberFormatOptions = { style: 'currency', currency: 'INR', minimumFractionDigits: 2, maximumFractionDigits: 2 };
+
+  switch (requestType) {
+    case "Material Movement":
+      const mm = payload as MaterialMovementFormData;
+      return `Move ${mm.quantity} x ${mm.materialType} from ${mm.source} to ${mm.destination}. Value: ${mm.value.toLocaleString('en-IN', currencyFormattingOptions)}`;
+    case "Scrap Request":
+      const sm = payload as ScrapMovementFormData;
+      return `${sm.quantity} units of ${sm.scrapType} (${sm.weight} units weight). Desc: ${sm.description.substring(0,50)}... ${sm.gatePassNumber ? `GP: ${sm.gatePassNumber}` : ''}`;
+    case "Work Permit":
+      const wp = payload as WorkPermitFormData;
+      return `For ${wp.activityType} in ${wp.building}. Area: ${wp.specificAreaOrEquipment}. Details: ${wp.activityDetails.substring(0,30)}...`;
+    case "Purchase Order":
+      const po = payload as PurchaseOrderFormData;
+      const poTotal = po.items.reduce((sum, i) => {
+        const itemTotal = (i.quantity || 0) * (i.unitPrice || 0);
+        const itemGst = itemTotal * ((i.gstPercentage || 0) / 100);
+        return sum + itemTotal + itemGst;
+      }, 0);
+      return `Vendor: ${po.vendorName}. ${po.items.length} item(s). Total: ${poTotal.toLocaleString('en-IN', currencyFormattingOptions)}`;
+    case "Sale Order":
+      const so = payload as SaleOrderFormData;
+      const soTotal = so.items.reduce((sum, i) => {
+        const itemTotal = (i.quantity || 0) * (i.unitPrice || 0);
+        const itemGst = itemTotal * ((i.gstPercentage || 0) / 100);
+        return sum + itemTotal + itemGst;
+      }, 0);
+      return `Customer: ${so.customerName}. ${so.items.length} item(s). Total: ${soTotal.toLocaleString('en-IN', currencyFormattingOptions)}`;
+    default:
+      return "Details not available.";
+  }
+};

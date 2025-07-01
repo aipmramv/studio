@@ -3,8 +3,8 @@
 import * as React from "react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, CardFooter as UICardFooter } from "@/components/ui/card";
-import { Check, X, User, CalendarDays, Filter, LayoutGrid, List, Briefcase, Package, ShieldCheck, ShoppingCart, Tags, Recycle, Edit3, Truck, ChevronsUpDown, Eye, MessageSquare, Bell, ChevronsUp, Send, Info, History, Workflow as WorkflowIcon, Clock, Circle, CheckCircle, CircleDot, Loader2, Hash } from "lucide-react";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Check, X, User, CalendarDays, Filter, LayoutGrid, List, Briefcase, Package, ShieldCheck, ShoppingCart, Tags, Recycle, Edit3, Truck, ChevronsUpDown, Eye, MessageSquare, Bell, ChevronsUp, Send, Info, History, Workflow as WorkflowIcon, Clock, Circle, CheckCircle, CircleDot, Loader2, Hash, FileSignature } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { type RequestType, MOCK_WORKFLOW_TEMPLATES, type UserAction, type WorkflowStep } from "@/lib/constants";
@@ -32,6 +32,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  TableCaption
 } from "@/components/ui/table";
 import {
   Dialog,
@@ -44,8 +45,9 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { allRequestsSource, type ApprovalItem, renderRequestSummary } from "@/lib/mock-data";
-import { getRequestTypeIcon, renderRequestPayloadDetailsDialog, renderWorkflowProgress } from '@/lib/request-helpers';
+import { allRequestsSource, type ApprovalItem } from "@/lib/mock-data";
+import { getRequestTypeIcon, renderRequestPayloadDetailsDialog, renderWorkflowProgress, renderRequestSummary } from '@/lib/request-helpers';
+import Link from 'next/link';
 
 
 export default function ApprovalsDashboardPage() {
@@ -66,11 +68,20 @@ export default function ApprovalsDashboardPage() {
 
   const userVisibleApprovals = React.useMemo(() => {
     if (!user) return [];
-    if(user.role === 'admin') return approvals.filter(item => item.currentAssignees.length > 0); // Admins see all pending
+    if(user.role === 'admin') return approvals.filter(item => item.currentAssignees.length > 0 && !item.isVoided);
     return approvals.filter(item =>
-      item.currentAssignees.includes(user.role) ||
-      (item.currentAssignees.includes('department_head') && user.department && item.requesterDepartment === user.department)
+      !item.isVoided &&
+      (item.currentAssignees.includes(user.role) ||
+      (item.currentAssignees.includes('department_head') && user.department && item.requesterDepartment === user.department))
     );
+  }, [approvals, user]);
+  
+  const myRecentSubmissions = React.useMemo(() => {
+    if (!user) return [];
+    return approvals
+      .filter(item => item.requesterName === user.displayName)
+      .sort((a, b) => new Date(b.submissionDate).getTime() - new Date(a.submissionDate).getTime())
+      .slice(0, 5);
   }, [approvals, user]);
 
   const handleViewDetails = (item: ApprovalItem) => {
@@ -86,7 +97,7 @@ export default function ApprovalsDashboardPage() {
         stepId: item.currentStepId,
         stepName: item.currentStepName,
         action: action,
-        actor: user.displayName || user.email || "Ram Kumar",
+        actor: user.displayName || "Current User",
         timestamp: new Date().toISOString(),
         comment: comment,
     };
@@ -165,7 +176,7 @@ export default function ApprovalsDashboardPage() {
         {
           stepId: selectedRequestDetail.currentStepId,
           stepName: `Comment on: ${selectedRequestDetail.currentStepName}`,
-          actor: user.displayName || "Ram Kumar",
+          actor: user.displayName || "Current User",
           action: "commented" as const,
           timestamp: new Date().toISOString(),
           comment: newComment,
@@ -211,13 +222,26 @@ export default function ApprovalsDashboardPage() {
       </Form>
     </AlertDialogContent>
   );
+  
+  const getListPageUrl = (requestType: RequestType) => {
+    const map = {
+      "Material Movement": "/material-movement/list",
+      "Scrap Request": "/scrap-movement/list",
+      "Work Permit": "/work-permit/list",
+      "Purchase Order": "/purchase-order/list",
+      "Sale Order": "/sale-order/list",
+    };
+    return map[requestType] || "/all-requests";
+  };
+
 
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Approvals Dashboard"
-        description="Review and process pending requests assigned to you."
+        title="Dashboard"
+        description="Review pending approvals and track your recent submissions."
         actions={
+          userVisibleApprovals.length > 0 ? (
           <div className="flex items-center gap-2">
             <Button
               variant={viewMode === 'card' ? 'default' : 'outline'}
@@ -236,8 +260,46 @@ export default function ApprovalsDashboardPage() {
               Grid View
             </Button>
           </div>
+          ) : null
         }
       />
+      
+      {myRecentSubmissions.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center"><FileSignature className="w-5 h-5 mr-2 text-primary" /> My Recent Submissions</CardTitle>
+            <CardDescription>A quick look at the status of your most recently submitted requests.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Request ID</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Submitted</TableHead>
+                    <TableHead className="text-right">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {myRecentSubmissions.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell className="font-medium">{item.id}</TableCell>
+                      <TableCell className="flex items-center">{getRequestTypeIcon(item.requestType)}{item.requestType}</TableCell>
+                      <TableCell><Badge variant="secondary">{item.currentStepName}</Badge></TableCell>
+                      <TableCell>{new Date(item.submissionDate).toLocaleDateString()}</TableCell>
+                      <TableCell className="text-right">
+                         <Button variant="outline" size="sm" asChild>
+                            <Link href={getListPageUrl(item.requestType)}><Eye className="w-4 h-4 mr-2"/>View in List</Link>
+                         </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
 
       {userVisibleApprovals.length === 0 ? (
         <Card>
@@ -248,7 +310,8 @@ export default function ApprovalsDashboardPage() {
           </CardContent>
         </Card>
       ) : (
-        <>
+        <div className="space-y-4">
+            <h2 className="text-2xl font-semibold text-foreground">Pending My Approval ({userVisibleApprovals.length})</h2>
           {viewMode === 'card' && (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {userVisibleApprovals.map((item) => (
@@ -357,11 +420,12 @@ export default function ApprovalsDashboardPage() {
               </CardContent>
             </Card>
           )}
-        </>
+        </div>
       )}
 
     {selectedRequestDetail && (
         <Dialog open={isDetailDialogOpen} onOpenChange={(isOpen) => {
+          setIsDetailDialogOpen(isOpen);
           if (!isOpen) {
             setSelectedRequestDetail(null);
             setNewComment("");

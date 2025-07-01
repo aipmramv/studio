@@ -1,16 +1,16 @@
-
 // src/app/(app)/kpi-dashboard/page.tsx
 "use client";
 import * as React from "react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SampleBarChart } from "@/components/charts/SampleBarChart";
 import { SampleLineChart } from "@/components/charts/SampleLineChart";
-import { TrendingUp, Package, AlertTriangle, Clock, Landmark, Briefcase } from "lucide-react";
+import { TrendingUp, Package, AlertTriangle, Clock, Landmark, Briefcase, Lock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { DEPARTMENTS, FISCAL_YEARS, QUARTERS, MOCK_DEPARTMENT_BUDGETS, type Department, type FiscalYear, type Quarter } from "@/lib/constants";
+import { allRequestsSource } from "@/lib/mock-data";
+import { mockInventoryData } from "@/lib/mock-inventory-data";
 
 // Mock data for charts
 const dailyRequestsData = [
@@ -32,13 +32,6 @@ const materialVolumeData = [
   { month: "Jun", volume: 1900 },
 ];
 
-const kpiStats = [
-    { title: "Total Requests Today", value: "125", icon: TrendingUp, color: "text-primary" },
-    { title: "Scrap Moved (This Week)", value: "2.5 Tons", icon: Package, color: "text-primary" },
-    { title: "Pending Approvals", value: "18", icon: Clock, color: "text-accent" },
-    { title: "Delayed Approvals (>48h)", value: "3", icon: AlertTriangle, color: "text-destructive" },
-];
-
 
 export default function KpiDashboardPage() {
   const { user } = useAuth();
@@ -47,6 +40,23 @@ export default function KpiDashboardPage() {
   );
   const [selectedYear, setSelectedYear] = React.useState<FiscalYear>(FISCAL_YEARS[FISCAL_YEARS.length-1]); // Default to latest year
   const [selectedQuarter, setSelectedQuarter] = React.useState<Quarter>("Full Year");
+
+  const kpiMetrics = React.useMemo(() => {
+    const totalPendingApprovals = allRequestsSource.filter(r => r.currentAssignees.length > 0 && !r.isVoided).length;
+    const itemsOnHold = mockInventoryData.filter(i => i.heldQuantity && i.heldQuantity > 0).length;
+    const lowStockItems = mockInventoryData.filter(i => {
+      const availableQty = (i.quantityOnHand || 0) - (i.heldQuantity || 0);
+      return availableQty > 0 && availableQty <= i.lowStockThreshold;
+    }).length;
+    const posAwaitingReceipt = allRequestsSource.filter(r => r.requestType === "Purchase Order" && r.currentStepId === 'po_sap_creation' && !r.isVoided).length;
+
+    return [
+      { title: "Total Pending Approvals", value: totalPendingApprovals.toString(), icon: Clock, color: "text-accent" },
+      { title: "POs Awaiting Fulfillment", value: posAwaitingReceipt.toString(), icon: Package, color: "text-primary" },
+      { title: "Inventory Items on Hold", value: itemsOnHold.toString(), icon: Lock, color: "text-yellow-500" },
+      { title: "Items with Low Stock", value: lowStockItems.toString(), icon: AlertTriangle, color: "text-destructive" },
+    ];
+  }, []);
 
   const currencyFormattingOptions: Intl.NumberFormatOptions = { style: 'currency', currency: 'INR', minimumFractionDigits: 0, maximumFractionDigits: 0 };
 
@@ -92,7 +102,7 @@ export default function KpiDashboardPage() {
       />
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        {kpiStats.map((stat, index) => (
+        {kpiMetrics.map((stat, index) => (
           <Card key={index}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">{stat.title}</CardTitle>
@@ -217,4 +227,3 @@ export default function KpiDashboardPage() {
     </div>
   );
 }
-
