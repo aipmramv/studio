@@ -109,9 +109,24 @@ export const mainNavItems: NavItem[] = [
     icon: Warehouse,
     description: "Manage store operations, inventory, and audits.",
     items: [
-      { title: 'Material Receipt', href: '/stores/material-receipt', icon: PackagePlus, description: "Record material receipts." },
-      { title: 'Material Issue', href: '/stores/material-issue', icon: PackageMinus, description: "Record material issues." },
-      { title: 'Material Return', href: '/stores/material-returns', icon: Undo2, description: "Record material returns." },
+      { title: 'Material Receipt', href: '/stores/material-receipt/list', icon: PackagePlus, description: "Record material receipts.",
+        items: [
+            { title: 'New Receipt', href: '/stores/material-receipt/new', icon: PlusCircle },
+            { title: 'View Receipts', href: '/stores/material-receipt/list', icon: ListChecks },
+        ]
+      },
+      { title: 'Material Issue', href: '/stores/material-issue/list', icon: PackageMinus, description: "Record material issues.",
+        items: [
+            { title: 'New Issue', href: '/stores/material-issue/new', icon: PlusCircle },
+            { title: 'View Issues', href: '/stores/material-issue/list', icon: ListChecks },
+        ]
+      },
+      { title: 'Material Return', href: '/stores/material-returns/list', icon: Undo2, description: "Record material returns.",
+        items: [
+            { title: 'New Return', href: '/stores/material-returns/new', icon: PlusCircle },
+            { title: 'View Returns', href: '/stores/material-returns/list', icon: ListChecks },
+        ]
+      },
       { title: 'Inventory Summary', href: '/stores/inventory-summary', icon: PackageSearch, description: "View material availability." },
       { title: 'Inventory on Hold', href: '/stores/inventory-hold', icon: Lock, description: "View items on hold." },
     ]
