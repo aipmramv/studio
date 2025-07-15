@@ -1,35 +1,122 @@
-
 // src/app/(app)/stores/material-issue/page.tsx
 "use client";
 
 import * as React from "react";
+import { format } from "date-fns";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, PackageMinus, FileText, Users } from "lucide-react";
-import Link from "next/link";
+import { PlusCircle, Edit, Trash2, FileText, Users } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-
-interface MaterialIssue {
-  issueId: string;
-  requestCode?: string; // Optional: Link to a Material Request if applicable
-  issuedTo: string; // Department or Person
-  issueDate: string;
-  storeLocation: string;
-  totalItems: number;
-  purpose: string;
-}
-
-const mockIssues: MaterialIssue[] = [
-  { issueId: "ISS001", requestCode: "MRQ050", issuedTo: "Production Line 2", issueDate: "2024-07-21", storeLocation: "Central Warehouse Alpha", totalItems: 3, purpose: "Scheduled Production" },
-  { issueId: "ISS002", issuedTo: "Maintenance Team B", issueDate: "2024-07-23", storeLocation: "Sub-Store Gamma", totalItems: 8, purpose: "Urgent Repair" },
-];
-
+import { useToast } from "@/hooks/use-toast";
+import { mockIssuesData, type MaterialIssue, mockInventoryData } from "@/lib/mock-inventory-data";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { MaterialIssueForm } from "@/components/forms/MaterialIssueForm";
+import { type MaterialIssueFormData } from "@/lib/schemas";
 
 export default function MaterialIssuePage() {
-  const [issues, setIssues] = React.useState<MaterialIssue[]>(mockIssues);
-  // Future: Form for new material issue, integration with material requests.
+  const [issues, setIssues] = React.useState<MaterialIssue[]>(mockIssuesData);
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [editingIssue, setEditingIssue] = React.useState<MaterialIssue | null>(null);
+  const [issueToDelete, setIssueToDelete] = React.useState<MaterialIssue | null>(null);
+  const { toast } = useToast();
+
+  const openAddDialog = () => {
+    setEditingIssue(null);
+    setIsDialogOpen(true);
+  };
+
+  const openEditDialog = (issue: MaterialIssue) => {
+    setEditingIssue(issue);
+    setIsDialogOpen(true);
+  };
+
+  const handleDeleteConfirmation = (issue: MaterialIssue) => {
+    setIssueToDelete(issue);
+  };
+
+  const executeDelete = () => {
+    if (!issueToDelete) return;
+
+    // Simulate returning items to stock
+    issueToDelete.items.forEach(issuedItem => {
+        const inventoryIndex = mockInventoryData.findIndex(inv => inv.id === issuedItem.materialId);
+        if (inventoryIndex !== -1) {
+            mockInventoryData[inventoryIndex].quantityOnHand += issuedItem.quantity;
+        }
+    });
+
+    setIssues(prev => prev.filter(iss => iss.issueId !== issueToDelete.id));
+    toast({ title: "Material Issue Deleted", description: `Issue record ${issueToDelete.id} and its stock adjustments have been reverted.` });
+    setIssueToDelete(null);
+  };
+
+  const handleSave = (data: MaterialIssueFormData) => {
+    if (editingIssue) {
+      // Logic for editing an issue is complex (reverting stock, then re-issuing)
+      // For this mock, we'll just update the details without stock changes.
+      const updatedIssue: MaterialIssue = { 
+        ...editingIssue,
+        ...data,
+        issueDate: format(data.issueDate, "yyyy-MM-dd"),
+        // Items are not editable in this simplified version to avoid stock complexity
+      };
+      setIssues(prev => prev.map(iss => (iss.issueId === editingIssue.issueId ? updatedIssue : iss)));
+      toast({ title: "Material Issue Updated", description: `Issue record ${data.issuedTo} has been updated.` });
+    } else {
+      // Logic for adding a new issue
+      let allItemsValid = true;
+      data.items.forEach(itemToIssue => {
+        const inventoryItem = mockInventoryData.find(inv => inv.id === itemToIssue.materialId);
+        if (!inventoryItem || inventoryItem.quantityOnHand < itemToIssue.quantity) {
+          allItemsValid = false;
+          toast({
+            title: "Insufficient Stock",
+            description: `Not enough stock for ${itemToIssue.materialId}. Available: ${inventoryItem?.quantityOnHand || 0}.`,
+            variant: "destructive"
+          });
+        }
+      });
+
+      if (!allItemsValid) return;
+
+      // Deduct from inventory
+      data.items.forEach(itemToIssue => {
+          const inventoryIndex = mockInventoryData.findIndex(inv => inv.id === itemToIssue.materialId);
+          if (inventoryIndex !== -1) {
+              mockInventoryData[inventoryIndex].quantityOnHand -= itemToIssue.quantity;
+          }
+      });
+      
+      const newIssue: MaterialIssue = {
+        issueId: `ISS${Date.now()}`,
+        ...data,
+        id: `ISS${Date.now()}`,
+        issueDate: format(data.issueDate, "yyyy-MM-dd"),
+        totalItems: data.items.length,
+      };
+      setIssues(prev => [...prev, newIssue]);
+      toast({ title: "Material Issue Logged", description: `New issue for ${data.issuedTo} has been logged.` });
+    }
+    setIsDialogOpen(false);
+    setEditingIssue(null);
+  };
 
   return (
     <div className="space-y-8">
@@ -37,11 +124,48 @@ export default function MaterialIssuePage() {
         title="Material Issue Log"
         description="Record and manage materials issued from various stores to departments or personnel."
         actions={
-          <Button>
-            <PackageMinus className="w-4 h-4 mr-2" /> New Material Issue
+          <Button onClick={openAddDialog}>
+            <PlusCircle className="w-4 h-4 mr-2" /> New Material Issue
           </Button>
         }
       />
+      
+      <Dialog open={isDialogOpen} onOpenChange={(isOpen) => {
+        setIsDialogOpen(isOpen);
+        if (!isOpen) setEditingIssue(null);
+      }}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{editingIssue ? "Edit" : "Log New"} Material Issue</DialogTitle>
+            <DialogDescription>
+              {editingIssue ? "Update the details for this material issue." : "Fill the form to log a new material issue. This will deduct quantities from the inventory."}
+            </DialogDescription>
+          </DialogHeader>
+          <MaterialIssueForm
+            initialData={editingIssue}
+            onSave={handleSave}
+            onCancel={() => setIsDialogOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+      
+      {issueToDelete && (
+        <AlertDialog open={!!issueToDelete} onOpenChange={() => setIssueToDelete(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete issue record {issueToDelete.id}? This will revert the stock quantities and cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={executeDelete} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle>Issue List</CardTitle>
@@ -53,7 +177,6 @@ export default function MaterialIssuePage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Issue ID</TableHead>
-                  <TableHead>Request Code</TableHead>
                   <TableHead>Issued To</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Store</TableHead>
@@ -66,15 +189,17 @@ export default function MaterialIssuePage() {
                 {issues.map((issue) => (
                   <TableRow key={issue.issueId}>
                     <TableCell className="font-medium">{issue.issueId}</TableCell>
-                    <TableCell>{issue.requestCode || "N/A"}</TableCell>
                     <TableCell className="flex items-center"><Users className="w-4 h-4 mr-2 text-muted-foreground" />{issue.issuedTo}</TableCell>
                     <TableCell>{issue.issueDate}</TableCell>
                     <TableCell>{issue.storeLocation}</TableCell>
                     <TableCell className="text-right">{issue.totalItems}</TableCell>
                     <TableCell>{issue.purpose}</TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" title="View Details">
-                        <FileText className="w-4 h-4" />
+                    <TableCell className="text-right space-x-2">
+                       <Button variant="outline" size="sm" onClick={() => openEditDialog(issue)}>
+                        <Edit className="w-3 h-3 mr-1" /> Edit
+                      </Button>
+                      <Button variant="destructive" size="sm" onClick={() => handleDeleteConfirmation(issue)}>
+                        <Trash2 className="w-3 h-3 mr-1" /> Delete
                       </Button>
                     </TableCell>
                   </TableRow>

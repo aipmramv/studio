@@ -1,36 +1,117 @@
-
 // src/app/(app)/stores/material-returns/page.tsx
 "use client";
 
 import * as React from "react";
+import { format } from "date-fns";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Undo2, FileText, Users } from "lucide-react";
-import Link from "next/link";
+import { PlusCircle, Undo2, FileText, Users, Edit, Trash2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-
-interface MaterialReturn {
-  returnId: string;
-  originalIssueId?: string;
-  returnedBy: string; // Department or Person
-  returnDate: string;
-  storeLocation: string;
-  totalItems: number;
-  reason: string;
-  condition: "Good" | "Damaged" | "Requires Inspection";
-}
-
-const mockReturns: MaterialReturn[] = [
-  { returnId: "RET001", originalIssueId: "ISS001", returnedBy: "Production Line 2", returnDate: "2024-07-24", storeLocation: "Central Warehouse Alpha", totalItems: 1, reason: "Excess material", condition: "Good" },
-  { returnId: "RET002", returnedBy: "Maintenance Team B", returnDate: "2024-07-25", storeLocation: "Sub-Store Gamma", totalItems: 2, reason: "Wrong item issued", condition: "Requires Inspection" },
-];
-
+import { useToast } from "@/hooks/use-toast";
+import { mockReturnsData, type MaterialReturn, mockInventoryData } from "@/lib/mock-inventory-data";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { MaterialReturnForm } from "@/components/forms/MaterialReturnForm";
+import { type MaterialReturnFormData } from "@/lib/schemas";
 
 export default function MaterialReturnsPage() {
-  const [returns, setReturns] = React.useState<MaterialReturn[]>(mockReturns);
-  // Future: Form for new material return.
+  const [returns, setReturns] = React.useState<MaterialReturn[]>(mockReturnsData);
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [editingReturn, setEditingReturn] = React.useState<MaterialReturn | null>(null);
+  const [returnToDelete, setReturnToDelete] = React.useState<MaterialReturn | null>(null);
+  const { toast } = useToast();
+
+  const openAddDialog = () => {
+    setEditingReturn(null);
+    setIsDialogOpen(true);
+  };
+
+  const openEditDialog = (itemReturn: MaterialReturn) => {
+    setEditingReturn(itemReturn);
+    setIsDialogOpen(true);
+  };
+
+  const handleDeleteConfirmation = (itemReturn: MaterialReturn) => {
+    setReturnToDelete(itemReturn);
+  };
+
+  const executeDelete = () => {
+    if (!returnToDelete) return;
+
+    // Simulate returning items to the department (subtracting from inventory)
+    returnToDelete.items.forEach(returnedItem => {
+        const inventoryIndex = mockInventoryData.findIndex(inv => inv.id === returnedItem.materialId);
+        if (inventoryIndex !== -1) {
+            mockInventoryData[inventoryIndex].quantityOnHand -= returnedItem.quantity;
+        }
+    });
+
+    setReturns(prev => prev.filter(ret => ret.id !== returnToDelete.id));
+    toast({ title: "Material Return Deleted", description: `Return record ${returnToDelete.id} and its stock adjustments have been reverted.` });
+    setReturnToDelete(null);
+  };
+
+  const handleSave = (data: MaterialReturnFormData) => {
+    if (editingReturn) {
+      // Simplified update for mock purposes
+      const updatedReturn: MaterialReturn = { 
+          ...editingReturn,
+          ...data,
+          returnDate: format(data.returnDate, "yyyy-MM-dd"),
+          totalItems: editingReturn.items.length
+      };
+      setReturns(prev => prev.map(ret => (ret.id === editingReturn.id ? updatedReturn : ret)));
+      toast({ title: "Material Return Updated", description: `Return from ${data.returnedBy} has been updated.` });
+    } else {
+      // Add stock back to inventory
+      data.items.forEach(item => {
+        const inventoryIndex = mockInventoryData.findIndex(inv => inv.id === item.materialId);
+        if (inventoryIndex !== -1) {
+          mockInventoryData[inventoryIndex].quantityOnHand += item.quantity;
+        } else {
+          // If item doesn't exist, create it (simplified)
+          mockInventoryData.push({
+            id: item.materialId,
+            name: `New Item - ${item.materialId}`,
+            category: "Raw Material",
+            storeLocation: data.storeLocation,
+            quantityOnHand: item.quantity,
+            unitOfMeasure: "Units",
+            lastUpdated: new Date(),
+            lowStockThreshold: 10,
+          });
+        }
+      });
+
+      const newReturn: MaterialReturn = {
+        id: `RET${Date.now()}`,
+        ...data,
+        returnDate: format(data.returnDate, "yyyy-MM-dd"),
+        totalItems: data.items.length,
+      };
+      setReturns(prev => [...prev, newReturn]);
+      toast({ title: "Material Return Logged", description: `New return from ${data.returnedBy} has been logged.` });
+    }
+    setIsDialogOpen(false);
+    setEditingReturn(null);
+  };
 
   return (
     <div className="space-y-8">
@@ -38,11 +119,48 @@ export default function MaterialReturnsPage() {
         title="Material Returns Log"
         description="Record and manage materials returned to various store locations."
         actions={
-          <Button>
-            <Undo2 className="w-4 h-4 mr-2" /> New Material Return
+          <Button onClick={openAddDialog}>
+            <PlusCircle className="w-4 h-4 mr-2" /> New Material Return
           </Button>
         }
       />
+      
+      <Dialog open={isDialogOpen} onOpenChange={(isOpen) => {
+        setIsDialogOpen(isOpen);
+        if (!isOpen) setEditingReturn(null);
+      }}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{editingReturn ? "Edit" : "Log New"} Material Return</DialogTitle>
+            <DialogDescription>
+              {editingReturn ? "Update the details for this material return." : "Fill the form to log a new material return. This will add quantities back to inventory."}
+            </DialogDescription>
+          </DialogHeader>
+          <MaterialReturnForm
+            initialData={editingReturn}
+            onSave={handleSave}
+            onCancel={() => setIsDialogOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+       {returnToDelete && (
+        <AlertDialog open={!!returnToDelete} onOpenChange={() => setReturnToDelete(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete return record {returnToDelete.id}? This will revert the stock quantities and cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={executeDelete} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle>Returns List</CardTitle>
@@ -65,8 +183,8 @@ export default function MaterialReturnsPage() {
               </TableHeader>
               <TableBody>
                 {returns.map((itemReturn) => (
-                  <TableRow key={itemReturn.returnId}>
-                    <TableCell className="font-medium">{itemReturn.returnId}</TableCell>
+                  <TableRow key={itemReturn.id}>
+                    <TableCell className="font-medium">{itemReturn.id}</TableCell>
                     <TableCell>{itemReturn.originalIssueId || "N/A"}</TableCell>
                     <TableCell className="flex items-center"><Users className="w-4 h-4 mr-2 text-muted-foreground" />{itemReturn.returnedBy}</TableCell>
                     <TableCell>{itemReturn.returnDate}</TableCell>
@@ -83,9 +201,12 @@ export default function MaterialReturnsPage() {
                         {itemReturn.condition}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" title="View Details">
-                        <FileText className="w-4 h-4" />
+                    <TableCell className="text-right space-x-2">
+                       <Button variant="outline" size="sm" onClick={() => openEditDialog(itemReturn)}>
+                        <Edit className="w-3 h-3 mr-1" /> Edit
+                      </Button>
+                      <Button variant="destructive" size="sm" onClick={() => handleDeleteConfirmation(itemReturn)}>
+                        <Trash2 className="w-3 h-3 mr-1" /> Delete
                       </Button>
                     </TableCell>
                   </TableRow>

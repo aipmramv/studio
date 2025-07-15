@@ -229,3 +229,54 @@ export const HoldInventorySchema = z.object({
   holdUntil: z.date({ required_error: "A 'hold until' date is required." }),
 });
 export type HoldInventoryFormData = z.infer<typeof HoldInventorySchema>;
+
+// Schemas for Stores Management modules
+export const MaterialReceiptItemSchema = z.object({
+  materialId: z.string().min(1, "Material ID is required."),
+  quantity: z.coerce.number().min(1, "Quantity must be at least 1."),
+});
+export type MaterialReceiptItem = z.infer<typeof MaterialReceiptItemSchema>;
+
+export const MaterialReceiptSchema = z.object({
+  grnNumber: z.string().optional(),
+  poNumber: z.string().optional(),
+  vendorName: z.string().min(1, "Vendor name is required."),
+  receiptDate: z.date({ required_error: "Receipt date is required." }),
+  storeLocation: z.enum(STORE_LOCATIONS, { required_error: "Store location is required." }),
+  status: z.enum(["Pending QA", "Received", "Partial QA"]),
+  items: z.array(MaterialReceiptItemSchema).min(1, "At least one item is required."),
+});
+export type MaterialReceiptFormData = z.infer<typeof MaterialReceiptSchema>;
+
+export const MaterialIssueItemSchema = z.object({
+  materialId: z.string().min(1, "Material ID is required."),
+  quantity: z.coerce.number().min(1, "Quantity must be at least 1."),
+});
+export type MaterialIssueItem = z.infer<typeof MaterialIssueItemSchema>;
+
+export const MaterialIssueSchema = z.object({
+  requestCode: z.string().optional(),
+  issuedTo: z.enum(DEPARTMENTS, { required_error: "Issued to department is required." }),
+  issueDate: z.date({ required_error: "Issue date is required." }),
+  storeLocation: z.enum(STORE_LOCATIONS, { required_error: "Issuing store is required." }),
+  purpose: z.string().min(1, "Purpose is required."),
+  items: z.array(MaterialIssueItemSchema).min(1, "At least one item is required."),
+});
+export type MaterialIssueFormData = z.infer<typeof MaterialIssueSchema>;
+
+export const MaterialReturnItemSchema = z.object({
+  materialId: z.string().min(1, "Material ID is required."),
+  quantity: z.coerce.number().min(1, "Quantity must be at least 1."),
+});
+export type MaterialReturnItem = z.infer<typeof MaterialReturnItemSchema>;
+
+export const MaterialReturnSchema = z.object({
+  originalIssueId: z.string().optional(),
+  returnedBy: z.enum(DEPARTMENTS, { required_error: "Returned by department is required." }),
+  returnDate: z.date({ required_error: "Return date is required." }),
+  storeLocation: z.enum(STORE_LOCATIONS, { required_error: "Return store is required." }),
+  reason: z.string().min(1, "Reason for return is required."),
+  condition: z.enum(["Good", "Damaged", "Requires Inspection"]),
+  items: z.array(MaterialReturnItemSchema).min(1, "At least one item is required."),
+});
+export type MaterialReturnFormData = z.infer<typeof MaterialReturnSchema>;
