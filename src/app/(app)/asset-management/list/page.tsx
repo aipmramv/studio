@@ -129,17 +129,17 @@ export default function AssetListPage() {
               <Search className="absolute w-4 h-4 left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <Input placeholder="Search by Asset No, Description, Serial No..." className="pl-10" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
             </div>
-            <Select value={filterDepartment} onValueChange={setFilterDepartment}>
+            <Select value={filterDepartment} onValueChange={(value) => setFilterDepartment(value === "all" ? "" : value)}>
               <SelectTrigger className="w-full sm:w-[180px]"><SelectValue placeholder="All Departments" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Departments</SelectItem>
+                <SelectItem value="all">All Departments</SelectItem>
                 {DEPARTMENTS.map(dept => <SelectItem key={dept} value={dept}>{dept}</SelectItem>)}
               </SelectContent>
             </Select>
-             <Select value={filterStatus} onValueChange={setFilterStatus}>
+             <Select value={filterStatus} onValueChange={(value) => setFilterStatus(value === "all" ? "" : value)}>
               <SelectTrigger className="w-full sm:w-[180px]"><SelectValue placeholder="All Statuses" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Statuses</SelectItem>
+                <SelectItem value="all">All Statuses</SelectItem>
                 {distinctStatuses.map(status => <SelectItem key={status} value={status}>{status}</SelectItem>)}
               </SelectContent>
             </Select>
