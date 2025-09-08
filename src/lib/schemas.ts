@@ -1,6 +1,6 @@
 
 import { z } from 'zod';
-import { MATERIAL_TYPES, SCRAP_TYPES, STORE_LOCATIONS, ACTIVITY_TYPES_WORK_PERMIT, USER_ROLES, DEPARTMENTS, REQUEST_TYPES, COST_CENTERS, FISCAL_YEARS, QUARTERS, WORK_PERMIT_FIELD_TYPES, MOCK_VENDORS } from './constants';
+import { MATERIAL_TYPES, SCRAP_TYPES, STORE_LOCATIONS, ACTIVITY_TYPES_WORK_PERMIT, USER_ROLES, DEPARTMENTS, REQUEST_TYPES, COST_CENTERS, FISCAL_YEARS, QUARTERS, WORK_PERMIT_FIELD_TYPES } from './constants';
 
 export const LoginSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -101,13 +101,58 @@ export const SaleOrderSchema = z.object({
 });
 export type SaleOrderFormData = z.infer<typeof SaleOrderSchema>;
 
+export const AssetManagementSchema = z.object({
+    id: z.string().optional(),
+    assetNumber: z.string().min(1, "Asset Number is required."),
+    materialCode: z.string().optional(),
+    assetDescription: z.string().min(1, "Asset Description is required."),
+    assetClassification: z.string().optional(),
+    assetGrouping: z.string().optional(),
+    lifecycleYears: z.coerce.number().min(0).optional(),
+    capitalizationDate: z.date().optional(),
+    purchaseValue: z.coerce.number().min(0).optional(),
+    ledgerQty: z.coerce.number().min(0),
+    brandName: z.string().optional(),
+    modelNo: z.string().optional(),
+    productSerialNo: z.string().optional(),
+    onGoingProject: z.string().optional(),
+    weeklyUsageFrequency: z.coerce.number().min(0).max(7).optional(),
+    personResponsible: z.string().optional(),
+    currentUser: z.string().optional(),
+    teamOrTribe: z.string().optional(),
+    department: z.string().min(1, "Department is required."),
+    assetCoordinator: z.string().optional(),
+    location: z.string().min(1, "Location is required."),
+    floor: z.string().optional(),
+    laboratory: z.string().optional(),
+    verificationStatus: z.enum(["Verified", "Pending", "Discrepancy"]).optional(),
+    verifiedOn: z.date().optional(),
+    usableCondition: z.enum(["Yes", "No", "Partial"]).optional(),
+    workingConditionStatus: z.enum(["Working", "Not Working", "Under Maintenance"]).optional(),
+    comments: z.string().optional(),
+    currentStatus: z.string().optional(),
+    statusChangedOn: z.date().optional(),
+    movementDcNumber: z.string().optional(),
+    dispatchedOn: z.date().optional(),
+    expectedReturnDate: z.date().optional(),
+    movementResponsible: z.string().optional(),
+    returnedOn: z.date().optional(),
+    reasonForMovement: z.string().optional(),
+    scrapDcNo: z.string().optional(),
+    scrapDcDate: z.date().optional(),
+    remarks: z.string().optional(),
+});
+export type AssetManagementFormData = z.infer<typeof AssetManagementSchema>;
+
+
 
 export type RequestPayload =
   | MaterialMovementFormData
   | ScrapMovementFormData
   | WorkPermitFormData
   | PurchaseOrderFormData
-  | SaleOrderFormData;
+  | SaleOrderFormData
+  | AssetManagementFormData;
 
 
 export const WorkflowStepSchema = z.object({

@@ -7,7 +7,7 @@ import {
   Store, PackagePlus, PackageMinus, Undo2, SearchCheck, SlidersHorizontal, GitFork,
   Users, Mail, UserCog, Layers, FileArchive, PackageSearch,
   Building2, Users2, TagIcon, ScaleIcon, Landmark, AreaChart, PieChart, BarChartHorizontalBig,
-  FileSpreadsheet, FileCheck, Clock, ArchiveRestore, Send, Lock
+  FileSpreadsheet, FileCheck, Clock, ArchiveRestore, Send, Lock, LibraryBig
 } from 'lucide-react';
 
 export interface NavItem {
@@ -34,6 +34,12 @@ export const mainNavItems: NavItem[] = [
     href: '/all-requests',
     icon: Layers,
     description: "View all requests and their status.",
+  },
+  {
+    title: 'Asset Management',
+    href: '/asset-management/list',
+    icon: LibraryBig,
+    description: "Manage all company assets.",
   },
   {
     title: 'Requests',
