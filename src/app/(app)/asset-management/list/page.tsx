@@ -1,4 +1,3 @@
-
 // src/app/(app)/asset-management/list/page.tsx
 "use client";
 
@@ -83,10 +82,17 @@ export default function AssetListPage() {
   const getStatusBadgeVariant = (status?: string) => {
     if (!status) return "outline";
     switch (status.toLowerCase()) {
-        case "in use": return "default";
-        case "in store": return "secondary";
-        case "under maintenance": return "destructive";
-        case "scrapped": return "outline";
+        case "in use":
+        case "active":
+             return "default";
+        case "in store":
+        case "reserved":
+             return "secondary";
+        case "under maintenance":
+        case "calibration":
+             return "outline";
+        case "scrapped":
+            return "destructive";
         default: return "secondary";
     }
   };
@@ -94,8 +100,8 @@ export default function AssetListPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Asset Management System"
-        description="Manage, track, and verify all company assets."
+        title="Asset Register"
+        description="A complete list of all registered assets. Use filters to search and manage assets."
         actions={
           <Button onClick={openAddDialog}>
             <PlusCircle className="w-4 h-4 mr-2" /> Add New Asset

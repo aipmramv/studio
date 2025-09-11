@@ -1,4 +1,3 @@
-
 // src/components/forms/AssetForm.tsx
 "use client";
 
@@ -6,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as React from "react";
 import { format } from "date-fns";
-import { CalendarIcon, Save, Loader2, Ban } from "lucide-react";
+import { CalendarIcon, Save, Loader2, Ban, UploadCloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -15,10 +14,11 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Textarea } from "@/components/ui/textarea";
 import { AssetManagementSchema, type AssetManagementFormData } from "@/lib/schemas";
-import { DEPARTMENTS } from "@/lib/constants";
+import { DEPARTMENTS, TEAMS_AND_TRIBES, ASSET_CLASSIFICATIONS, ASSET_STATUSES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardFooter } from "../ui/card";
 import { ScrollArea } from "../ui/scroll-area";
+import { FileUpload } from "../ui/file-upload";
 
 interface AssetFormProps {
   initialData?: AssetManagementFormData | null;
@@ -73,7 +73,12 @@ export function AssetManagementForm({ initialData, onSave, onCancel }: AssetForm
                 <h3 className="mb-4 text-lg font-medium">Classification & Grouping</h3>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <FormField control={form.control} name="assetClassification" render={({ field }) => (
-                        <FormItem><FormLabel>Asset Classification</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel>Asset Classification</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl><SelectTrigger><SelectValue placeholder="Select Classification" /></SelectTrigger></FormControl>
+                            <SelectContent>{ASSET_CLASSIFICATIONS.map(item => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent>
+                          </Select>
+                        <FormMessage /></FormItem>
                     )}/>
                     <FormField control={form.control} name="assetGrouping" render={({ field }) => (
                         <FormItem><FormLabel>Asset Grouping</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
@@ -91,10 +96,10 @@ export function AssetManagementForm({ initialData, onSave, onCancel }: AssetForm
                         <PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus /></PopoverContent></Popover><FormMessage /></FormItem>
                     )}/>
                      <FormField control={form.control} name="lifecycleYears" render={({ field }) => (
-                        <FormItem><FormLabel>Asset Life (Years)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel>Asset Life (Years)</FormLabel><FormControl><Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10))}/></FormControl><FormMessage /></FormItem>
                     )}/>
                     <FormField control={form.control} name="purchaseValue" render={({ field }) => (
-                        <FormItem><FormLabel>Purchase Value (INR)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel>Purchase Value (INR)</FormLabel><FormControl><Input type="number" {...field} onChange={e => field.onChange(parseFloat(e.target.value))}/></FormControl><FormMessage /></FormItem>
                     )}/>
                 </div>
             </div>
@@ -113,7 +118,7 @@ export function AssetManagementForm({ initialData, onSave, onCancel }: AssetForm
                         <FormItem><FormLabel>Product Serial No.</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                     )}/>
                     <FormField control={form.control} name="ledgerQty" render={({ field }) => (
-                        <FormItem><FormLabel>Ledger Quantity</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel>Ledger Quantity</FormLabel><FormControl><Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10))}/></FormControl><FormMessage /></FormItem>
                     )}/>
                 </div>
             </div>
@@ -123,7 +128,7 @@ export function AssetManagementForm({ initialData, onSave, onCancel }: AssetForm
                 <h3 className="mb-4 text-lg font-medium">Custody & Usage</h3>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                     <FormField control={form.control} name="personResponsible" render={({ field }) => (
-                        <FormItem><FormLabel>Person Responsible</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel>Person Responsible (Custodian)</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                     )}/>
                     <FormField control={form.control} name="currentUser" render={({ field }) => (
                         <FormItem><FormLabel>Current User</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
@@ -139,13 +144,18 @@ export function AssetManagementForm({ initialData, onSave, onCancel }: AssetForm
                         <FormItem><FormLabel>Asset Co-ordinator</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                     )}/>
                     <FormField control={form.control} name="teamOrTribe" render={({ field }) => (
-                        <FormItem><FormLabel>Team / Tribe</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel>Team / Tribe</FormLabel>
+                         <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl><SelectTrigger><SelectValue placeholder="Select Team/Tribe" /></SelectTrigger></FormControl>
+                            <SelectContent>{TEAMS_AND_TRIBES.map(item => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent>
+                          </Select>
+                        <FormMessage /></FormItem>
                     )}/>
                     <FormField control={form.control} name="onGoingProject" render={({ field }) => (
                         <FormItem><FormLabel>On-going Project</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                     )}/>
                     <FormField control={form.control} name="weeklyUsageFrequency" render={({ field }) => (
-                        <FormItem><FormLabel>Weekly Usage (Days)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel>Weekly Usage (Days)</FormLabel><FormControl><Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10))}/></FormControl><FormMessage /></FormItem>
                     )}/>
                 </div>
             </div>
@@ -170,6 +180,13 @@ export function AssetManagementForm({ initialData, onSave, onCancel }: AssetForm
              <div className="p-4 border rounded-md">
                 <h3 className="mb-4 text-lg font-medium">Verification & Condition</h3>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                     <FormField control={form.control} name="currentStatus" render={({ field }) => (
+                        <FormItem><FormLabel>Current Status</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl><SelectTrigger><SelectValue placeholder="Select Status" /></SelectTrigger></FormControl>
+                            <SelectContent>{ASSET_STATUSES.map(item => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent>
+                        </Select><FormMessage /></FormItem>
+                    )}/>
                     <FormField control={form.control} name="verificationStatus" render={({ field }) => (
                         <FormItem><FormLabel>Verification Status</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
@@ -202,17 +219,22 @@ export function AssetManagementForm({ initialData, onSave, onCancel }: AssetForm
                 </div>
             </div>
 
-            {/* Movement & Scrap */}
-            <div className="p-4 border rounded-md">
-                <h3 className="mb-4 text-lg font-medium">Movement & Scrap Details</h3>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                     <FormField control={form.control} name="movementDcNumber" render={({ field }) => (
-                        <FormItem><FormLabel>Movement DC No.</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+             <div className="p-4 border rounded-md">
+                <h3 className="mb-4 text-lg font-medium">Attachments</h3>
+                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <FormField control={form.control} name="attachments.invoice" render={({ field }) => (
+                        <FormItem><FormLabel>Invoice</FormLabel><FileUpload onFileChange={field.onChange} /></FormItem>
                     )}/>
-                     <FormField control={form.control} name="scrapDcNo" render={({ field }) => (
-                        <FormItem><FormLabel>Scrap DC No.</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                     <FormField control={form.control} name="attachments.warranty" render={({ field }) => (
+                        <FormItem><FormLabel>Warranty Certificate</FormLabel><FileUpload onFileChange={field.onChange} /></FormItem>
                     )}/>
-                </div>
+                     <FormField control={form.control} name="attachments.calibration" render={({ field }) => (
+                        <FormItem><FormLabel>Calibration Certificate</FormLabel><FileUpload onFileChange={field.onChange} /></FormItem>
+                    )}/>
+                     <FormField control={form.control} name="attachments.photo" render={({ field }) => (
+                        <FormItem><FormLabel>Asset Photo</FormLabel><FileUpload onFileChange={field.onChange} accept="image/*" /></FormItem>
+                    )}/>
+                 </div>
             </div>
 
           </CardContent>
