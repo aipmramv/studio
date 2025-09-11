@@ -73,31 +73,10 @@ export const mainNavItems: NavItem[] = [
         roles: ['admin'],
       },
        {
-        title: 'Workflows',
-        href: '/administration/workflows',
-        icon: GitFork,
-        description: "Configure approval workflows.",
-        roles: ['admin'],
-      },
-       {
-        title: 'Email Templates',
-        href: '/administration/email-templates',
-        icon: Mail,
-        description: "Customize email notifications.",
-        roles: ['admin'],
-      },
-       {
         title: 'Audit Logs',
         href: '/administration/audit-logs',
         icon: FileArchive,
         description: "Review system and user activity.",
-        roles: ['admin'],
-      },
-      {
-        title: 'Work Permit Templates',
-        href: '/administration/work-permit-templates',
-        icon: Layers,
-        description: "Manage Work Permit print templates.",
         roles: ['admin'],
       },
       {
