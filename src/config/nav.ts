@@ -6,7 +6,7 @@ import {
   LogOut, Settings, ShieldCheck, Database, Package, Building, Briefcase,
   ClipboardCheck, ShoppingCart, Tags, PlusCircle, Warehouse,
   Store, PackagePlus, PackageMinus, Undo2, SearchCheck, SlidersHorizontal, GitFork,
-  Users, Mail, UserCog, Layers, FileArchive, LibraryBig
+  Users, Mail, UserCog, Layers, FileArchive, LibraryBig, Map, Scale, Building2, Tag, Landmark
 } from 'lucide-react';
 
 export interface NavItem {
@@ -72,12 +72,53 @@ export const mainNavItems: NavItem[] = [
         description: "Manage users, roles, and departments.",
         roles: ['admin'],
       },
+       {
+        title: 'Workflows',
+        href: '/administration/workflows',
+        icon: GitFork,
+        description: "Configure approval workflows.",
+        roles: ['admin'],
+      },
+       {
+        title: 'Email Templates',
+        href: '/administration/email-templates',
+        icon: Mail,
+        description: "Customize email notifications.",
+        roles: ['admin'],
+      },
+       {
+        title: 'Audit Logs',
+        href: '/administration/audit-logs',
+        icon: FileArchive,
+        description: "Review system and user activity.",
+        roles: ['admin'],
+      },
+      {
+        title: 'Work Permit Templates',
+        href: '/administration/work-permit-templates',
+        icon: Layers,
+        description: "Manage Work Permit print templates.",
+        roles: ['admin'],
+      },
       {
         title: 'Masters',
-        href: '/masters/asset-classifications',
+        href: '/masters/cost-centers',
         icon: Database,
         description: "Manage application master data.",
         roles: ['admin'],
+        items: [
+            { title: "Activity Types", href: "/masters/activity-types", icon: ListChecks, description: "Work Permit activity types" },
+            { title: "Cost Centers", href: "/masters/cost-centers", icon: Briefcase, description: "Organizational cost centers" },
+            { title: "Customers", href: "/masters/customers", icon: Users, description: "Customer master data" },
+            { title: "Dept Budgets", href: "/masters/department-budgets", icon: Landmark, description: "Department budget allocation" },
+            { title: "Departments", href: "/masters/departments", icon: Building2, description: "Organizational departments" },
+            { title: "HSN/SAC Codes", href: "/masters/hsn-sac-codes", icon: Tag, description: "Tax codes for goods/services" },
+            { title: "Material Types", href: "/masters/material-types", icon: Package, description: "Types of materials" },
+            { title: "Scrap Types", href: "/masters/scrap-types", icon: Recycle, description: "Types of scrap material" },
+            { title: "Store Locations", href: "/masters/store-locations", icon: Map, description: "Warehouse and store locations" },
+            { title: "UOM", href: "/masters/uom", icon: Scale, description: "Units of Measurement" },
+            { title: "Vendors", href: "/masters/vendors", icon: Building, description: "Vendor and supplier master" },
+        ]
       },
     ]
   }
