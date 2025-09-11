@@ -97,7 +97,11 @@ export default function DashboardPage() {
         { month: "Jun", "TT <> ITEC": 14, "ITEC -> Site": 9, "Calibration": 5, "Scrap": 1 },
     ];
 
-    const pendingRequests = allRequestsSource.filter(r => !r.isVoided && r.currentAssignees.length > 0);
+    const pendingRequests = allRequestsSource.filter(r => 
+        (r.requestType === 'Asset Request' || r.requestType === 'Material Movement' || r.requestType === 'Scrap Request') &&
+        !r.isVoided && 
+        r.currentAssignees.length > 0
+    );
 
   return (
     <div className="space-y-8">
@@ -155,8 +159,8 @@ export default function DashboardPage() {
         
         <Card>
             <CardHeader>
-                <CardTitle className="font-headline flex items-center"><Clock className="w-5 h-5 mr-2 text-primary"/>Pending Requests</CardTitle>
-                <CardDescription>All requests across modules awaiting action.</CardDescription>
+                <CardTitle className="font-headline flex items-center"><Clock className="w-5 h-5 mr-2 text-primary"/>Pending Asset Requests</CardTitle>
+                <CardDescription>Asset-related requests across modules awaiting action.</CardDescription>
             </CardHeader>
             <CardContent>
                 <Table>
@@ -171,7 +175,7 @@ export default function DashboardPage() {
                             </TableRow>
                         ))}
                     </TableBody>
-                    <TableCaption>{pendingRequests.length > 5 && `And ${pendingRequests.length - 5} more...`}</TableCaption>
+                    <TableCaption>{pendingRequests.length > 5 ? `And ${pendingRequests.length - 5} more...` : (pendingRequests.length === 0 ? 'No pending asset requests.' : `${pendingRequests.length} request(s) pending.`)}</TableCaption>
                 </Table>
             </CardContent>
         </Card>

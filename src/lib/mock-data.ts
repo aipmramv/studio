@@ -1,8 +1,8 @@
 // src/lib/mock-data.ts
 import { DEPARTMENTS, type RequestType } from './constants';
-import { type MaterialMovementFormData, type ScrapMovementFormData, type WorkPermitFormData, type PurchaseOrderFormData, type SaleOrderFormData } from './schemas';
+import { type MaterialMovementFormData, type ScrapMovementFormData, type WorkPermitFormData, type PurchaseOrderFormData, type SaleOrderFormData, type AssetManagementFormData } from './schemas';
 
-export type RequestPayload = MaterialMovementFormData | ScrapMovementFormData | WorkPermitFormData | PurchaseOrderFormData | SaleOrderFormData;
+export type RequestPayload = MaterialMovementFormData | ScrapMovementFormData | WorkPermitFormData | PurchaseOrderFormData | SaleOrderFormData | { assets: { assetNumber: string; assetDescription: string; currentDepartment: string; }[]; requestedDepartment: string; reason: string; };
 
 export interface ApprovalHistoryItem {
   stepId: string;
@@ -64,7 +64,7 @@ export const allRequestsSource: ApprovalItem[] = [
   },
   {
     id: "WP007", requestType: "Work Permit", requesterName: "Ram Kumar", requesterDepartment: "Facility Management", submissionDate: "2024-08-02T10:00:00Z",
-    currentStepId: "wp_facility_head", currentStepName: "Permit Issued by Facility Head", currentAssignees: ["facility_team", "department_head", "admin"], workflowTemplateId: "work_permit_default",
+    currentStepId: "wp_facility_head", currentStepName: "Permit Issued by Facility Head", currentAssignees: [], workflowTemplateId: "work_permit_default",
     payload: { activityType: "Civil Works (Excavation, Construction)", building: "Test Tower", activityDetails: "Area preparation for new equipment installation, minor excavation.", specificAreaOrEquipment: "Test Tower, Ground Floor, Bay 3", permitValidity: new Date("2024-08-15") } as WorkPermitFormData,
     history: [
       { stepId: "submission", stepName: "Submitted", actor: "Ram Kumar", action: "submitted", timestamp: "2024-08-02T10:00:00Z" },
@@ -131,5 +131,24 @@ export const allRequestsSource: ApprovalItem[] = [
       { stepId: "submission", stepName: "Submitted", actor: "Nagaraj V.", action: "submitted", timestamp: "2024-07-20T10:00:00Z" },
       { stepId: "po_dept_head", stepName: "Request Voided", actor: "Nagaraj V.", action: "system_auto_proceed", timestamp: "2024-07-20T11:00:00Z", comment: "Voided: Duplicate request."}
     ]
+  },
+  {
+    id: "REQ-001",
+    requestType: "Asset Request",
+    requesterName: "Praveen S.",
+    requesterDepartment: "R&D",
+    submissionDate: new Date().toISOString(),
+    currentStepId: "admin_approval",
+    currentStepName: "Pending Admin Approval",
+    currentAssignees: ["admin"],
+    workflowTemplateId: "asset_request_default",
+    payload: {
+      assets: [{ assetNumber: "KONE-RD-OSC-001", assetDescription: "Tektronix Oscilloscope", currentDepartment: "R&D" }],
+      requestedDepartment: "Maintenance",
+      reason: "Required for new diagnostics bench."
+    },
+    history: [
+      { stepId: "submission", stepName: "Submitted", actor: "Praveen S.", action: "submitted", timestamp: new Date().toISOString() }
+    ],
   },
 ];

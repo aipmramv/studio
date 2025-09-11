@@ -26,7 +26,7 @@ export type ReasonCode = typeof REASON_CODES[number];
 export const LOCATIONS = ["TT", "ITEC", "Site", "Labs"] as const;
 export type LocationType = typeof LOCATIONS[number];
 
-export const REQUEST_TYPES = ["Material Movement", "Scrap Request", "Work Permit", "Purchase Order", "Sale Order"] as const;
+export const REQUEST_TYPES = ["Material Movement", "Scrap Request", "Work Permit", "Purchase Order", "Sale Order", "Asset Request"] as const;
 export type RequestType = typeof REQUEST_TYPES[number];
 
 export const REQUEST_STATUSES = ["Pending", "Approved", "Rejected", "In Progress", "Completed", "Voided"] as const;
@@ -83,3 +83,71 @@ export type MaterialCategory = typeof MATERIAL_CATEGORIES[number];
 
 export const LIFECYCLE_STAGES = ["Requested", "Approved", "Received", "In Use", "Returned", "Under Maintenance", "Scrap Pending", "Scrapped", "Closed"] as const;
 export type LifecycleStage = typeof LIFECYCLE_STAGES[number];
+
+export interface WorkflowStep {
+  id: string;
+  name: string;
+  assignedRoles: UserRole[];
+  nextStepId?: string;
+  rejectionStepId?: string;
+}
+
+export interface WorkflowTemplate {
+  id: string;
+  name: string;
+  requestType: RequestType;
+  steps: WorkflowStep[];
+}
+
+export const MOCK_WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
+  {
+    id: "material_movement_default", name: "Default Material Movement", requestType: "Material Movement",
+    steps: [
+      { id: "mm_dept_head_approval", name: "Department Head Approval", assignedRoles: ["department_head", "admin"], nextStepId: "mm_dispatch_team_coordination" },
+      { id: "mm_dispatch_team_coordination", name: "Dispatch Team Coordination", assignedRoles: ["dispatch_team", "admin"], nextStepId: "mm_finance_check" },
+      { id: "mm_finance_check", name: "Finance Check (If Applicable)", assignedRoles: ["finance_team", "admin"], nextStepId: "mm_receipt_confirmation" },
+      { id: "mm_receipt_confirmation", name: "Receipt Confirmation", assignedRoles: ["requester", "dispatch_team", "admin"] }
+    ]
+  },
+   {
+    id: "scrap_default", name: "Default Scrap Request", requestType: "Scrap Request",
+    steps: [
+      { id: "sm_dept_head_approval", name: "Department Head Approval", assignedRoles: ["department_head", "admin"], nextStepId: "sm_finance_approval" },
+      { id: "sm_finance_approval", name: "Finance Approval", assignedRoles: ["finance_team", "admin"], nextStepId: "sm_mm_head_approval" },
+      { id: "sm_mm_head_approval", name: "MM Head Approval", assignedRoles: ["mm_head", "admin"] }
+    ]
+  },
+  {
+    id: "work_permit_default", name: "Default Work Permit", requestType: "Work Permit",
+    steps: [
+      { id: "wp_safety_review", name: "Safety Team Review", assignedRoles: ["safety_team", "admin"], nextStepId: "wp_maintenance_review" },
+      { id: "wp_maintenance_review", name: "Maintenance Team Review", assignedRoles: ["maintenance_team", "admin"], nextStepId: "wp_facility_head" },
+      { id: "wp_facility_head", name: "Permit Issued by Facility Head", assignedRoles: ["facility_team", "department_head", "admin"] }
+    ]
+  },
+  {
+    id: "po_default", name: "Default Purchase Order", requestType: "Purchase Order",
+    steps: [
+      { id: "po_dept_head", name: "Dept. Head Approval", assignedRoles: ["department_head", "admin"], nextStepId: "po_finance" },
+      { id: "po_finance", name: "Finance Approval (Budget)", assignedRoles: ["finance_team", "admin"], nextStepId: "po_sap_creation" },
+      { id: "po_sap_creation", name: "SAP PO Creation & Update", assignedRoles: ["admin", "finance_team"], nextStepId: "po_fulfilled" },
+      { id: "po_fulfilled", name: "PO Fulfilled", assignedRoles: [] }
+    ]
+  },
+   {
+    id: "so_default", name: "Default Sale Order", requestType: "Sale Order",
+    steps: [
+      { id: "so_manager_approval", name: "Sales Manager Approval", assignedRoles: ["department_head", "admin"], nextStepId: "so_finance_approval" },
+      { id: "so_finance_approval", name: "Finance Approval", assignedRoles: ["finance_team", "admin"], nextStepId: "so_sap_creation" },
+      { id: "so_sap_creation", name: "SAP SO Creation & Update", assignedRoles: ["admin", "finance_team"], nextStepId: "so_shipped" },
+      { id: "so_shipped", name: "SO Shipped", assignedRoles: [] }
+    ]
+  },
+  {
+    id: "asset_request_default", name: "Default Asset Request", requestType: "Asset Request",
+    steps: [
+      { id: "admin_approval", name: "Admin Approval", assignedRoles: ["admin"], nextStepId: "request_closed" },
+      { id: "request_closed", name: "Request Closed", assignedRoles: [] }
+    ]
+  }
+];
