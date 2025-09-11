@@ -74,7 +74,7 @@ export function LoginForm() {
     <Card className="w-full max-w-md"> {/* Removed shadow-2xl for KONE's flatter design */}
       <CardHeader className="text-center">
         <KoneLogo className="h-12 w-auto mx-auto mb-6" /> {/* KONE Logo Added */}
-        <CardTitle className="text-3xl font-bold font-headline">R&D Stores Flow Login</CardTitle>
+        <CardTitle className="text-3xl font-bold font-headline">KTI Assets Login</CardTitle>
         <CardDescription>Enter your credentials or sign in with KONE SSO.</CardDescription>
       </CardHeader>
       <CardContent>

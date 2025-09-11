@@ -1,4 +1,4 @@
-# Customized Asset Management System
+# KTI Assets - Asset Management System
 
 A custom asset management platform to track, control, and report on physical assets across various locations (TT, ITEC, Site, Labs). This system ensures proper asset visibility, movement traceability, user accountability, and provides management insights via dashboards and reports.
 

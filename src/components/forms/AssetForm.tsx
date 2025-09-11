@@ -4,6 +4,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { CalendarIcon, Save, Loader2, Ban, UploadCloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -24,9 +25,11 @@ interface AssetFormProps {
   initialData?: AssetManagementFormData | null;
   onSave: (data: AssetManagementFormData) => void;
   onCancel: () => void;
+  isEditing?: boolean;
 }
 
-export function AssetManagementForm({ initialData, onSave, onCancel }: AssetFormProps) {
+export function AssetManagementForm({ initialData, onSave, onCancel, isEditing }: AssetFormProps) {
+  const router = useRouter();
   const form = useForm<AssetManagementFormData>({
     resolver: zodResolver(AssetManagementSchema),
     defaultValues: initialData ? 

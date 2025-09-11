@@ -47,7 +47,7 @@ export function AppLayoutBase({ children }: AppLayoutBaseProps) {
                     textColor="hsl(var(--primary))"           // KONE Blue
                     separatorColor="hsl(var(--primary))"      // KONE Blue
                   />
-                  <h1 className="text-xl font-bold font-headline group-data-[collapsible=icon]:hidden">R&D Stores Flow</h1>
+                  <h1 className="text-xl font-bold font-headline group-data-[collapsible=icon]:hidden">KTI Assets</h1>
                 </Link>
               </Button>
               {/* Mobile trigger, hidden on md+ */}

@@ -3,8 +3,8 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'R&D Stores Flow',
-  description: 'Material, Scrap, PO, SO, and Work Permit Management with Dynamic Workflows',
+  title: 'KTI Assets',
+  description: 'A custom asset management platform to track, control, and report on physical assets.',
 };
 
 export default function RootLayout({

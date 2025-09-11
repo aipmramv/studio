@@ -3,6 +3,7 @@
 
 import * as React from "react";
 import { format } from "date-fns";
+import Link from "next/link";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,14 +11,15 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { PlusCircle, Edit, Search, LibraryBig, ChevronsLeft, ChevronsRight } from "lucide-react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { PlusCircle, Edit, Search, LibraryBig, ChevronsLeft, ChevronsRight, Upload } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogClose, DialogFooter } from "@/components/ui/dialog";
 
 import { useToast } from "@/hooks/use-toast";
-import { DEPARTMENTS } from "@/lib/constants";
+import { DEPARTMENTS, ASSET_STATUSES } from "@/lib/constants";
 import { mockAssetData } from "@/lib/mock-asset-data";
 import { AssetManagementForm } from "@/components/forms/AssetForm";
 import type { AssetManagementFormData } from "@/lib/schemas";
+import { FileUpload } from "@/components/ui/file-upload";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -26,6 +28,7 @@ export default function AssetListPage() {
   const [assets, setAssets] = React.useState<AssetManagementFormData[]>(mockAssetData);
   const [isFormOpen, setIsFormOpen] = React.useState(false);
   const [editingAsset, setEditingAsset] = React.useState<AssetManagementFormData | null>(null);
+  const [isUploadDialogOpen, setIsUploadDialogOpen] = React.useState(false);
 
   // Filters State
   const [searchTerm, setSearchTerm] = React.useState("");
@@ -57,25 +60,26 @@ export default function AssetListPage() {
   const totalPages = Math.ceil(filteredAssets.length / ITEMS_PER_PAGE);
   const paginatedAssets = filteredAssets.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
-  const openAddDialog = () => {
-    setEditingAsset(null);
-    setIsFormOpen(true);
-  };
-
   const openEditDialog = (asset: AssetManagementFormData) => {
     setEditingAsset(asset);
     setIsFormOpen(true);
   };
+  
+  const handleBulkUpload = () => {
+    // Mock upload functionality
+     toast({
+      title: "File uploaded successfully!",
+      description: "Asset data will be processed. This is a mock action.",
+    });
+    setIsUploadDialogOpen(false);
+  }
 
   const handleSave = (data: AssetManagementFormData) => {
     if (editingAsset) {
       setAssets(prev => prev.map(a => (a.id === editingAsset.id ? { ...a, ...data } : a)));
       toast({ title: "Asset Updated", description: `Asset ${data.assetNumber} has been updated.` });
-    } else {
-      const newAsset: AssetManagementFormData = { ...data, id: `ASSET-${Date.now()}` };
-      setAssets(prev => [newAsset, ...prev]);
-      toast({ title: "Asset Added", description: `New asset ${data.assetNumber} has been added.` });
     }
+    // New asset creation is handled on its own page, so no 'else' block needed here
     setIsFormOpen(false);
   };
   
@@ -103,9 +107,16 @@ export default function AssetListPage() {
         title="Asset Register"
         description="A complete list of all registered assets. Use filters to search and manage assets."
         actions={
-          <Button onClick={openAddDialog}>
-            <PlusCircle className="w-4 h-4 mr-2" /> Add New Asset
-          </Button>
+          <>
+            <Button onClick={() => setIsUploadDialogOpen(true)} variant="outline">
+                <Upload className="w-4 h-4 mr-2" /> Upload Excel
+            </Button>
+            <Button asChild>
+                <Link href="/asset-management/new">
+                    <PlusCircle className="w-4 h-4 mr-2" /> Add New Asset
+                </Link>
+            </Button>
+          </>
         }
       />
       <Dialog open={isFormOpen} onOpenChange={(isOpen) => {
@@ -114,16 +125,34 @@ export default function AssetListPage() {
       }}>
         <DialogContent className="sm:max-w-4xl">
           <DialogHeader>
-            <DialogTitle>{editingAsset ? "Edit" : "Add New"} Asset</DialogTitle>
-            <DialogDescription>{editingAsset ? `Update details for asset ${editingAsset.assetNumber}` : "Fill in the details for the new asset."}</DialogDescription>
+            <DialogTitle>Edit Asset</DialogTitle>
+            <DialogDescription>Update details for asset {editingAsset?.assetNumber}</DialogDescription>
           </DialogHeader>
           <AssetManagementForm
             initialData={editingAsset}
             onSave={handleSave}
             onCancel={() => setIsFormOpen(false)}
+            isEditing
           />
         </DialogContent>
       </Dialog>
+
+      <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Bulk Upload Assets</DialogTitle>
+                <DialogDescription>Upload an Excel or CSV file to add multiple assets at once. Please ensure the file follows the required template.</DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+                <FileUpload onFileChange={() => {}} accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
+            </div>
+            <DialogFooter>
+                <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
+                <Button onClick={handleBulkUpload}>Upload and Process</Button>
+            </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center"><LibraryBig className="w-5 h-5 mr-2 text-primary" /> Asset List</CardTitle>
