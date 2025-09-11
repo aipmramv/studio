@@ -5,7 +5,7 @@ import {
   LogOut, Settings, ShieldCheck, Database, LibraryBig,
   SlidersHorizontal, GitFork,
   Users, UserCog, Layers, FileArchive, 
-  Group, MapPin, Users2, Workflow, Code, CheckSquare, BellRing, HelpCircle, FileClock, Send, Handshake, CornerRightDown
+  Group, MapPin, Users2, Workflow, Code, CheckSquare, BellRing, HelpCircle, FileClock, Send, Handshake, CornerRightDown, AlertTriangle, FileWarning, DollarSign, PieChart, Activity
 } from 'lucide-react';
 
 export interface NavItem {
@@ -53,11 +53,55 @@ export const mainNavItems: NavItem[] = [
     icon: BarChart3,
     description: "View detailed reports and analytics.",
     items: [
-        { title: 'Asset Register', href: '/reports/asset-register', icon: FileText, description: "View a complete list of all assets." },
-        { title: 'Movement Report', href: '/reports/movement-report', icon: Truck, description: "Track all asset movements." },
-        { title: 'Verification Report', href: '/reports/verification-report', icon: ShieldCheck, description: "Audit verification history." },
-        { title: 'Finance Report', href: '/reports/finance-report', icon: Database, description: "View depreciation and financial data." },
-        { title: 'Scrap Report', href: '/reports/scrap-report', icon: Recycle, description: "Log of all scrapped assets." },
+        { 
+          title: 'Asset Reports', 
+          href: '/reports/asset', 
+          icon: LibraryBig, 
+          description: "Master lists and summaries.",
+          items: [
+            { title: 'Asset Register', href: '/reports/asset-register', icon: FileText, description: "View a complete list of all assets." },
+          ]
+        },
+        { 
+          title: 'Transactional Reports', 
+          href: '/reports/transactional', 
+          icon: GitFork, 
+          description: "Logs of all asset activities.",
+          items: [
+            { title: 'Movement Report', href: '/reports/movement-report', icon: Truck, description: "Track all asset movements." },
+            { title: 'Scrap Register', href: '/reports/scrap-report', icon: Recycle, description: "Log of all scrapped assets." },
+          ]
+        },
+        { 
+          title: 'Audit & Compliance', 
+          href: '/reports/audit', 
+          icon: ShieldCheck, 
+          description: "Verification and financial reports.",
+          items: [
+            { title: 'Verification Report', href: '/reports/verification-report', icon: CheckSquare, description: "Audit verification history." },
+            { title: 'Depreciation/Finance Report', href: '/reports/finance-report', icon: DollarSign, description: "View depreciation and financial data." },
+
+          ]
+        },
+        { 
+          title: 'Exception Reports', 
+          href: '/reports/exceptions', 
+          icon: AlertTriangle, 
+          description: "Reports on issues and alerts.",
+          items: [
+             { title: 'Incomplete Records', href: '/reports/incomplete-records', icon: FileWarning, description: "Assets with missing mandatory fields." },
+          ]
+        },
+         { 
+          title: 'Management Reports', 
+          href: '/reports/management', 
+          icon: PieChart, 
+          description: "Summary and analysis reports.",
+          items: [
+            { title: 'Asset Value Summary', href: '/reports/asset-value-summary', icon: DollarSign, description: "Total asset value by category." },
+            { title: 'Utilization Report', href: '/reports/utilization-report', icon: Activity, description: "Asset usage frequency." },
+          ]
+        },
     ]
   },
   {
@@ -68,7 +112,7 @@ export const mainNavItems: NavItem[] = [
     roles: ['admin'],
     items: [
       {
-        title: 'User & Role Master',
+        title: 'User Management',
         href: '/administration/user-management',
         icon: UserCog,
         description: "Manage users, roles, and permissions.",

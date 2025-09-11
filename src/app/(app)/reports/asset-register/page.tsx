@@ -1,4 +1,3 @@
-
 // src/app/(app)/reports/asset-register/page.tsx
 "use client";
 
@@ -17,7 +16,7 @@ import { DEPARTMENTS, ASSET_STATUSES, ASSET_CLASSIFICATIONS, STORE_LOCATIONS } f
 import { mockAssetData } from "@/lib/mock-asset-data";
 import type { AssetManagementFormData } from "@/lib/schemas";
 import { AssetManagementForm } from "@/components/forms/AssetForm";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogClose, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -60,11 +59,18 @@ export default function AssetRegisterReportPage() {
     });
   };
 
+  const currencyFormatter = new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
   return (
     <div className="space-y-8">
       <PageHeader
         title="Asset Register Report"
-        description="A complete, filterable list of all assets in the system."
+        description="A complete, filterable list of all assets with key fields."
          actions={
           <>
             <Button variant="outline" onClick={() => handleExport('excel')}>
@@ -122,6 +128,8 @@ export default function AssetRegisterReportPage() {
                   <TableHead>Location</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Capitalization Date</TableHead>
+                  <TableHead>EOL Date</TableHead>
+                  <TableHead>Purchase Value</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -137,6 +145,8 @@ export default function AssetRegisterReportPage() {
                     <TableCell>{asset.location}</TableCell>
                     <TableCell><Badge variant="outline">{asset.currentStatus}</Badge></TableCell>
                     <TableCell>{asset.capitalizationDate ? format(new Date(asset.capitalizationDate), "dd-MMM-yyyy") : "N/A"}</TableCell>
+                    <TableCell>{asset.eolDate ? format(new Date(asset.eolDate), "dd-MMM-yyyy") : "N/A"}</TableCell>
+                    <TableCell>{currencyFormatter.format(asset.purchaseValue || 0)}</TableCell>
                     <TableCell className="text-right">
                        <Button variant="ghost" size="icon" onClick={() => setViewingAsset(asset)}><Eye className="w-4 h-4"/></Button>
                     </TableCell>

@@ -1,4 +1,3 @@
-
 import { z } from 'zod';
 import { USER_ROLES, DEPARTMENTS, STORE_LOCATIONS, SCRAP_TYPES, ACTIVITY_TYPES_WORK_PERMIT, ASSET_CLASSIFICATIONS, ASSET_STATUSES, TEAMS_AND_TRIBES } from './constants';
 
@@ -28,6 +27,7 @@ export const AssetManagementSchema = z.object({
     assetGrouping: z.string().optional(),
     lifecycleYears: z.coerce.number().min(0).optional(),
     capitalizationDate: z.date().optional().nullable(),
+    eolDate: z.date().optional().nullable(),
     purchaseValue: z.coerce.number().min(0).optional(),
     ledgerQty: z.coerce.number().min(1),
     brandName: z.string().optional(),
@@ -136,47 +136,6 @@ export const InviteUserSchema = z.object({
   role: z.enum(USER_ROLES, { required_error: "Role is required."}),
 });
 export type InviteUserFormData = z.infer<typeof InviteUserSchema>;
-
-export const EmailTemplateSchema = z.object({
-    id: z.string(),
-    name: z.string().min(1, "Template name is required."),
-    subject: z.string().min(1, "Subject is required."),
-    body: z.string().min(1, "Body cannot be empty."),
-    triggerEvent: z.string().optional(),
-});
-export type EmailTemplateFormData = z.infer<typeof EmailTemplateSchema>;
-
-export const WorkflowTemplateSchema = z.object({
-    id: z.string(),
-    name: z.string().min(1, "Template name is required."),
-    requestType: z.string({ required_error: "Request type is required." }),
-    initialStepId: z.string().optional(),
-});
-export type WorkflowTemplateFormData = z.infer<typeof WorkflowTemplateSchema>;
-
-export const WorkflowStepSchema = z.object({
-    id: z.string().min(1, "Step ID is required.").regex(/^[a-z0-9_]+$/, "ID must be lowercase alphanumeric with underscores."),
-    name: z.string().min(1, "Step name is required."),
-    assignedRoles: z.array(z.string()).min(1, "At least one role must be assigned."),
-    nextStepId: z.string().optional(),
-    rejectionLeadsToStepId: z.string().optional(),
-});
-export type WorkflowStepFormData = z.infer<typeof WorkflowStepSchema>;
-
-
-export const WorkPermitTemplateMetadataSchema = z.object({
-    id: z.string(),
-    name: z.string().min(1, "Template name is required."),
-});
-export type WorkPermitTemplateMetadataFormData = z.infer<typeof WorkPermitTemplateMetadataSchema>;
-
-export const WorkPermitCustomFieldSchema = z.object({
-    id: z.string().min(1, "Field ID is required.").regex(/^[a-z0-9_]+$/, "ID must be lowercase alphanumeric with underscores."),
-    label: z.string().min(1, "Field label is required."),
-    type: z.enum(["text", "number", "checkbox", "date"], { required_error: "Field type is required." }),
-    isRequired: z.boolean(),
-});
-export type WorkPermitCustomFieldFormData = z.infer<typeof WorkPermitCustomFieldSchema>;
 
 
 export const MaterialMovementSchema = z.object({

@@ -13,10 +13,11 @@ import { Badge } from "@/components/ui/badge";
 
 // Mock Data
 const mockMovementData = [
-  { id: "MV001", assetNumber: "KONE-RD-OSC-001", dcNumber: "DC20240728-A", type: "Calibration", from: "ITEC Lab", to: "External Calibration", date: "2024-07-28", responsible: "Praveen S." },
-  { id: "MV002", assetNumber: "KONE-SITE-LASER-01", dcNumber: "DC20240727-B", type: "ITEC -> Site", from: "ITEC Stores", to: "KONE Site Chennai", date: "2024-07-27", responsible: "Nagaraj V." },
-  { id: "MV003", assetNumber: "KONE-RD-LAP-001", dcNumber: "DC20240726-C", type: "TT <> ITEC", from: "TT", to: "ITEC", date: "2024-07-26", responsible: "Ram Kumar" },
-  { id: "MV004", assetNumber: "ASSET-004", dcNumber: "DC20240725-D", type: "Scrap", from: "Maintenance Workshop", to: "Scrap Yard", date: "2024-07-25", responsible: "Admin" },
+  { id: "MV001", assetNumber: "KONE-RD-OSC-001", dcNumber: "DC20240728-A", type: "Calibration", from: "ITEC Lab", to: "External Calibration", date: "2024-07-28", responsible: "Praveen S.", reason: "Annual Calibration" },
+  { id: "MV002", assetNumber: "KONE-SITE-LASER-01", dcNumber: "DC20240727-B", type: "ITEC -> Site", from: "ITEC Stores", to: "KONE Site Chennai", date: "2024-07-27", responsible: "Nagaraj V.", reason: "Project Deployment" },
+  { id: "MV003", assetNumber: "KONE-RD-LAP-001", dcNumber: "DC20240726-C", type: "TT <> ITEC", from: "TT", to: "ITEC", date: "2024-07-26", responsible: "Ram Kumar", reason: "Software Upgrade" },
+  { id: "MV004", assetNumber: "ASSET-004", dcNumber: "DC20240725-D", type: "Scrap", from: "Maintenance Workshop", to: "Scrap Yard", date: "2024-07-25", responsible: "Admin", reason: "End of Life" },
+  { id: "MV005", assetNumber: "KONE-RD-OSC-001", dcNumber: "DC20240805-A", type: "Calibration", from: "External Calibration", to: "ITEC Lab", date: "2024-08-05", responsible: "Praveen S.", reason: "Return from Calibration" },
 ];
 
 export default function MovementReportPage() {
@@ -62,6 +63,7 @@ export default function MovementReportPage() {
                   <TableHead>To Location</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Responsible Person</TableHead>
+                  <TableHead>Reason</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -74,6 +76,7 @@ export default function MovementReportPage() {
                     <TableCell>{movement.to}</TableCell>
                     <TableCell>{format(new Date(movement.date), "dd-MMM-yyyy")}</TableCell>
                     <TableCell>{movement.responsible}</TableCell>
+                    <TableCell>{movement.reason}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

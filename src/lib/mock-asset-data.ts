@@ -1,4 +1,3 @@
-
 // src/lib/mock-asset-data.ts
 import { AssetManagementFormData } from "./schemas";
 
@@ -12,6 +11,7 @@ export const mockAssetData: AssetManagementFormData[] = [
         assetGrouping: "Laptops",
         lifecycleYears: 5,
         capitalizationDate: new Date("2022-01-15"),
+        eolDate: new Date("2027-01-14"),
         purchaseValue: 120000,
         ledgerQty: 1,
         brandName: "Dell",
@@ -44,6 +44,7 @@ export const mockAssetData: AssetManagementFormData[] = [
         assetGrouping: "Measurement Devices",
         lifecycleYears: 10,
         capitalizationDate: new Date("2020-05-20"),
+        eolDate: new Date("2030-05-19"),
         purchaseValue: 450000,
         ledgerQty: 1,
         brandName: "Tektronix",
@@ -68,6 +69,7 @@ export const mockAssetData: AssetManagementFormData[] = [
         assetGrouping: "Handheld Tools",
         lifecycleYears: 8,
         capitalizationDate: new Date("2021-11-10"),
+        eolDate: new Date("2029-11-09"),
         purchaseValue: 35000,
         ledgerQty: 1,
         brandName: "Fluke",
@@ -93,6 +95,7 @@ export const mockAssetData: AssetManagementFormData[] = [
         assetGrouping: "3D Printers",
         lifecycleYears: 7,
         capitalizationDate: new Date("2019-08-01"),
+        eolDate: new Date("2026-07-31"),
         purchaseValue: 800000,
         ledgerQty: 1,
         brandName: "Ultimaker",
@@ -121,6 +124,7 @@ export const mockAssetData: AssetManagementFormData[] = [
         assetGrouping: "Site Tools",
         lifecycleYears: 6,
         capitalizationDate: new Date("2023-02-01"),
+        eolDate: new Date("2029-01-31"),
         purchaseValue: 45000,
         ledgerQty: 1,
         brandName: "Leica",
@@ -128,7 +132,7 @@ export const mockAssetData: AssetManagementFormData[] = [
         productSerialNo: "SN-LAS-98765",
         personResponsible: "Site Manager",
         currentUser: "Field Team A",
-        department: "Field Operations",
+        department: "SR Engineering",
         location: "Site",
         floor: "N/A",
         laboratory: "N/A",

@@ -58,10 +58,11 @@ export default function VerificationReportPage() {
                 <TableRow>
                   <TableHead>Asset Number</TableHead>
                   <TableHead>Description</TableHead>
-                  <TableHead>Department</TableHead>
                   <TableHead>Verification Status</TableHead>
                   <TableHead>Last Verified On</TableHead>
+                  <TableHead>Verified By</TableHead>
                   <TableHead>Photo Attached?</TableHead>
+                  <TableHead>Comments</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -69,15 +70,16 @@ export default function VerificationReportPage() {
                   <TableRow key={asset.id}>
                     <TableCell className="font-medium">{asset.assetNumber}</TableCell>
                     <TableCell>{asset.assetDescription}</TableCell>
-                    <TableCell>{asset.department}</TableCell>
                     <TableCell><Badge variant={getStatusBadgeVariant(asset.verificationStatus)}>{asset.verificationStatus || "N/A"}</Badge></TableCell>
                     <TableCell>{asset.verifiedOn ? format(new Date(asset.verifiedOn), "dd-MMM-yyyy") : "N/A"}</TableCell>
+                     <TableCell>Admin</TableCell>
                     <TableCell>
                       {asset.attachments?.photo ? 
                         <Badge variant="default"><Camera className="w-3 h-3 mr-1"/>Yes</Badge> : 
                         <Badge variant="secondary">No</Badge>
                       }
                     </TableCell>
+                     <TableCell>{asset.comments}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
