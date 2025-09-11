@@ -8,7 +8,7 @@ import { LibraryBig, AlertTriangle, Truck, TestTube2, Recycle, HardHat, PlusCirc
 import { useAuth } from "@/hooks/useAuth";
 import { mockAssetData } from "@/lib/mock-asset-data";
 import { allRequestsSource } from '@/lib/mock-data';
-import { DEPARTMENTS, TEAMS_AND_TRIBES, ASSET_CLASSIFICATIONS } from "@/lib/constants";
+import { DEPARTMENTS, TEAMS_AND_TRIBES, ASSET_CLASSIFICATIONS, MOCK_WORKFLOW_TEMPLATES } from "@/lib/constants";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useRouter } from "next/navigation";
 import { SampleBarChart } from "@/components/charts/SampleBarChart";
