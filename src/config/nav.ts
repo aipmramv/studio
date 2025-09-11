@@ -1,3 +1,4 @@
+
 // src/config/nav.ts
 import type { LucideIcon } from 'lucide-react';
 import {
@@ -81,7 +82,7 @@ export const mainNavItems: NavItem[] = [
       },
       {
         title: 'Masters',
-        href: '/administration/asset-classifications', // Parent item
+        href: '/administration/asset-classifications', // The href for a parent should be a real link, typically the first child
         icon: Database,
         description: "Manage application master data.",
         roles: ['admin'],
