@@ -39,6 +39,7 @@ export default function NewAssetPage() {
             <AssetManagementForm 
                 onSave={handleSave} 
                 onCancel={handleCancel}
+                isEditing={true}
             />
         </div>
     );

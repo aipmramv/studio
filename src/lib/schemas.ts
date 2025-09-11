@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { USER_ROLES, DEPARTMENTS, STORE_LOCATIONS, SCRAP_TYPES, ACTIVITY_TYPES_WORK_PERMIT, ASSET_CLASSIFICATIONS, ASSET_STATUSES, TEAMS_AND_TRIBES } from './constants';
+import { USER_ROLES, DEPARTMENTS, STORE_LOCATIONS, SCRAP_TYPES, ACTIVITY_TYPES_WORK_PERMIT, ASSET_CLASSIFICATIONS, ASSET_STATUSES, TEAMS_AND_TRIBES, ASSET_GROUPINGS } from './constants';
 
 export const LoginSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -24,7 +24,7 @@ export const AssetManagementSchema = z.object({
     kmNumber: z.string().optional(),
     assetDescription: z.string().min(1, "Asset Description is required."),
     assetClassification: z.enum(ASSET_CLASSIFICATIONS).optional(),
-    assetGrouping: z.string().optional(),
+    assetGrouping: z.enum(ASSET_GROUPINGS).optional(),
     lifecycleYears: z.coerce.number().min(0).optional(),
     capitalizationDate: z.date().optional().nullable(),
     eolDate: z.date().optional().nullable(),
@@ -37,10 +37,10 @@ export const AssetManagementSchema = z.object({
     weeklyUsageFrequency: z.coerce.number().min(0).max(7).optional(),
     personResponsible: z.string().optional(),
     currentUser: z.string().optional(),
-    teamOrTribe: z.string().optional(),
-    department: z.string().min(1, "Department is required."),
+    teamOrTribe: z.enum(TEAMS_AND_TRIBES).optional(),
+    department: z.enum(DEPARTMENTS, { required_error: "Department is required." }),
     assetCoordinator: z.string().optional(),
-    location: z.string().min(1, "Location is required."),
+    location: z.enum(STORE_LOCATIONS, { required_error: "Location is required." }),
     floor: z.string().optional(),
     laboratory: z.string().optional(),
     verificationStatus: z.enum(["Verified", "Pending", "Discrepancy"]).optional(),
@@ -48,7 +48,7 @@ export const AssetManagementSchema = z.object({
     usableCondition: z.enum(["Yes", "No", "Partial"]).optional(),
     workingConditionStatus: z.enum(["Working", "Not Working", "Under Maintenance"]).optional(),
     comments: z.string().optional(),
-    currentStatus: z.string().optional(),
+    currentStatus: z.enum(ASSET_STATUSES).optional(),
     statusChangedOn: z.date().optional().nullable(),
     attachments: z.object({
         invoice: z.any().optional(),

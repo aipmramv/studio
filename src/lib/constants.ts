@@ -11,6 +11,9 @@ export type TeamOrTribe = typeof TEAMS_AND_TRIBES[number];
 export const ASSET_CLASSIFICATIONS = ["IT Equipment", "Test Equipment", "Tools & Tackles", "Prototyping Equipment", "Furniture & Fixtures", "Vehicles", "Lab Equipment", "Machinery"] as const;
 export type AssetClassification = typeof ASSET_CLASSIFICATIONS[number];
 
+export const ASSET_GROUPINGS = ["Project Phoenix", "General IT Pool", "Elevator Test Kit A", "R&D Cost Center"] as const;
+export type AssetGrouping = typeof ASSET_GROUPINGS[number];
+
 export const ASSET_STATUSES = ["Active", "In Store", "In Use", "Reserved", "Calibration", "Under Maintenance", "Scrapped", "Verification Pending"] as const;
 export type AssetStatus = typeof ASSET_STATUSES[number];
 
@@ -38,11 +41,19 @@ export type ActivityTypeWorkPermit = typeof ACTIVITY_TYPES_WORK_PERMIT[number];
 export const SCRAP_TYPES = ["Metal Scrap (Ferrous)", "Metal Scrap (Non-Ferrous)", "Plastic Scrap", "E-waste", "Paper/Cardboard", "Chemical/Hazardous Waste"] as const;
 export type ScrapType = typeof SCRAP_TYPES[number];
 
-export const STORE_LOCATIONS = ["Central Warehouse Alpha", "Electronics Sub-Store", "Maintenance Store", "Scrap Yard", "Production Line A", "Production Line B", "Dispatch Area", "Quality Lab", "ITEC-Floor 1", "TT-Floor 2"] as const;
+export const STORE_LOCATIONS = ["Central Warehouse Alpha", "Electronics Sub-Store", "Maintenance Store", "Scrap Yard", "Production Line A", "Production Line B", "Dispatch Area", "Quality Lab", "ITEC", "TT"] as const;
 export type StoreLocation = typeof STORE_LOCATIONS[number];
 
 export const COST_CENTERS = ["CC_RD_001_Electronics", "CC_RD_002_Mechanical", "CC_PROD_001_Assembly", "CC_MAINT_001", "CC_FIN_001"] as const;
 export type CostCenter = typeof COST_CENTERS[number];
+
+export const MOCK_VENDORS = [
+  { id: "V001", name: "Tech Solutions Inc." },
+  { id: "V002", name: "Industrial Supplies Co." },
+  { id: "V003", name: "OfficeMart" },
+  { id: "V004", name: "Consulting Experts Ltd." },
+  { id: "V005", name: "Bulk Materials Inc." },
+];
 
 
 export type Quarter = "Q1 (Apr-Jun)" | "Q2 (Jul-Sep)" | "Q3 (Oct-Dec)" | "Q4 (Jan-Mar)" | "Full Year";
