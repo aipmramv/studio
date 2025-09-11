@@ -8,7 +8,7 @@ import { LibraryBig, AlertTriangle, Truck, TestTube2, Recycle, HardHat, PlusCirc
 import { useAuth } from "@/hooks/useAuth";
 import { mockAssetData } from "@/lib/mock-asset-data";
 import { allRequestsSource } from '@/lib/mock-data';
-import { DEPARTMENTS, TEAMS_AND_TRIBES, ASSET_CLASSIFICATIONS, MOCK_WORKFLOW_TEMPLATES } from "@/lib/constants";
+import { DEPARTMENTS, TEAMS_AND_TRIBES, ASSET_CLASSIFICATIONS } from "@/lib/constants";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useRouter } from "next/navigation";
 import { SampleBarChart } from "@/components/charts/SampleBarChart";
@@ -97,7 +97,7 @@ export default function DashboardPage() {
         { month: "Jun", "TT <> ITEC": 14, "ITEC -> Site": 9, "Calibration": 5, "Scrap": 1 },
     ];
 
-    const pendingRequests = allRequestsSource.filter(r => !r.isVoided && r.currentStepName !== "Request Voided" && r.currentStepName !== "Request Rejected" && !MOCK_WORKFLOW_TEMPLATES.find(wt => wt.id === r.workflowTemplateId)?.steps.find(s => s.id === r.currentStepId && !s.nextStepId));
+    const pendingRequests = allRequestsSource.filter(r => !r.isVoided && r.currentAssignees && r.currentAssignees.length > 0);
 
   return (
     <div className="space-y-8">
@@ -148,7 +148,7 @@ export default function DashboardPage() {
             <SampleBarChart data={assetDistByDept} title="Asset Distribution by Department" dataKeyX="name" dataKeyY="value" fillColor="hsl(var(--accent))" />
         </div>
          <div className="grid gap-6 lg:grid-cols-1">
-            <SampleLineChart data={recentMovementsData} title="Recent Asset Movements by Type" description="Total movements over the last 6 months." dataKeyX="month" dataKeyY="TT <> ITEC" />
+            <SampleLineChart data={recentMovementsData} title="Recent Asset Movements by Type" description="Total movements over the last 6 months." dataKeyX="month" dataKeyY={["TT <> ITEC", "ITEC -> Site", "Calibration", "Scrap"]} />
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
