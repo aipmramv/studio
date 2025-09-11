@@ -1,3 +1,4 @@
+
 // src/hooks/useAuth.ts
 "use client";
 
@@ -34,7 +35,7 @@ export function useAuth() {
       //   uid: 'mock-user-id-prem',
       //   email: 'prem.dh@example.com',
       //   displayName: 'Prem Kumar',
-      //   role: 'department_head',
+      //   role: 'spoc',
       //   department: 'Finance', 
       // };
       // To simulate a logged-out state:
@@ -74,7 +75,7 @@ export function useAuth() {
            uid: 'new-mock-user-id-nagaraj',
            email: 'nagaraj.new@example.com',
            displayName: 'Nagaraj V.',
-           role: 'requester', // Default role for new signups
+           role: 'user', // Default role for new signups
            department: 'Production'
          });
          setLoading(false);

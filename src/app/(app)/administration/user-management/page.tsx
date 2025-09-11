@@ -38,12 +38,10 @@ interface MockUser {
 
 const mockUsersData: MockUser[] = [
   { id: "user1", name: "Ram Kumar", email: "ram.admin@example.com", department: "IT", role: "admin" },
-  { id: "user2", name: "Prem Kumar", email: "prem.kumar@example.com", department: "Finance", role: "approver" },
-  { id: "user3", name: "Praveen S.", email: "praveen.s@example.com", department: "Production", role: "requester" },
-  { id: "user4", name: "Chandrasekar R.", email: "chandrasekar.r@example.com", department: "R&D", role: "requester" },
-  { id: "user5", name: "Nagaraj V.", email: "nagaraj.v@example.com", department: "Maintenance", role: "requester" },
-  { id: "user6", name: "Sashikanth M.", email: "sashikanth.m@example.com", department: "Safety & Environment", role: "safety" },
-  { id: "user7", name: "Kumaravel P.", email: "kumaravel.p@example.com", department: "Logistics", role: "department_head" },
+  { id: "user2", name: "Prem Kumar", email: "prem.kumar@example.com", department: "Finance", role: "spoc" },
+  { id: "user3", name: "Praveen S.", email: "praveen.s@example.com", department: "Production", role: "user" },
+  { id: "user4", name: "Chandrasekar R.", email: "chandrasekar.r@example.com", department: "R&D", role: "user" },
+  { id: "user5", name: "Nagaraj V.", email: "nagaraj.v@example.com", department: "Maintenance", role: "user" },
 ];
 
 export default function UserManagementPage() {
@@ -56,12 +54,12 @@ export default function UserManagementPage() {
 
   const inviteForm = useForm<InviteUserFormData>({
     resolver: zodResolver(InviteUserSchema),
-    defaultValues: { email: "", role: "requester" },
+    defaultValues: { email: "", role: "user" },
   });
   
   const editUserForm = useForm<{ department: string, role: UserRole }>({
     // resolver: zodResolver(SomeSchemaForEditUser), // If you create a schema
-    defaultValues: { department: "", role: "requester"}
+    defaultValues: { department: "", role: "user"}
   });
 
 
@@ -92,7 +90,7 @@ export default function UserManagementPage() {
         name: "SSO Ram", 
         email: "sso.ram@example.com", 
         department: "IT", 
-        role: "requester"
+        role: "user"
       };
       setUsers(prev => [...prev, ssoUser]);
       toast({ title: "SSO Sync Complete", description: "New users (if any) have been synced." });

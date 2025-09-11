@@ -1,3 +1,4 @@
+
 // src/app/(app)/kpi-dashboard/page.tsx
 "use client";
 import * as React from "react";
@@ -115,7 +116,7 @@ export default function KpiDashboardPage() {
         ))}
       </div>
 
-      { (user?.role === 'admin' || user?.role === 'department_head') && (
+      { (user?.role === 'admin' || user?.role === 'spoc') && (
         <Card>
           <CardHeader>
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">

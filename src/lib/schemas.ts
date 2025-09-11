@@ -1,5 +1,6 @@
+
 import { z } from 'zod';
-import { USER_ROLES, DEPARTMENTS, ASSET_CLASSIFICATIONS, ASSET_STATUSES, TEAMS_AND_TRIBES } from './constants';
+import { USER_ROLES } from './constants';
 
 export const LoginSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -26,7 +27,7 @@ export const AssetManagementSchema = z.object({
     assetClassification: z.string().min(1, "Asset Classification is required."),
     assetGrouping: z.string().optional(),
     lifecycleYears: z.coerce.number().min(0).optional(),
-    capitalizationDate: z.date().optional(),
+    capitalizationDate: z.date().optional().nullable(),
     purchaseValue: z.coerce.number().min(0).optional(),
     ledgerQty: z.coerce.number().min(0),
     brandName: z.string().optional(),
@@ -43,12 +44,12 @@ export const AssetManagementSchema = z.object({
     floor: z.string().optional(),
     laboratory: z.string().optional(),
     verificationStatus: z.enum(["Verified", "Pending", "Discrepancy"]).optional(),
-    verifiedOn: z.date().optional(),
+    verifiedOn: z.date().optional().nullable(),
     usableCondition: z.enum(["Yes", "No", "Partial"]).optional(),
     workingConditionStatus: z.enum(["Working", "Not Working", "Under Maintenance"]).optional(),
     comments: z.string().optional(),
     currentStatus: z.string().optional(),
-    statusChangedOn: z.date().optional(),
+    statusChangedOn: z.date().optional().nullable(),
     attachments: z.object({
         invoice: z.any().optional(),
         warranty: z.any().optional(),

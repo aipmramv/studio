@@ -1,3 +1,4 @@
+
 // src/components/layout/SidebarNav.tsx
 "use client";
 
@@ -33,15 +34,7 @@ export function SidebarNav({ className, ...props }: SidebarNavProps) {
   
   const filterAndCloneNavItemsByRole = React.useCallback((itemsToFilter: NavItem[]): NavItem[] => {
     if (!user || !user.role) {
-      return itemsToFilter
-        .filter(item => !item.roles || item.roles.length === 0)
-        .map(item => {
-          const clonedItem = { ...item };
-          if (clonedItem.items) {
-            clonedItem.items = filterAndCloneNavItemsByRole(clonedItem.items);
-          }
-          return clonedItem;
-        });
+      return [];
     }
 
     return itemsToFilter
@@ -56,6 +49,10 @@ export function SidebarNav({ className, ...props }: SidebarNavProps) {
         
         if (clonedItem.items) {
           clonedItem.items = filterAndCloneNavItemsByRole(clonedItem.items);
+          // If a parent has no visible children, don't show it unless it's a link itself
+          if (clonedItem.items.length === 0 && !clonedItem.href) {
+            return null;
+          }
         }
         return clonedItem;
       })

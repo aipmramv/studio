@@ -1,3 +1,4 @@
+
 // src/app/(app)/dashboard/page.tsx
 "use client";
 import * as React from "react";
@@ -16,7 +17,7 @@ export default function DashboardPage() {
     const { user } = useAuth();
     const router = useRouter();
     const [selectedDepartment, setSelectedDepartment] = React.useState<string | undefined>(
-        user?.role === 'SPOC' && user.department ? user.department : undefined
+        user?.role === 'spoc' && user.department ? user.department : undefined
     );
     const [selectedTeam, setSelectedTeam] = React.useState<string | undefined>(undefined);
 
@@ -65,7 +66,7 @@ export default function DashboardPage() {
                 <CardDescription>Filter the dashboard summary cards by department or team.</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col sm:flex-row gap-4">
-                {user?.role === 'Admin' && (
+                {user?.role === 'admin' && (
                     <Select value={selectedDepartment} onValueChange={e => setSelectedDepartment(e === 'all' ? undefined : e)}>
                         <SelectTrigger className="w-full sm:w-[200px]">
                             <SelectValue placeholder="Select Department" />

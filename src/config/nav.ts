@@ -1,13 +1,12 @@
 
+// src/config/nav.ts
 import type { LucideIcon } from 'lucide-react';
 import {
   LayoutDashboard, Truck, Recycle, FileText, ListChecks, BarChart3, UserCircle,
   LogOut, Settings, ShieldCheck, Database, Package, Building, Briefcase,
   ClipboardCheck, ShoppingCart, Tags, PlusCircle, Warehouse,
   Store, PackagePlus, PackageMinus, Undo2, SearchCheck, SlidersHorizontal, GitFork,
-  Users, Mail, UserCog, Layers, FileArchive, PackageSearch,
-  Building2, Users2, TagIcon, ScaleIcon, Landmark, AreaChart, PieChart, BarChartHorizontalBig,
-  FileSpreadsheet, FileCheck, Clock, ArchiveRestore, Send, Lock, LibraryBig
+  Users, Mail, UserCog, Layers, FileArchive, LibraryBig
 } from 'lucide-react';
 
 export interface NavItem {
@@ -27,13 +26,7 @@ export const mainNavItems: NavItem[] = [
     title: 'Dashboard',
     href: '/dashboard',
     icon: LayoutDashboard,
-    description: "Pending approvals and overview.",
-  },
-  {
-    title: 'All Requests',
-    href: '/all-requests',
-    icon: Layers,
-    description: "View all requests and their status.",
+    description: "Asset summary and key alerts.",
   },
   {
     title: 'Asset Management',
@@ -42,208 +35,37 @@ export const mainNavItems: NavItem[] = [
     description: "Manage all company assets.",
   },
   {
-    title: 'Requests',
-    href: '/material-movement/list', // Default to list view
+    title: 'Transactions',
+    href: '/transactions', // This can be a placeholder or link to the first item
     icon: ClipboardCheck,
-    description: "Manage all types of requests.",
+    description: "Manage asset movements and lifecycle events.",
     items: [
-      {
-        title: 'Material Movement',
-        href: '/material-movement/list',
-        icon: Truck,
-        description: "Log and track material movements.",
-        items: [
-          { title: 'New Request', href: '/material-movement/new', icon: PlusCircle, description: "Create a new material movement request." },
-          { title: 'View Requests', href: '/material-movement/list', icon: ListChecks, description: "View all material movement requests." },
-        ]
-      },
-      {
-        title: 'Scrap Disposal',
-        href: '/scrap-movement/list',
-        icon: Recycle,
-        description: "Log and track scrap disposals.",
-        items: [
-          { title: 'New Request', href: '/scrap-movement/new', icon: PlusCircle, description: "Create a new scrap disposal request." },
-          { title: 'View Requests', href: '/scrap-movement/list', icon: ListChecks, description: "View all scrap disposal requests." },
-        ]
-      },
-      {
-        title: 'Work Permit',
-        href: '/work-permit/list',
-        icon: ShieldCheck,
-        description: "Request and manage work permits.",
-        items: [
-          { title: 'New Request', href: '/work-permit/new', icon: PlusCircle, description: "Create a new work permit request." },
-          { title: 'View Permits', href: '/work-permit/list', icon: ListChecks, description: "View all work permit requests." },
-        ]
-      },
-      {
-        title: 'Purchase Order',
-        href: '/purchase-order/list', // Primary link to the list page
-        icon: ShoppingCart,
-        description: "Manage Purchase Orders.",
-        items: [
-          { title: 'New Request', href: '/purchase-order/new', icon: PlusCircle, description: "Create a new purchase order." },
-          { title: 'View Requests', href: '/purchase-order/list', icon: ListChecks, description: "View all purchase orders." },
-        ]
-      },
-      {
-        title: 'Sale Order',
-        href: '/sale-order/list',
-        icon: Tags,
-        description: "Manage Sale Orders.",
-        items: [
-          { title: 'New Request', href: '/sale-order/new', icon: PlusCircle, description: "Create a new sale order." },
-          { title: 'View Requests', href: '/sale-order/list', icon: ListChecks, description: "View all sale orders." },
-        ]
-      },
+       { title: 'Asset Transfers', href: '/transactions/transfers', icon: Truck, description: "Handle asset movements between locations." },
+       { title: 'Check-in/Check-out', href: '/transactions/check-in-out', icon: ListChecks, description: "Manage temporary asset usage." },
+       { title: 'Verification & Audit', href: '/transactions/audit', icon: SearchCheck, description: "Perform asset verification." },
     ]
   },
   {
-    title: 'DC Management',
-    href: '/dc-generator',
-    icon: FileText, // Main icon for DC Management
-    description: "Manage Delivery Challans.",
-    items: [
-      { title: 'Generate DC', href: '/dc-generator', icon: PlusCircle, description: "Generate a new Delivery Challan." },
-      { title: 'View DCs', href: '/dc-generator/list', icon: ListChecks, description: "View all Delivery Challans." },
-    ]
-  },
-  {
-    title: 'Stores Management',
-    href: '/stores/inventory-summary',
-    icon: Warehouse,
-    description: "Manage store operations, inventory, and audits.",
-    items: [
-      { title: 'Material Receipt', href: '/stores/material-receipt/list', icon: PackagePlus, description: "Record material receipts.",
-        items: [
-            { title: 'New Receipt', href: '/stores/material-receipt/new', icon: PlusCircle },
-            { title: 'View Receipts', href: '/stores/material-receipt/list', icon: ListChecks },
-        ]
-      },
-      { title: 'Material Issue', href: '/stores/material-issue/list', icon: PackageMinus, description: "Record material issues.",
-        items: [
-            { title: 'New Issue', href: '/stores/material-issue/new', icon: PlusCircle },
-            { title: 'View Issues', href: '/stores/material-issue/list', icon: ListChecks },
-        ]
-      },
-      { title: 'Material Return', href: '/stores/material-returns/list', icon: Undo2, description: "Record material returns.",
-        items: [
-            { title: 'New Return', href: '/stores/material-returns/new', icon: PlusCircle },
-            { title: 'View Returns', href: '/stores/material-returns/list', icon: ListChecks },
-        ]
-      },
-      { title: 'Inventory Summary', href: '/stores/inventory-summary', icon: PackageSearch, description: "View material availability." },
-      { title: 'Inventory on Hold', href: '/stores/inventory-hold', icon: Lock, description: "View items on hold." },
-    ]
-  },
-  {
-    title: 'Analytics & Reports',
-    href: '/kpi-dashboard',
+    title: 'Reports',
+    href: '/reports',
     icon: BarChart3,
-    description: "View key performance indicators and audit logs.",
-    roles: ['admin', 'mm_team', 'department_head', 'finance_team'],
+    description: "View detailed reports and analytics.",
     items: [
-      {
-        title: 'KPI Dashboard',
-        href: '/kpi-dashboard',
-        icon: BarChart3,
-        description: "View key performance indicators.",
-        roles: ['admin', 'mm_team', 'department_head', 'finance_team'],
-      },
-      {
-        title: 'Material Lifecycle',
-        href: '/reports/material-lifecycle',
-        icon: PackageSearch,
-        description: "Drill-down report for material tracking.",
-        roles: ['admin', 'mm_team', 'department_head', 'finance_team'],
-      },
-      {
-        title: 'Monthly Budget Report',
-        href: '/reports/monthly-budget-report',
-        icon: AreaChart,
-        description: "Track monthly budget forecast vs actuals.",
-        roles: ['admin', 'department_head', 'finance_team'],
-      },
-       {
-        title: 'Request Status Summary',
-        href: '/reports/request-status-summary',
-        icon: PieChart,
-        description: "Overview of request statuses by type.",
-        roles: ['admin', 'mm_team', 'department_head'],
-      },
-      {
-        title: 'Material Consumption',
-        href: '/reports/material-consumption',
-        icon: BarChartHorizontalBig,
-        description: "Track material usage.",
-        roles: ['admin', 'mm_team', 'department_head', 'finance_team'],
-      },
-      {
-        title: 'Material Ready to Scrap',
-        href: '/reports/material-ready-to-scrap',
-        icon: ArchiveRestore,
-        description: 'Approved scrap awaiting dispatch.',
-        roles: ['admin', 'mm_team'],
-      },
-      {
-        title: 'PO Yet to Receive',
-        href: '/reports/po-yet-to-receive',
-        icon: Clock,
-        description: 'Approved POs awaiting fulfillment.',
-        roles: ['admin', 'mm_team', 'finance_team'],
-      },
-      {
-        title: 'SO Yet to Receive',
-        href: '/reports/so-yet-to-receive',
-        icon: ArchiveRestore,
-        description: 'Approved SOs awaiting material receipt.',
-        roles: ['admin', 'mm_team', 'finance_team'],
-      },
-      {
-        title: 'Audit Logs',
-        href: '/administration/audit-logs',
-        icon: FileArchive,
-        description: "View system audit logs.",
-        roles: ['admin'],
-      }
-    ]
-  },
-  {
-    title: 'Masters',
-    href: '/masters/material-types',
-    icon: Database,
-    description: "Manage application master data.",
-    roles: ['admin'],
-    items: [
-      { title: 'Material Types', href: '/masters/material-types', icon: Package, description: "Manage material types." },
-      { title: 'Scrap Categories', href: '/masters/scrap-types', icon: Recycle, description: "Manage scrap types." },
-      { title: 'Store Locations', href: '/masters/store-locations', icon: Store, description: "Manage store locations." },
-      { title: 'Departments', href: '/masters/departments', icon: Briefcase, description: "Manage departments." },
-      { title: 'Activity Types', href: '/masters/activity-types', icon: ClipboardCheck, description: "Manage work permit activity types." },
-      { title: 'Cost Centers', href: '/masters/cost-centers', icon: Briefcase, description: "Manage cost centers." },
-      { title: 'Department Budgets', href: '/masters/department-budgets', icon: Landmark, description: "Manage department quarterly budgets.", roles:['admin'] },
-      { title: 'Vendors', href: '/masters/vendors', icon: Building2, description: "Manage vendor master data." },
-      { title: 'Customers', href: '/masters/customers', icon: Users2, description: "Manage customer master data." },
-      { title: 'HSN/SAC Codes', href: '/masters/hsn-sac-codes', icon: TagIcon, description: "Manage HSN/SAC codes." },
-      { title: 'Units of Measurement', href: '/masters/uom', icon: ScaleIcon, description: "Manage UOMs." },
+        { title: 'Asset Register', href: '/reports/asset-register', icon: FileText, description: "View a complete list of all assets." },
+        { title: 'Movement Report', href: '/reports/movement-report', icon: Truck, description: "Track all asset movements." },
+        { title: 'Verification Report', href: '/reports/verification-report', icon: ShieldCheck, description: "Audit verification history." },
+        { title: 'Finance Report', href: '/reports/finance-report', icon: Database, description: "View depreciation and financial data." },
+        { title: 'Scrap Report', href: '/reports/scrap-report', icon: Recycle, description: "Log of all scrapped assets." },
     ]
   },
   {
     title: 'Administration',
-    href: '/administration/workflows',
+    href: '/administration/user-management',
     icon: SlidersHorizontal,
-    description: "Manage application settings.",
+    description: "Manage application settings, users, and masters.",
     roles: ['admin'],
     items: [
-      {
-        title: 'Workflow Config',
-        href: '/administration/workflows',
-        icon: GitFork,
-        description: "Configure approval workflows.",
-        roles: ['admin'],
-      },
-      {
+       {
         title: 'User Management',
         href: '/administration/user-management',
         icon: UserCog,
@@ -251,17 +73,10 @@ export const mainNavItems: NavItem[] = [
         roles: ['admin'],
       },
       {
-        title: 'Email Templates',
-        href: '/administration/email-templates',
-        icon: Mail,
-        description: "Configure email notifications.",
-        roles: ['admin'],
-      },
-      {
-        title: 'Work Permit Print Templates',
-        href: '/administration/work-permit-templates',
-        icon: FileCheck,
-        description: "Configure work permit layouts for printing.",
+        title: 'Masters',
+        href: '/masters/asset-classifications',
+        icon: Database,
+        description: "Manage application master data.",
         roles: ['admin'],
       },
     ]

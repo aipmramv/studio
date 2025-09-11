@@ -1,3 +1,4 @@
+
 // src/components/layout/UserNav.tsx
 "use client";
 
@@ -61,7 +62,7 @@ export function UserNav() {
               {user.email}
             </p>
             <p className="text-xs leading-none text-muted-foreground capitalize pt-1">
-              Role: {user.role.replace('_', ' ')}
+              Role: {user.role}
             </p>
           </div>
         </DropdownMenuLabel>

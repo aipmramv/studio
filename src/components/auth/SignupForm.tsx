@@ -1,3 +1,4 @@
+
 // src/components/auth/SignupForm.tsx
 "use client";
 
@@ -35,7 +36,7 @@ export function SignupForm() {
       email: "",
       password: "",
       confirmPassword: "",
-      role: USER_ROLES[0], // Default to 'requester'
+      role: "user", // Default to 'user'
     },
   });
 

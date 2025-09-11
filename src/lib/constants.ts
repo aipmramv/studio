@@ -1,5 +1,6 @@
+
 // src/lib/constants.ts
-export const USER_ROLES = ["Admin", "SPOC", "User"] as const;
+export const USER_ROLES = ["admin", "spoc", "user"] as const;
 export type UserRole = typeof USER_ROLES[number];
 
 export const DEPARTMENTS = ["Production", "Maintenance", "Logistics", "Quality Assurance", "IT", "HR", "Finance", "R&D", "Safety & Environment", "Sales", "Facility Management", "SR Engineering", "Housekeeping", "Security"] as const;
