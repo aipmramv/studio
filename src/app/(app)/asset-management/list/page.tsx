@@ -148,7 +148,7 @@ export default function AssetListPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Asset Register"
+        title="Asset Management"
         description="Search, filter, manage, and report on all registered assets."
         actions={
           isUserAdmin && (
