@@ -1,3 +1,4 @@
+
 // src/components/forms/AssetForm.tsx
 "use client";
 
@@ -62,8 +63,8 @@ export function AssetManagementForm({ initialData, onSave, onCancel, isEditing }
                 <FormField control={form.control} name="assetNumber" render={({ field }) => (
                     <FormItem><FormLabel>Asset Number</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                 )}/>
-                <FormField control={form.control} name="materialCode" render={({ field }) => (
-                    <FormItem><FormLabel>Material Code (KM)</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                <FormField control={form.control} name="kmNumber" render={({ field }) => (
+                    <FormItem><FormLabel>KM Number</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                 )}/>
                 <FormField control={form.control} name="assetDescription" render={({ field }) => (
                     <FormItem className="md:col-span-2 lg:col-span-3"><FormLabel>Asset Description</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem>

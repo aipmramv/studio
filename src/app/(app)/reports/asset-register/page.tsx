@@ -1,3 +1,4 @@
+
 // src/app/(app)/reports/asset-register/page.tsx
 "use client";
 
@@ -114,7 +115,7 @@ export default function AssetRegisterReportPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Asset No.</TableHead>
+                  <TableHead>Asset / KM No.</TableHead>
                   <TableHead>Description</TableHead>
                   <TableHead>Department</TableHead>
                   <TableHead>Location</TableHead>
@@ -126,7 +127,10 @@ export default function AssetRegisterReportPage() {
               <TableBody>
                 {paginatedAssets.map((asset) => (
                   <TableRow key={asset.id}>
-                    <TableCell className="font-medium">{asset.assetNumber}</TableCell>
+                    <TableCell className="font-medium">
+                      {asset.assetNumber}
+                      {asset.kmNumber && <p className="text-xs text-muted-foreground">{asset.kmNumber}</p>}
+                    </TableCell>
                     <TableCell>{asset.assetDescription}</TableCell>
                     <TableCell>{asset.department}</TableCell>
                     <TableCell>{asset.location}</TableCell>

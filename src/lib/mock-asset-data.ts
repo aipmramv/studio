@@ -1,3 +1,4 @@
+
 // src/lib/mock-asset-data.ts
 import { AssetManagementFormData } from "./schemas";
 
@@ -5,7 +6,7 @@ export const mockAssetData: AssetManagementFormData[] = [
     {
         id: "ASSET-001",
         assetNumber: "KONE-RD-LAP-001",
-        materialCode: "KM-LAP-DELL-5420",
+        kmNumber: "KM-LAP-DELL-5420",
         assetDescription: "Dell Latitude 5420 Laptop",
         assetClassification: "IT Equipment",
         assetGrouping: "Laptops",
@@ -37,7 +38,7 @@ export const mockAssetData: AssetManagementFormData[] = [
     {
         id: "ASSET-002",
         assetNumber: "KONE-RD-OSC-001",
-        materialCode: "KM-OSC-TEK-2024",
+        kmNumber: "KM-OSC-TEK-2024",
         assetDescription: "Tektronix Oscilloscope",
         assetClassification: "Test Equipment",
         assetGrouping: "Measurement Devices",
@@ -61,7 +62,7 @@ export const mockAssetData: AssetManagementFormData[] = [
     {
         id: "ASSET-003",
         assetNumber: "KONE-MAINT-TOOL-001",
-        materialCode: "KM-TOOL-FLU-87V",
+        kmNumber: "KM-TOOL-FLU-87V",
         assetDescription: "Fluke 87V Multimeter",
         assetClassification: "Tools & Tackles",
         assetGrouping: "Handheld Tools",
@@ -86,7 +87,7 @@ export const mockAssetData: AssetManagementFormData[] = [
     {
         id: "ASSET-004",
         assetNumber: "KONE-RD-3DP-001",
-        materialCode: "KM-3DP-ULT-S5",
+        kmNumber: "KM-3DP-ULT-S5",
         assetDescription: "Ultimaker S5 3D Printer",
         assetClassification: "Prototyping Equipment",
         assetGrouping: "3D Printers",
@@ -114,7 +115,7 @@ export const mockAssetData: AssetManagementFormData[] = [
     {
         id: "ASSET-005",
         assetNumber: "KONE-SITE-LASER-01",
-        materialCode: "KM-LASER-LEICA-Disto",
+        kmNumber: "KM-LASER-LEICA-Disto",
         assetDescription: "Leica Disto Laser Measurer",
         assetClassification: "Test Equipment",
         assetGrouping: "Site Tools",

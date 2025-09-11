@@ -1,3 +1,4 @@
+
 // src/app/(app)/asset-management/list/page.tsx
 "use client";
 
@@ -50,7 +51,7 @@ export default function AssetListPage() {
       tempAssets = tempAssets.filter(asset =>
         asset.assetNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
         asset.assetDescription.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (asset.materialCode && asset.materialCode.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (asset.kmNumber && asset.kmNumber.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (asset.productSerialNo && asset.productSerialNo.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
@@ -162,7 +163,7 @@ export default function AssetListPage() {
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
             <div className="relative flex-grow">
               <Search className="absolute w-4 h-4 left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input placeholder="Search by Asset No, Description, Serial No..." className="pl-10" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+              <Input placeholder="Search by Asset No, KM No, Description, Serial No..." className="pl-10" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
             </div>
             <Select value={filterDepartment} onValueChange={(value) => setFilterDepartment(value === "all" ? "" : value)}>
               <SelectTrigger className="w-full sm:w-[180px]"><SelectValue placeholder="All Departments" /></SelectTrigger>
@@ -183,7 +184,7 @@ export default function AssetListPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Asset No.</TableHead>
+                  <TableHead>Asset / KM No.</TableHead>
                   <TableHead>Description</TableHead>
                   <TableHead>Department</TableHead>
                   <TableHead>Location</TableHead>
@@ -195,7 +196,10 @@ export default function AssetListPage() {
               <TableBody>
                 {paginatedAssets.map((asset) => (
                   <TableRow key={asset.id}>
-                    <TableCell className="font-medium">{asset.assetNumber}</TableCell>
+                    <TableCell className="font-medium">
+                      {asset.assetNumber}
+                      {asset.kmNumber && <p className="text-xs text-muted-foreground">{asset.kmNumber}</p>}
+                    </TableCell>
                     <TableCell>{asset.assetDescription}<p className="text-xs text-muted-foreground">{asset.brandName} {asset.modelNo}</p></TableCell>
                     <TableCell>{asset.department}</TableCell>
                     <TableCell>{asset.location}</TableCell>

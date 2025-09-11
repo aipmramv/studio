@@ -22,7 +22,7 @@ export type SignupFormData = z.infer<typeof SignupSchema>;
 export const AssetManagementSchema = z.object({
     id: z.string().optional(),
     assetNumber: z.string().min(1, "Asset Number is required."),
-    materialCode: z.string().optional(),
+    kmNumber: z.string().optional(),
     assetDescription: z.string().min(1, "Asset Description is required."),
     assetClassification: z.enum(ASSET_CLASSIFICATIONS).optional(),
     assetGrouping: z.string().optional(),

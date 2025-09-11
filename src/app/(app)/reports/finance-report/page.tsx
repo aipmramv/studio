@@ -1,3 +1,4 @@
+
 // src/app/(app)/reports/finance-report/page.tsx
 "use client";
 
@@ -55,7 +56,7 @@ export default function FinanceReportPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Asset No.</TableHead>
+                  <TableHead>Asset / KM No.</TableHead>
                   <TableHead>Description</TableHead>
                   <TableHead>Capitalization Date</TableHead>
                   <TableHead>Asset Life (Yrs)</TableHead>
@@ -77,7 +78,10 @@ export default function FinanceReportPage() {
 
                   return (
                     <TableRow key={asset.id}>
-                      <TableCell className="font-medium">{asset.assetNumber}</TableCell>
+                      <TableCell className="font-medium">
+                        {asset.assetNumber}
+                        {asset.kmNumber && <p className="text-xs text-muted-foreground">{asset.kmNumber}</p>}
+                      </TableCell>
                       <TableCell>{asset.assetDescription}</TableCell>
                       <TableCell>{format(capDate, "dd-MMM-yyyy")}</TableCell>
                       <TableCell>{life}</TableCell>
