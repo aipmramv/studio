@@ -1,13 +1,11 @@
-
 // src/config/nav.ts
 import type { LucideIcon } from 'lucide-react';
 import {
   LayoutDashboard, Truck, Recycle, FileText, ListChecks, BarChart3, UserCircle,
-  LogOut, Settings, ShieldCheck, Database, Package, Building, Briefcase,
-  ClipboardCheck, ShoppingCart, Tags, PlusCircle, Warehouse,
-  Store, PackagePlus, PackageMinus, Undo2, SearchCheck, SlidersHorizontal, GitFork,
-  Users, Mail, UserCog, Layers, FileArchive, LibraryBig, Map, Scale, Building2, Tag, Landmark,
-  Group, MapPin, Users2, Workflow, Code, CheckSquare, BellRing, Goal, FileClock, HelpCircle
+  LogOut, Settings, ShieldCheck, Database, LibraryBig,
+  SlidersHorizontal, GitFork,
+  Users, UserCog, Layers, FileArchive, 
+  Group, MapPin, Users2, Workflow, Code, CheckSquare, BellRing, HelpCircle, FileClock, Send, Handshake, CornerRightDown
 } from 'lucide-react';
 
 export interface NavItem {
@@ -36,14 +34,17 @@ export const mainNavItems: NavItem[] = [
     description: "Manage all company assets.",
   },
   {
-    title: 'Transactions',
-    href: '/transactions', // This can be a placeholder or link to the first item
-    icon: ClipboardCheck,
+    title: 'Asset Transactions',
+    href: '/asset-transactions',
+    icon: GitFork,
     description: "Manage asset movements and lifecycle events.",
     items: [
-       { title: 'Asset Transfers', href: '/transactions/transfers', icon: Truck, description: "Handle asset movements between locations." },
-       { title: 'Check-in/Check-out', href: '/transactions/check-in-out', icon: ListChecks, description: "Manage temporary asset usage." },
-       { title: 'Verification & Audit', href: '/transactions/audit', icon: SearchCheck, description: "Perform asset verification." },
+       { title: 'Asset Request & Approve', href: '/asset-transactions/requests', icon: Send, description: "Request ownership changes or reassignments." },
+       { title: 'Transfer (Movement)', href: '/asset-transactions/transfers', icon: Truck, description: "Handle asset movements between locations." },
+       { title: 'Check-in / Check-out', href: '/asset-transactions/check-in-out', icon: ListChecks, description: "Manage temporary asset usage." },
+       { title: 'Verification / Audit', href: '/asset-transactions/audit', icon: ShieldCheck, description: "Perform asset verification." },
+       { title: 'Scrap Disposal', href: '/asset-transactions/scrap-disposal', icon: Recycle, description: "Manage the asset scraping process." },
+       { title: 'Feedback / Issue Log', href: '/asset-transactions/feedback', icon: Handshake, description: "Submit and track asset feedback." },
     ]
   },
   {
@@ -66,14 +67,14 @@ export const mainNavItems: NavItem[] = [
     description: "Manage application settings, users, and masters.",
     roles: ['admin'],
     items: [
-       {
+      {
         title: 'User & Role Master',
         href: '/administration/user-management',
         icon: UserCog,
         description: "Manage users, roles, and permissions.",
         roles: ['admin'],
       },
-       {
+      {
         title: 'Audit Logs',
         href: '/administration/audit-logs',
         icon: FileArchive,
@@ -82,7 +83,7 @@ export const mainNavItems: NavItem[] = [
       },
       {
         title: 'Masters',
-        href: '/administration/asset-classifications', // The href for a parent should be a real link, typically the first child
+        href: '/administration/masters',
         icon: Database,
         description: "Manage application master data.",
         roles: ['admin'],
