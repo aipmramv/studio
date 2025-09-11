@@ -1,9 +1,11 @@
+
 // src/app/(app)/asset-management/list/page.tsx
 "use client";
 
 import * as React from "react";
 import { format } from "date-fns";
 import Link from "next/link";
+import Image from "next/image";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { PlusCircle, Edit, Search, ChevronsLeft, ChevronsRight, Upload, ListFilter, FileSpreadsheet, FileText, Trash2, Eye } from "lucide-react";
+import { PlusCircle, Edit, Search, ChevronsLeft, ChevronsRight, Upload, ListFilter, FileSpreadsheet, FileText, Trash2, Eye, History, Image as ImageIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogClose, DialogFooter } from "@/components/ui/dialog";
 
 import { useToast } from "@/hooks/use-toast";
@@ -30,6 +32,10 @@ export default function AssetListPage() {
   const { user } = useAuth();
   const [assets, setAssets] = React.useState<AssetManagementFormData[]>(mockAssetData);
   const [editingAsset, setEditingAsset] = React.useState<AssetManagementFormData | null>(null);
+  const [viewingAssetMedia, setViewingAssetMedia] = React.useState<AssetManagementFormData | null>(null);
+  const [isImageDialogOpen, setIsImageDialogOpen] = React.useState(false);
+  const [isHistoryDialogOpen, setIsHistoryDialogOpen] = React.useState(false);
+
   const [isUploadDialogOpen, setIsUploadDialogOpen] = React.useState(false);
   const [selectedRows, setSelectedRows] = React.useState<Record<string, boolean>>({});
 
@@ -76,7 +82,17 @@ export default function AssetListPage() {
   const openEditDialog = (asset: AssetManagementFormData) => {
     setEditingAsset(asset);
   };
+
+  const openImageDialog = (asset: AssetManagementFormData) => {
+    setViewingAssetMedia(asset);
+    setIsImageDialogOpen(true);
+  };
   
+  const openHistoryDialog = (asset: AssetManagementFormData) => {
+    setViewingAssetMedia(asset);
+    setIsHistoryDialogOpen(true);
+  };
+
   const handleBulkUpload = () => {
     toast({
       title: "File uploaded successfully!",
@@ -160,6 +176,45 @@ export default function AssetListPage() {
           />
         </DialogContent>
       </Dialog>
+      
+      <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
+          <DialogContent>
+              <DialogHeader>
+                  <DialogTitle>Asset Image: {viewingAssetMedia?.assetNumber}</DialogTitle>
+              </DialogHeader>
+              <div className="flex items-center justify-center p-4">
+                  <Image src="https://picsum.photos/seed/1/600/400" alt={viewingAssetMedia?.assetDescription || "Asset Image"} width={600} height={400} className="rounded-md object-contain" />
+              </div>
+          </DialogContent>
+      </Dialog>
+
+      <Dialog open={isHistoryDialogOpen} onOpenChange={setIsHistoryDialogOpen}>
+          <DialogContent>
+              <DialogHeader>
+                  <DialogTitle>Asset History: {viewingAssetMedia?.assetNumber}</DialogTitle>
+              </DialogHeader>
+              <div className="p-4 max-h-[60vh] overflow-y-auto">
+                 <ul className="space-y-4">
+                    <li className="flex gap-4">
+                        <div className="font-semibold text-sm w-28 shrink-0">2024-07-15</div>
+                        <div className="text-sm">Status changed to <Badge variant="outline">Calibration</Badge> by Admin. Reason: Annual calibration.</div>
+                    </li>
+                     <li className="flex gap-4">
+                        <div className="font-semibold text-sm w-28 shrink-0">2024-07-01</div>
+                        <div className="text-sm">Asset Verified by Admin. Condition: Working.</div>
+                    </li>
+                     <li className="flex gap-4">
+                        <div className="font-semibold text-sm w-28 shrink-0">2023-01-20</div>
+                        <div className="text-sm">Checked out to <span className="font-semibold">Ram Kumar</span>. Expected return: 2023-02-20.</div>
+                    </li>
+                     <li className="flex gap-4">
+                        <div className="font-semibold text-sm w-28 shrink-0">2022-01-15</div>
+                        <div className="text-sm">Asset Created and registered by Admin. Status: <Badge variant="secondary">In Store</Badge>.</div>
+                    </li>
+                 </ul>
+              </div>
+          </DialogContent>
+      </Dialog>
 
       <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
         <DialogContent>
@@ -220,6 +275,7 @@ export default function AssetListPage() {
                 <TableRow>
                   <TableHead className="w-12"><Checkbox checked={isAllSelected} onCheckedChange={handleSelectAll}/></TableHead>
                   <TableHead>Asset No.</TableHead>
+                  <TableHead>KM No.</TableHead>
                   <TableHead>Description</TableHead>
                   <TableHead>Department</TableHead>
                   <TableHead>Location</TableHead>
@@ -232,16 +288,20 @@ export default function AssetListPage() {
                 {paginatedAssets.map((asset) => (
                   <TableRow key={asset.id}>
                     <TableCell><Checkbox checked={!!(asset.id && selectedRows[asset.id])} onCheckedChange={(checked) => asset.id && handleSelectRow(asset.id, !!checked)}/></TableCell>
-                    <TableCell className="font-medium">
-                      {asset.assetNumber}
-                      <p className="text-xs text-muted-foreground">{asset.kmNumber}</p>
-                    </TableCell>
+                    <TableCell className="font-medium">{asset.assetNumber}</TableCell>
+                    <TableCell className="text-muted-foreground">{asset.kmNumber}</TableCell>
                     <TableCell>{asset.assetDescription}<p className="text-xs text-muted-foreground">{asset.brandName} {asset.modelNo}</p></TableCell>
                     <TableCell>{asset.department}</TableCell>
                     <TableCell>{asset.location}</TableCell>
                     <TableCell><Badge variant={getStatusBadgeVariant(asset.currentStatus)}>{asset.currentStatus}</Badge></TableCell>
                     <TableCell>{asset.verifiedOn ? format(new Date(asset.verifiedOn), "dd-MMM-yyyy") : "N/A"}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right space-x-1">
+                      <Button variant="ghost" size="icon" title="View Image" onClick={() => openImageDialog(asset)}>
+                        <ImageIcon className="w-4 h-4 text-sky-500" />
+                      </Button>
+                      <Button variant="ghost" size="icon" title="View History" onClick={() => openHistoryDialog(asset)}>
+                        <History className="w-4 h-4 text-amber-500" />
+                      </Button>
                       <Button variant="outline" size="sm" onClick={() => openEditDialog(asset)}>
                         <Eye className="w-3 h-3 mr-1" /> View/Edit
                       </Button>
@@ -261,3 +321,4 @@ export default function AssetListPage() {
     </div>
   );
 }
+
