@@ -119,13 +119,6 @@ export const mainNavItems: NavItem[] = [
         roles: ['admin'],
       },
       {
-        title: 'Audit Logs',
-        href: '/administration/audit-logs',
-        icon: FileArchive,
-        description: "Review system and user activity.",
-        roles: ['admin'],
-      },
-      {
         title: 'Masters',
         href: '/administration/masters',
         icon: Database,
