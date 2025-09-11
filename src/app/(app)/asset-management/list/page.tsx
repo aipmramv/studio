@@ -184,7 +184,8 @@ export default function AssetListPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Asset / KM No.</TableHead>
+                  <TableHead>Asset No.</TableHead>
+                  <TableHead>KM No.</TableHead>
                   <TableHead>Description</TableHead>
                   <TableHead>Department</TableHead>
                   <TableHead>Location</TableHead>
@@ -198,8 +199,8 @@ export default function AssetListPage() {
                   <TableRow key={asset.id}>
                     <TableCell className="font-medium">
                       {asset.assetNumber}
-                      {asset.kmNumber && <p className="text-xs text-muted-foreground">{asset.kmNumber}</p>}
                     </TableCell>
+                    <TableCell>{asset.kmNumber}</TableCell>
                     <TableCell>{asset.assetDescription}<p className="text-xs text-muted-foreground">{asset.brandName} {asset.modelNo}</p></TableCell>
                     <TableCell>{asset.department}</TableCell>
                     <TableCell>{asset.location}</TableCell>

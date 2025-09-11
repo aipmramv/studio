@@ -23,7 +23,7 @@ const ITEMS_PER_PAGE = 10;
 
 export default function AssetRegisterReportPage() {
   const { toast } = useToast();
-  const [assets, setAssets] = React.useState<AssetManagementFormData[]>(mockAssetData);
+  const [assets] = React.useState<AssetManagementFormData[]>(mockAssetData);
   
   // Filters State
   const [searchTerm, setSearchTerm] = React.useState("");
@@ -115,7 +115,8 @@ export default function AssetRegisterReportPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Asset / KM No.</TableHead>
+                  <TableHead>Asset No.</TableHead>
+                  <TableHead>KM No.</TableHead>
                   <TableHead>Description</TableHead>
                   <TableHead>Department</TableHead>
                   <TableHead>Location</TableHead>
@@ -129,8 +130,8 @@ export default function AssetRegisterReportPage() {
                   <TableRow key={asset.id}>
                     <TableCell className="font-medium">
                       {asset.assetNumber}
-                      {asset.kmNumber && <p className="text-xs text-muted-foreground">{asset.kmNumber}</p>}
                     </TableCell>
+                    <TableCell>{asset.kmNumber}</TableCell>
                     <TableCell>{asset.assetDescription}</TableCell>
                     <TableCell>{asset.department}</TableCell>
                     <TableCell>{asset.location}</TableCell>

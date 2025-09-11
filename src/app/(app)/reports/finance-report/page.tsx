@@ -56,7 +56,8 @@ export default function FinanceReportPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Asset / KM No.</TableHead>
+                  <TableHead>Asset No.</TableHead>
+                  <TableHead>KM No.</TableHead>
                   <TableHead>Description</TableHead>
                   <TableHead>Capitalization Date</TableHead>
                   <TableHead>Asset Life (Yrs)</TableHead>
@@ -80,8 +81,8 @@ export default function FinanceReportPage() {
                     <TableRow key={asset.id}>
                       <TableCell className="font-medium">
                         {asset.assetNumber}
-                        {asset.kmNumber && <p className="text-xs text-muted-foreground">{asset.kmNumber}</p>}
                       </TableCell>
+                      <TableCell>{asset.kmNumber}</TableCell>
                       <TableCell>{asset.assetDescription}</TableCell>
                       <TableCell>{format(capDate, "dd-MMM-yyyy")}</TableCell>
                       <TableCell>{life}</TableCell>
