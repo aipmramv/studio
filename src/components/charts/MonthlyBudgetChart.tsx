@@ -1,7 +1,7 @@
 // src/components/charts/MonthlyBudgetChart.tsx
 "use client";
 
-import { Line, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { Line, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Area, AreaChart, ComposedChart, Bar } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { ChartConfig } from "@/components/ui/chart"; // Assuming ChartConfig is exported
 
@@ -46,7 +46,7 @@ export function MonthlyBudgetChart({ data, title, description }: MonthlyBudgetCh
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={350}>
-          <LineChart data={data} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+           <ComposedChart data={data} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis
               dataKey="monthName"
@@ -68,6 +68,13 @@ export function MonthlyBudgetChart({ data, title, description }: MonthlyBudgetCh
               formatter={currencyTooltipFormatter}
             />
             <Legend wrapperStyle={{ fontSize: '0.875rem' }} />
+             <defs>
+                <linearGradient id="colorActual" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={chartConfig.actual.color} stopOpacity={0.8} />
+                <stop offset="95%" stopColor={chartConfig.actual.color} stopOpacity={0} />
+                </linearGradient>
+            </defs>
+            <Bar dataKey="actual" barSize={20} fill={chartConfig.actual.color} radius={[4, 4, 0, 0]} name={chartConfig.actual.label} />
             <Line
               type="monotone"
               dataKey="forecasted"
@@ -77,20 +84,9 @@ export function MonthlyBudgetChart({ data, title, description }: MonthlyBudgetCh
               activeDot={{ r: 6 }}
               name={chartConfig.forecasted.label}
             />
-            <Line
-              type="monotone"
-              dataKey="actual"
-              stroke={chartConfig.actual.color}
-              strokeWidth={2}
-              dot={{ r: 4, fill: chartConfig.actual.color }}
-              activeDot={{ r: 6 }}
-              name={chartConfig.actual.label}
-            />
-          </LineChart>
+          </ComposedChart>
         </ResponsiveContainer>
       </CardContent>
     </Card>
   );
 }
-
-

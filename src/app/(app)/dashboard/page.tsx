@@ -1,16 +1,21 @@
-
 // src/app/(app)/dashboard/page.tsx
 "use client";
 import * as React from "react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { LibraryBig, AlertTriangle, Truck, TestTube2, Recycle, HardHat, PlusCircle, Link, BarChart3, ListChecks } from "lucide-react";
+import { LibraryBig, AlertTriangle, Truck, TestTube2, Recycle, HardHat, PlusCircle, Link, BarChart3, ListChecks, Users, Clock, Package, CheckSquare } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { mockAssetData } from "@/lib/mock-asset-data";
-import { DEPARTMENTS, TEAMS_AND_TRIBES } from "@/lib/constants";
+import { allRequestsSource } from '@/lib/mock-data';
+import { DEPARTMENTS, TEAMS_AND_TRIBES, ASSET_CLASSIFICATIONS } from "@/lib/constants";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useRouter } from "next/navigation";
+import { SampleBarChart } from "@/components/charts/SampleBarChart";
+import { SampleLineChart } from "@/components/charts/SampleLineChart";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
 
 
 export default function DashboardPage() {
@@ -20,38 +25,79 @@ export default function DashboardPage() {
         user?.role === 'spoc' && user.department ? user.department : undefined
     );
     const [selectedTeam, setSelectedTeam] = React.useState<string | undefined>(undefined);
+    const [selectedLocation, setSelectedLocation] = React.useState<string | undefined>(undefined);
+    const [selectedClassification, setSelectedClassification] = React.useState<string | undefined>(undefined);
 
-    const summaryCards = React.useMemo(() => {
-        let filteredAssets = mockAssetData;
+
+    const filteredAssets = React.useMemo(() => {
+        let assets = mockAssetData;
         if(selectedDepartment && selectedDepartment !== "all") {
-            filteredAssets = filteredAssets.filter(a => a.department === selectedDepartment);
+            assets = assets.filter(a => a.department === selectedDepartment);
         }
         if(selectedTeam && selectedTeam !== "all") {
-             filteredAssets = filteredAssets.filter(a => a.teamOrTribe === selectedTeam);
+             assets = assets.filter(a => a.teamOrTribe === selectedTeam);
         }
+        if(selectedLocation && selectedLocation !== "all") {
+            assets = assets.filter(a => a.location === selectedLocation);
+        }
+        if(selectedClassification && selectedClassification !== "all") {
+            assets = assets.filter(a => a.assetClassification === selectedClassification);
+        }
+        return assets;
+    }, [selectedDepartment, selectedTeam, selectedLocation, selectedClassification]);
 
+
+    const kpiCards = React.useMemo(() => {
         const totalAssets = filteredAssets.length;
-        const verificationPending = filteredAssets.filter(a => a.verificationStatus === 'Pending').length;
-        const calibrationDue = filteredAssets.filter(a => a.currentStatus === 'Calibration').length;
+        const inUse = filteredAssets.filter(a => a.currentStatus === 'In Use').length;
+        const inStore = filteredAssets.filter(a => a.currentStatus === 'In Store').length;
+        const calibration = filteredAssets.filter(a => a.currentStatus === 'Calibration').length;
         const scrapped = filteredAssets.filter(a => a.currentStatus === 'Scrapped').length;
-        const active = filteredAssets.filter(a => a.currentStatus === 'Active' || a.currentStatus === 'In Use').length;
+        const verificationDue = filteredAssets.filter(a => a.verificationStatus === 'Pending').length;
+        // Mocking overdue returns from a different data source if needed
+        const overdueReturns = 5; 
 
         return [
             { title: "Total Assets", value: totalAssets, icon: LibraryBig, color: "text-primary" },
-            { title: "Active/In Use", value: active, icon: HardHat, color: "text-green-500" },
-            { title: "Verification Pending", value: verificationPending, icon: AlertTriangle, color: "text-yellow-500" },
-            { title: "Calibration Due", value: calibrationDue, icon: TestTube2, color: "text-orange-500" },
-            { title: "Scrapped", value: scrapped, icon: Recycle, color: "text-destructive" },
+            { title: "Assets in Use", value: inUse, icon: HardHat, color: "text-green-500" },
+            { title: "Assets Available", value: inStore, icon: CheckSquare, color: "text-blue-500" },
+            { title: "Assets in Calibration", value: calibration, icon: TestTube2, color: "text-cyan-500" },
+            { title: "Scrapped Assets", value: scrapped, icon: Recycle, color: "text-gray-500" },
+            { title: "Verification Due", value: verificationDue, icon: AlertTriangle, color: "text-yellow-500" },
+            { title: "Overdue Returns", value: overdueReturns, icon: Clock, color: "text-destructive" },
         ];
-    }, [selectedDepartment, selectedTeam]);
+    }, [filteredAssets]);
 
-    const quickLinks = [
-        { title: "Create New Asset", href: "/asset-management/list", icon: PlusCircle }, // Assuming creation is on list page
-        { title: "Initiate Transfer", href: "/transactions/transfers", icon: Truck },
-        { title: "View All Reports", href: "/reports", icon: BarChart3 },
-        { title: "Start New Audit", href: "/transactions/audit", icon: ListChecks },
+    const assetDistByCategory = React.useMemo(() => {
+         const categoryCounts = filteredAssets.reduce((acc, asset) => {
+            const category = asset.assetClassification || "Unclassified";
+            acc[category] = (acc[category] || 0) + 1;
+            return acc;
+        }, {} as Record<string, number>);
+
+        return Object.entries(categoryCounts).map(([name, value]) => ({ name, value }));
+    }, [filteredAssets]);
+
+     const assetDistByDept = React.useMemo(() => {
+         const deptCounts = filteredAssets.reduce((acc, asset) => {
+            const dept = asset.department || "Unassigned";
+            acc[dept] = (acc[dept] || 0) + 1;
+            return acc;
+        }, {} as Record<string, number>);
+
+        return Object.entries(deptCounts).map(([name, value]) => ({ name, value }));
+    }, [filteredAssets]);
+    
+    const recentMovementsData = [
+        { month: "Jan", "TT <> ITEC": 10, "ITEC -> Site": 5, "Calibration": 2, "Scrap": 1 },
+        { month: "Feb", "TT <> ITEC": 12, "ITEC -> Site": 7, "Calibration": 3, "Scrap": 0 },
+        { month: "Mar", "TT <> ITEC": 8, "ITEC -> Site": 10, "Calibration": 1, "Scrap": 2 },
+        { month: "Apr", "TT <> ITEC": 15, "ITEC -> Site": 8, "Calibration": 4, "Scrap": 1 },
+        { month: "May", "TT <> ITEC": 11, "ITEC -> Site": 12, "Calibration": 2, "Scrap": 3 },
+        { month: "Jun", "TT <> ITEC": 14, "ITEC -> Site": 9, "Calibration": 5, "Scrap": 1 },
     ];
 
+    const pendingRequests = allRequestsSource.filter(r => !r.isVoided && r.currentStepName !== "Request Voided" && r.currentStepName !== "Request Rejected" && !MOCK_WORKFLOW_TEMPLATES.find(wt => wt.id === r.workflowTemplateId)?.steps.find(s => s.id === r.currentStepId && !s.nextStepId));
 
   return (
     <div className="space-y-8">
@@ -62,35 +108,29 @@ export default function DashboardPage() {
 
        <Card>
             <CardHeader>
-                <CardTitle>Filters</CardTitle>
-                <CardDescription>Filter the dashboard summary cards by department or team.</CardDescription>
+                <CardTitle>Global Filters</CardTitle>
+                <CardDescription>Filter all dashboard widgets by organizational structure, location, or asset type.</CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-col sm:flex-row gap-4">
+            <CardContent className="flex flex-col sm:flex-row gap-4 flex-wrap">
                 {user?.role === 'admin' && (
                     <Select value={selectedDepartment} onValueChange={e => setSelectedDepartment(e === 'all' ? undefined : e)}>
-                        <SelectTrigger className="w-full sm:w-[200px]">
-                            <SelectValue placeholder="Select Department" />
-                        </SelectTrigger>
-                        <SelectContent>
-                             <SelectItem value="all">All Departments</SelectItem>
-                            {DEPARTMENTS.map(dept => <SelectItem key={dept} value={dept}>{dept}</SelectItem>)}
-                        </SelectContent>
+                        <SelectTrigger className="w-full sm:w-[200px]"><SelectValue placeholder="Select Department" /></SelectTrigger>
+                        <SelectContent><SelectItem value="all">All Departments</SelectItem>{DEPARTMENTS.map(dept => <SelectItem key={dept} value={dept}>{dept}</SelectItem>)}</SelectContent>
                     </Select>
                 )}
                  <Select value={selectedTeam} onValueChange={e => setSelectedTeam(e === 'all' ? undefined : e)}>
-                    <SelectTrigger className="w-full sm:w-[200px]">
-                        <SelectValue placeholder="Select Team/Tribe" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">All Teams/Tribes</SelectItem>
-                        {TEAMS_AND_TRIBES.map(team => <SelectItem key={team} value={team}>{team}</SelectItem>)}
-                    </SelectContent>
+                    <SelectTrigger className="w-full sm:w-[200px]"><SelectValue placeholder="Select Team/Tribe" /></SelectTrigger>
+                    <SelectContent><SelectItem value="all">All Teams/Tribes</SelectItem>{TEAMS_AND_TRIBES.map(team => <SelectItem key={team} value={team}>{team}</SelectItem>)}</SelectContent>
+                </Select>
+                <Select value={selectedClassification} onValueChange={e => setSelectedClassification(e === 'all' ? undefined : e)}>
+                    <SelectTrigger className="w-full sm:w-[200px]"><SelectValue placeholder="Select Classification" /></SelectTrigger>
+                    <SelectContent><SelectItem value="all">All Classifications</SelectItem>{ASSET_CLASSIFICATIONS.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
                 </Select>
             </CardContent>
         </Card>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
-            {summaryCards.map((stat, index) => (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+            {kpiCards.map((stat, index) => (
             <Card key={index}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">{stat.title}</CardTitle>
@@ -103,20 +143,52 @@ export default function DashboardPage() {
             ))}
         </div>
 
-        <Card>
-            <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-                <CardDescription>Quickly access common asset management tasks.</CardDescription>
-            </CardHeader>
-            <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {quickLinks.map(link => (
-                    <Button key={link.title} variant="outline" className="h-20 flex-col gap-2" onClick={() => router.push(link.href)}>
-                        <link.icon className="w-6 h-6 text-primary"/>
-                        <span>{link.title}</span>
-                    </Button>
-                ))}
-            </CardContent>
-        </Card>
+        <div className="grid gap-6 lg:grid-cols-2">
+            <SampleBarChart data={assetDistByCategory} title="Asset Distribution by Category" dataKeyX="name" dataKeyY="value" />
+            <SampleBarChart data={assetDistByDept} title="Asset Distribution by Department" dataKeyX="name" dataKeyY="value" fillColor="hsl(var(--accent))" />
+        </div>
+         <div className="grid gap-6 lg:grid-cols-1">
+            <SampleLineChart data={recentMovementsData} title="Recent Asset Movements by Type" description="Total movements over the last 6 months." dataKeyX="month" dataKeyY="TT <> ITEC" />
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-2">
+             <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline flex items-center"><Clock className="w-5 h-5 mr-2 text-primary"/>Pending Requests</CardTitle>
+                    <CardDescription>All requests across modules awaiting action.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader><TableRow><TableHead>ID</TableHead><TableHead>Type</TableHead><TableHead>Requester</TableHead><TableHead>Current Step</TableHead></TableRow></TableHeader>
+                        <TableBody>
+                            {pendingRequests.slice(0,5).map(req => (
+                                <TableRow key={req.id}>
+                                    <TableCell><Button variant="link" size="sm" className="p-0 h-auto font-medium" onClick={() => router.push('/all-requests')}>{req.id}</Button></TableCell>
+                                    <TableCell>{req.requestType}</TableCell>
+                                    <TableCell>{req.requesterName}</TableCell>
+                                    <TableCell><Badge variant="secondary">{req.currentStepName}</Badge></TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                        <TableCaption>{pendingRequests.length > 5 && `And ${pendingRequests.length - 5} more...`}</TableCaption>
+                    </Table>
+                </CardContent>
+            </Card>
+             <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline flex items-center"><AlertTriangle className="w-5 h-5 mr-2 text-yellow-500"/>Alerts & Exceptions</CardTitle>
+                    <CardDescription>Key items requiring attention.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                   <ul className="space-y-2 text-sm">
+                        <li className="flex items-center justify-between p-2 rounded-md bg-muted/50"><span>Assets due for return: <strong>5</strong></span><Button variant="link" size="sm" onClick={() => router.push('/reports/exceptions')}>View</Button></li>
+                        <li className="flex items-center justify-between p-2 rounded-md bg-muted/50"><span>Assets with expiring warranty: <strong>2</strong></span><Button variant="link" size="sm" onClick={() => router.push('/reports/audit')}>View</Button></li>
+                        <li className="flex items-center justify-between p-2 rounded-md bg-muted/50"><span>Assets with incomplete data: <strong>8</strong></span><Button variant="link" size="sm" onClick={() => router.push('/reports/exceptions')}>View</Button></li>
+                        <li className="flex items-center justify-between p-2 rounded-md bg-muted/50"><span>Assets needing repair: <strong>3</strong></span><Button variant="link" size="sm" onClick={() => router.push('/reports/exceptions')}>View</Button></li>
+                   </ul>
+                </CardContent>
+            </Card>
+        </div>
       
     </div>
   );

@@ -31,8 +31,11 @@ export function SampleBarChart({ data, title, description, dataKeyX, dataKeyY, f
   };
 
   const currencyTickFormatter = (value: any) => {
-    if (typeof value === 'number' && (title.toLowerCase().includes("budget") || title.toLowerCase().includes("utilization"))) {
+    if (typeof value === 'number' && (title.toLowerCase().includes("budget") || title.toLowerCase().includes("utilization") || title.toLowerCase().includes("value"))) {
       return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', notation: 'compact', compactDisplay: 'short' }).format(value);
+    }
+    if (typeof value === 'string' && value.length > 10) {
+        return `${value.substring(0,10)}...`
     }
     return value.toLocaleString();
   };
@@ -46,17 +49,17 @@ export function SampleBarChart({ data, title, description, dataKeyX, dataKeyY, f
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={data}>
+          <BarChart data={data} layout="vertical">
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis dataKey={dataKeyX} stroke="hsl(var(--foreground))" fontSize={12} tickLine={false} axisLine={false} />
-            <YAxis stroke="hsl(var(--foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={currencyTickFormatter}/>
+            <XAxis type="number" stroke="hsl(var(--foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={currencyTickFormatter}/>
+            <YAxis dataKey={dataKeyX} type="category" stroke="hsl(var(--foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={currencyTickFormatter} />
             <Tooltip
               cursor={{ fill: 'hsl(var(--muted))' }}
               contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)'}}
               formatter={currencyTooltipFormatter}
             />
             <Legend wrapperStyle={{ fontSize: '0.875rem' }} />
-            <Bar dataKey={dataKeyY} fill={chartConfig[dataKeyY].color} radius={[4, 4, 0, 0]} name={chartConfig[dataKeyY].label} />
+            <Bar dataKey={dataKeyY} fill={chartConfig[dataKeyY].color} radius={[0, 4, 4, 0]} name={chartConfig[dataKeyY].label} />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>

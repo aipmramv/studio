@@ -1,4 +1,3 @@
-
 // src/app/(app)/kpi-dashboard/page.tsx
 "use client";
 import * as React from "react";
@@ -7,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SampleBarChart } from "@/components/charts/SampleBarChart";
 import { SampleLineChart } from "@/components/charts/SampleLineChart";
+import { MonthlyBudgetChart } from "@/components/charts/MonthlyBudgetChart";
 import { TrendingUp, Package, AlertTriangle, Clock, Landmark, Briefcase, Lock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { DEPARTMENTS, FISCAL_YEARS, QUARTERS, MOCK_DEPARTMENT_BUDGETS, type Department, type FiscalYear, type Quarter } from "@/lib/constants";
@@ -33,11 +33,20 @@ const materialVolumeData = [
   { month: "Jun", volume: 1900 },
 ];
 
+const monthlyBudgetData = [
+    { monthName: "Apr", forecasted: 50000, actual: 45000 },
+    { monthName: "May", forecasted: 52000, actual: 51000 },
+    { monthName: "Jun", forecasted: 55000, actual: 58000 },
+    { monthName: "Jul", forecasted: 60000, actual: 59000 },
+    { monthName: "Aug", forecasted: 62000, actual: 65000 },
+    { monthName: "Sep", forecasted: 58000, actual: 57000 },
+];
+
 
 export default function KpiDashboardPage() {
   const { user } = useAuth();
   const [selectedDepartment, setSelectedDepartment] = React.useState<Department | undefined>(
-    user?.role === 'department_head' && user.department ? user.department as Department : undefined
+    user?.role === 'spoc' && user.department ? user.department as Department : undefined
   );
   const [selectedYear, setSelectedYear] = React.useState<FiscalYear>(FISCAL_YEARS[FISCAL_YEARS.length-1]); // Default to latest year
   const [selectedQuarter, setSelectedQuarter] = React.useState<Quarter>("Full Year");
@@ -90,7 +99,7 @@ export default function KpiDashboardPage() {
   }, [departmentBudget, selectedQuarter]);
 
   const budgetChartData = [
-    { name: "Budgeted (INR)", value: budgetDataForPeriod.total },
+    { name: "Budget (INR)", value: budgetDataForPeriod.total },
     { name: "Utilized (INR)", value: budgetDataForPeriod.utilized },
   ];
 
@@ -155,7 +164,7 @@ export default function KpiDashboardPage() {
             </div>
           </CardHeader>
           <CardContent>
-            {!selectedDepartment && user?.role === 'admin' ? (
+            {!selectedDepartment && (user?.role === 'admin' || user?.role === 'spoc') ? (
                  <p className="text-center text-muted-foreground py-8">Please select a department to view budget details.</p>
             ) : !departmentBudget ? (
                  <p className="text-center text-muted-foreground py-8">No budget data found for {selectedDepartment} for the year {selectedYear}. Please add it in Masters.</p>
@@ -176,13 +185,10 @@ export default function KpiDashboardPage() {
                     </Card>
                 </div>
                 <div className="lg:col-span-2">
-                  <SampleBarChart
-                    data={budgetChartData}
-                    title="Budget vs. Utilization"
+                  <MonthlyBudgetChart
+                    data={monthlyBudgetData}
+                    title="Budget vs. Actual Spend"
                     description={`For ${selectedDepartment} - ${selectedQuarter}, ${selectedYear}`}
-                    dataKeyX="name"
-                    dataKeyY="value"
-                    fillColor="hsl(var(--accent))"
                   />
                 </div>
               </div>
