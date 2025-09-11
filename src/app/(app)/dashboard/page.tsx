@@ -1,10 +1,11 @@
 // src/app/(app)/dashboard/page.tsx
 "use client";
 import * as React from "react";
+import Link from "next/link";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { LibraryBig, AlertTriangle, Truck, TestTube2, Recycle, HardHat, PlusCircle, Link, BarChart3, ListChecks, Users, Clock, Package, CheckSquare } from "lucide-react";
+import { LibraryBig, AlertTriangle, Truck, TestTube2, Recycle, HardHat, PlusCircle, BarChart3, ListChecks, Users, Clock, Package, CheckSquare } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { mockAssetData } from "@/lib/mock-asset-data";
 import { allRequestsSource } from '@/lib/mock-data';
@@ -54,17 +55,16 @@ export default function DashboardPage() {
         const calibration = filteredAssets.filter(a => a.currentStatus === 'Calibration').length;
         const scrapped = filteredAssets.filter(a => a.currentStatus === 'Scrapped').length;
         const verificationDue = filteredAssets.filter(a => a.verificationStatus === 'Pending').length;
-        // Mocking overdue returns from a different data source if needed
         const overdueReturns = 5; 
 
         return [
-            { title: "Total Assets", value: totalAssets, icon: LibraryBig, color: "text-primary" },
-            { title: "Assets in Use", value: inUse, icon: HardHat, color: "text-green-500" },
-            { title: "Assets Available", value: inStore, icon: CheckSquare, color: "text-blue-500" },
-            { title: "Assets in Calibration", value: calibration, icon: TestTube2, color: "text-cyan-500" },
-            { title: "Scrapped Assets", value: scrapped, icon: Recycle, color: "text-gray-500" },
-            { title: "Verification Due", value: verificationDue, icon: AlertTriangle, color: "text-yellow-500" },
-            { title: "Overdue Returns", value: overdueReturns, icon: Clock, color: "text-destructive" },
+            { title: "Total Assets", value: totalAssets, icon: LibraryBig, color: "text-primary", href: "/asset-management/list" },
+            { title: "Assets in Use", value: inUse, icon: HardHat, color: "text-green-500", href: "/asset-management/list" },
+            { title: "Assets Available", value: inStore, icon: CheckSquare, color: "text-blue-500", href: "/asset-management/list" },
+            { title: "In Calibration", value: calibration, icon: TestTube2, color: "text-cyan-500", href: "/asset-management/list" },
+            { title: "Scrapped Assets", value: scrapped, icon: Recycle, color: "text-gray-500", href: "/reports/scrap-report" },
+            { title: "Verification Due", value: verificationDue, icon: AlertTriangle, color: "text-yellow-500", href: "/asset-transactions/audit" },
+            { title: "Overdue Returns", value: overdueReturns, icon: Clock, color: "text-destructive", href: "/reports/exceptions/overdue-returns" },
         ];
     }, [filteredAssets]);
 
@@ -97,7 +97,7 @@ export default function DashboardPage() {
         { month: "Jun", "TT <> ITEC": 14, "ITEC -> Site": 9, "Calibration": 5, "Scrap": 1 },
     ];
 
-    const pendingRequests = allRequestsSource.filter(r => !r.isVoided && r.currentAssignees && r.currentAssignees.length > 0);
+    const pendingRequests = allRequestsSource.filter(r => !r.isVoided && r.currentAssignees.length > 0);
 
   return (
     <div className="space-y-8">
@@ -131,15 +131,17 @@ export default function DashboardPage() {
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
             {kpiCards.map((stat, index) => (
-            <Card key={index}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">{stat.title}</CardTitle>
-                <stat.icon className={`h-5 w-5 ${stat.color}`} />
-                </CardHeader>
-                <CardContent>
-                <div className="text-3xl font-bold text-foreground">{stat.value}</div>
-                </CardContent>
-            </Card>
+            <Link key={index} href={stat.href}>
+              <Card className="hover:bg-muted/50 transition-colors">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">{stat.title}</CardTitle>
+                  <stat.icon className={`h-5 w-5 ${stat.color}`} />
+                  </CardHeader>
+                  <CardContent>
+                  <div className="text-3xl font-bold text-foreground">{stat.value}</div>
+                  </CardContent>
+              </Card>
+            </Link>
             ))}
         </div>
 
@@ -150,45 +152,44 @@ export default function DashboardPage() {
          <div className="grid gap-6 lg:grid-cols-1">
             <SampleLineChart data={recentMovementsData} title="Recent Asset Movements by Type" description="Total movements over the last 6 months." dataKeyX="month" dataKeyY={["TT <> ITEC", "ITEC -> Site", "Calibration", "Scrap"]} />
         </div>
+        
+        <Card>
+            <CardHeader>
+                <CardTitle className="font-headline flex items-center"><Clock className="w-5 h-5 mr-2 text-primary"/>Pending Requests</CardTitle>
+                <CardDescription>All requests across modules awaiting action.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader><TableRow><TableHead>ID</TableHead><TableHead>Type</TableHead><TableHead>Requester</TableHead><TableHead>Current Step</TableHead></TableRow></TableHeader>
+                    <TableBody>
+                        {pendingRequests.slice(0,5).map(req => (
+                            <TableRow key={req.id}>
+                                <TableCell><Button variant="link" size="sm" className="p-0 h-auto font-medium" onClick={() => router.push('/all-requests')}>{req.id}</Button></TableCell>
+                                <TableCell>{req.requestType}</TableCell>
+                                <TableCell>{req.requesterName}</TableCell>
+                                <TableCell><Badge variant="secondary">{req.currentStepName}</Badge></TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                    <TableCaption>{pendingRequests.length > 5 && `And ${pendingRequests.length - 5} more...`}</TableCaption>
+                </Table>
+            </CardContent>
+        </Card>
 
-        <div className="grid gap-6 lg:grid-cols-2">
-             <Card>
-                <CardHeader>
-                    <CardTitle className="font-headline flex items-center"><Clock className="w-5 h-5 mr-2 text-primary"/>Pending Requests</CardTitle>
-                    <CardDescription>All requests across modules awaiting action.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader><TableRow><TableHead>ID</TableHead><TableHead>Type</TableHead><TableHead>Requester</TableHead><TableHead>Current Step</TableHead></TableRow></TableHeader>
-                        <TableBody>
-                            {pendingRequests.slice(0,5).map(req => (
-                                <TableRow key={req.id}>
-                                    <TableCell><Button variant="link" size="sm" className="p-0 h-auto font-medium" onClick={() => router.push('/all-requests')}>{req.id}</Button></TableCell>
-                                    <TableCell>{req.requestType}</TableCell>
-                                    <TableCell>{req.requesterName}</TableCell>
-                                    <TableCell><Badge variant="secondary">{req.currentStepName}</Badge></TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                        <TableCaption>{pendingRequests.length > 5 && `And ${pendingRequests.length - 5} more...`}</TableCaption>
-                    </Table>
-                </CardContent>
-            </Card>
-             <Card>
-                <CardHeader>
-                    <CardTitle className="font-headline flex items-center"><AlertTriangle className="w-5 h-5 mr-2 text-yellow-500"/>Alerts & Exceptions</CardTitle>
-                    <CardDescription>Key items requiring attention.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                   <ul className="space-y-2 text-sm">
-                        <li className="flex items-center justify-between p-2 rounded-md bg-muted/50"><span>Assets due for return: <strong>5</strong></span><Button variant="link" size="sm" onClick={() => router.push('/reports/exceptions')}>View</Button></li>
-                        <li className="flex items-center justify-between p-2 rounded-md bg-muted/50"><span>Assets with expiring warranty: <strong>2</strong></span><Button variant="link" size="sm" onClick={() => router.push('/reports/audit')}>View</Button></li>
-                        <li className="flex items-center justify-between p-2 rounded-md bg-muted/50"><span>Assets with incomplete data: <strong>8</strong></span><Button variant="link" size="sm" onClick={() => router.push('/reports/exceptions')}>View</Button></li>
-                        <li className="flex items-center justify-between p-2 rounded-md bg-muted/50"><span>Assets needing repair: <strong>3</strong></span><Button variant="link" size="sm" onClick={() => router.push('/reports/exceptions')}>View</Button></li>
-                   </ul>
-                </CardContent>
-            </Card>
-        </div>
+        <Card>
+            <CardHeader>
+                <CardTitle className="font-headline flex items-center"><AlertTriangle className="w-5 h-5 mr-2 text-yellow-500"/>Alerts & Exceptions</CardTitle>
+                <CardDescription>Key items requiring attention.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <ul className="space-y-2 text-sm">
+                    <li className="flex items-center justify-between p-2 rounded-md bg-muted/50"><span>Assets due for return: <strong>5</strong></span><Button variant="link" size="sm" onClick={() => router.push('/reports/exceptions/overdue-returns')}>View</Button></li>
+                    <li className="flex items-center justify-between p-2 rounded-md bg-muted/50"><span>Assets with expiring warranty: <strong>2</strong></span><Button variant="link" size="sm" onClick={() => router.push('/reports/audit/warranty-amc')}>View</Button></li>
+                    <li className="flex items-center justify-between p-2 rounded-md bg-muted/50"><span>Assets with incomplete data: <strong>8</strong></span><Button variant="link" size="sm" onClick={() => router.push('/reports/exceptions/incomplete-records')}>View</Button></li>
+                    <li className="flex items-center justify-between p-2 rounded-md bg-muted/50"><span>Assets needing repair: <strong>3</strong></span><Button variant="link" size="sm" onClick={() => router.push('/reports/exceptions/condition-exceptions')}>View</Button></li>
+                </ul>
+            </CardContent>
+        </Card>
       
     </div>
   );
