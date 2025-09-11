@@ -60,7 +60,7 @@ export const mainNavItems: NavItem[] = [
   },
   {
     title: 'Administration',
-    href: '/administration/user-management',
+    href: '/administration',
     icon: SlidersHorizontal,
     description: "Manage application settings, users, and masters.",
     roles: ['admin'],
@@ -81,22 +81,22 @@ export const mainNavItems: NavItem[] = [
       },
       {
         title: 'Masters',
-        href: '#', // Parent item
+        href: '/administration/asset-classifications', // Parent item
         icon: Database,
         description: "Manage application master data.",
         roles: ['admin'],
         items: [
-            { title: "Asset Classifications", href: "/administration/asset-classifications", icon: Layers, description: "Standardizes asset categories" },
-            { title: "Asset Groupings", href: "/administration/asset-groupings", icon: Group, description: "Logical grouping of assets" },
-            { title: "Locations", href: "/administration/locations", icon: MapPin, description: "Sites, buildings, floors, labs" },
-            { title: "Departments & Teams", href: "/administration/departments-teams", icon: Users2, description: "Organizational structure" },
-            { title: "Coordinator Mappings", href: "/administration/coordinator-mappings", icon: Workflow, description: "Map SPOCs to departments" },
-            { title: "Movement Types", href: "/administration/movement-types", icon: GitFork, description: "Allowed movement flows" },
-            { title: "Reason Codes", href: "/administration/reason-codes", icon: Code, description: "Standard transaction reasons" },
-            { title: "Statuses", href: "/administration/statuses", icon: CheckSquare, description: "Asset lifecycle states" },
-            { title: "Conditions", href: "/administration/conditions", icon: HelpCircle, description: "Asset health states" },
-            { title: "Audit Plans", href: "/administration/audit-plans", icon: FileClock, description: "Audit frequency and rules" },
-            { title: "Notification Rules", href: "/administration/notification-rules", icon: BellRing, description: "Events and recipients for alerts" },
+            { title: "Classification", href: "/administration/asset-classifications", icon: Layers, description: "Standardizes asset categories" },
+            { title: "Asset Grouping", href: "/administration/asset-groupings", icon: Group, description: "Logical grouping of assets" },
+            { title: "Location", href: "/administration/locations", icon: MapPin, description: "Sites, buildings, floors, labs" },
+            { title: "Department / Team", href: "/administration/departments-teams", icon: Users2, description: "Organizational structure" },
+            { title: "Coordinator (SPOC)", href: "/administration/coordinator-mappings", icon: Workflow, description: "Map SPOCs to departments" },
+            { title: "Movement Type", href: "/administration/movement-types", icon: GitFork, description: "Allowed movement flows" },
+            { title: "Reason Code", href: "/administration/reason-codes", icon: Code, description: "Standard transaction reasons" },
+            { title: "Status", href: "/administration/statuses", icon: CheckSquare, description: "Asset lifecycle states" },
+            { title: "Condition", href: "/administration/conditions", icon: HelpCircle, description: "Asset health states" },
+            { title: "Verification/Audit Plan", href: "/administration/audit-plans", icon: FileClock, description: "Audit frequency and rules" },
+            { title: "Alert/Notification Rule", href: "/administration/notification-rules", icon: BellRing, description: "Events and recipients for alerts" },
         ]
       },
     ]
