@@ -1,0 +1,465 @@
+{
+  "entities": {
+    "UserProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserProfile",
+      "type": "object",
+      "description": "Represents a user in the TrackFlow system.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the UserProfile entity."
+        },
+        "email": {
+          "type": "string",
+          "description": "User's email address.",
+          "format": "email"
+        },
+        "role": {
+          "type": "string",
+          "description": "User's role within the system (requester, approver, admin, safety, mm_team)."
+        },
+        "displayName": {
+          "type": "string",
+          "description": "User's display name."
+        }
+      },
+      "required": [
+        "id",
+        "email",
+        "role"
+      ]
+    },
+    "MaterialMovementRequest": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "MaterialMovementRequest",
+      "type": "object",
+      "description": "Represents a request for material movement.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the MaterialMovementRequest entity."
+        },
+        "requesterId": {
+          "type": "string",
+          "description": "Reference to UserProfile. (Relationship: UserProfile 1:N MaterialMovementRequest) The user who created the request."
+        },
+        "materialType": {
+          "type": "string",
+          "description": "Type of material (Raw, Scrap, Tool)."
+        },
+        "source": {
+          "type": "string",
+          "description": "Source location of the material."
+        },
+        "destination": {
+          "type": "string",
+          "description": "Destination location of the material."
+        },
+        "quantity": {
+          "type": "number",
+          "description": "Quantity of the material being moved."
+        },
+        "value": {
+          "type": "number",
+          "description": "Value of the material in monetary units."
+        },
+        "isReturnable": {
+          "type": "boolean",
+          "description": "Indicates whether the material is returnable (true/false)."
+        },
+        "requiresDC": {
+          "type": "boolean",
+          "description": "Indicates whether a Delivery Challan is required (true/false)."
+        },
+        "vehicleNumber": {
+          "type": "string",
+          "description": "Vehicle number used for the movement (mandatory if value > ₹1,00,000)."
+        },
+        "ewayBillUrl": {
+          "type": "string",
+          "description": "URL of the E-Way bill document.",
+          "format": "uri"
+        },
+        "status": {
+          "type": "string",
+          "description": "Current status of the request (Pending, Approved, Rejected)."
+        },
+        "approvalIds": {
+          "type": "array",
+          "description": "References to Approvals. (Relationship: Approval 1:N MaterialMovementRequest) List of approvals associated with the request.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "requesterId",
+        "materialType",
+        "source",
+        "destination",
+        "quantity",
+        "value",
+        "isReturnable",
+        "requiresDC",
+        "status"
+      ]
+    },
+    "ScrapMovementRequest": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ScrapMovementRequest",
+      "type": "object",
+      "description": "Represents a request for scrap material movement.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the ScrapMovementRequest entity."
+        },
+        "requesterId": {
+          "type": "string",
+          "description": "Reference to UserProfile. (Relationship: UserProfile 1:N ScrapMovementRequest) The user who created the request."
+        },
+        "scrapType": {
+          "type": "string",
+          "description": "Type of scrap material (Plastic, E-waste, Metal, etc.)."
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the scrap material."
+        },
+        "quantity": {
+          "type": "number",
+          "description": "Quantity of the scrap material."
+        },
+        "weight": {
+          "type": "number",
+          "description": "Weight of the scrap material."
+        },
+        "photoUrl": {
+          "type": "string",
+          "description": "URL of the photo of the scrap material (for weight measurement).",
+          "format": "uri"
+        },
+        "status": {
+          "type": "string",
+          "description": "Current status of the request."
+        },
+        "approvalIds": {
+          "type": "array",
+          "description": "References to Approvals. (Relationship: Approval 1:N ScrapMovementRequest) List of approvals associated with the request.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "requesterId",
+        "scrapType",
+        "description",
+        "quantity",
+        "weight",
+        "status"
+      ]
+    },
+    "WorkPermitRequest": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "WorkPermitRequest",
+      "type": "object",
+      "description": "Represents a request for a work permit.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the WorkPermitRequest entity."
+        },
+        "requesterId": {
+          "type": "string",
+          "description": "Reference to UserProfile. (Relationship: UserProfile 1:N WorkPermitRequest) The user who created the request."
+        },
+        "building": {
+          "type": "string",
+          "description": "Building where the work will be performed (KOSMO, Test Tower)."
+        },
+        "activityType": {
+          "type": "string",
+          "description": "Type of activity to be performed."
+        },
+        "attachmentUrls": {
+          "type": "array",
+          "description": "URLs of attachments (work orders, safety instructions).",
+          "items": {
+            "type": "string"
+          }
+        },
+        "status": {
+          "type": "string",
+          "description": "Current status of the request."
+        },
+        "approvalIds": {
+          "type": "array",
+          "description": "References to Approvals. (Relationship: Approval 1:N WorkPermitRequest) List of approvals associated with the request.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "requesterId",
+        "building",
+        "activityType",
+        "status"
+      ]
+    },
+    "DeliveryChallan": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "DeliveryChallan",
+      "type": "object",
+      "description": "Represents a delivery challan document.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the DeliveryChallan entity."
+        },
+        "materialMovementRequestId": {
+          "type": "string",
+          "description": "Reference to MaterialMovementRequest. (Relationship: MaterialMovementRequest 1:1 DeliveryChallan) The associated material movement request."
+        },
+        "dcNumber": {
+          "type": "string",
+          "description": "Delivery Challan number."
+        },
+        "vehicleNumber": {
+          "type": "string",
+          "description": "Vehicle number used for delivery."
+        },
+        "materialList": {
+          "type": "string",
+          "description": "List of materials being delivered (can be serialized string)."
+        },
+        "ewayBillReference": {
+          "type": "string",
+          "description": "Reference to the E-Way bill."
+        }
+      },
+      "required": [
+        "id",
+        "materialMovementRequestId",
+        "dcNumber",
+        "vehicleNumber",
+        "materialList"
+      ]
+    },
+    "Approval": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Approval",
+      "type": "object",
+      "description": "Represents an approval record for a request.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Approval entity."
+        },
+        "approverId": {
+          "type": "string",
+          "description": "Reference to UserProfile. (Relationship: UserProfile 1:N Approval) The user who performed the approval."
+        },
+        "approvalTime": {
+          "type": "string",
+          "description": "Timestamp of the approval.",
+          "format": "date-time"
+        },
+        "status": {
+          "type": "string",
+          "description": "Approval status (Approved, Rejected)."
+        },
+        "comment": {
+          "type": "string",
+          "description": "Optional comment provided by the approver."
+        }
+      },
+      "required": [
+        "id",
+        "approverId",
+        "approvalTime",
+        "status"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/userProfiles/{userProfileId}",
+        "definition": {
+          "entityName": "UserProfile",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Stores user profile information.  Authentication is handled separately by Firebase Auth.",
+          "params": [
+            {
+              "name": "userProfileId",
+              "description": "The unique ID of the user profile.  This should match the Firebase Auth UID for ease of use."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/materialMovementRequests/{materialMovementRequestId}",
+        "definition": {
+          "entityName": "MaterialMovementRequest",
+          "schema": {
+            "$ref": "#/backend/entities/MaterialMovementRequest"
+          },
+          "description": "Stores material movement requests for a specific user. Includes denormalized 'requesterId' for authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The ID of the user who created the request."
+            },
+            {
+              "name": "materialMovementRequestId",
+              "description": "The unique ID of the material movement request."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/scrapMovementRequests/{scrapMovementRequestId}",
+        "definition": {
+          "entityName": "ScrapMovementRequest",
+          "schema": {
+            "$ref": "#/backend/entities/ScrapMovementRequest"
+          },
+          "description": "Stores scrap movement requests for a specific user. Includes denormalized 'requesterId' for authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The ID of the user who created the request."
+            },
+            {
+              "name": "scrapMovementRequestId",
+              "description": "The unique ID of the scrap movement request."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/workPermitRequests/{workPermitRequestId}",
+        "definition": {
+          "entityName": "WorkPermitRequest",
+          "schema": {
+            "$ref": "#/backend/entities/WorkPermitRequest"
+          },
+          "description": "Stores work permit requests for a specific user. Includes denormalized 'requesterId' for authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The ID of the user who created the request."
+            },
+            {
+              "name": "workPermitRequestId",
+              "description": "The unique ID of the work permit request."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/materialMovementRequests/{materialMovementRequestId}/approvals/{approvalId}",
+        "definition": {
+          "entityName": "Approval",
+          "schema": {
+            "$ref": "#/backend/entities/Approval"
+          },
+          "description": "Stores approval records for a specific material movement request.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The ID of the user who created the parent material movement request."
+            },
+            {
+              "name": "materialMovementRequestId",
+              "description": "The unique ID of the parent material movement request."
+            },
+            {
+              "name": "approvalId",
+              "description": "The unique ID of the approval."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/scrapMovementRequests/{scrapMovementRequestId}/approvals/{approvalId}",
+        "definition": {
+          "entityName": "Approval",
+          "schema": {
+            "$ref": "#/backend/entities/Approval"
+          },
+          "description": "Stores approval records for a specific scrap movement request.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The ID of the user who created the parent scrap movement request."
+            },
+            {
+              "name": "scrapMovementRequestId",
+              "description": "The unique ID of the parent scrap movement request."
+            },
+            {
+              "name": "approvalId",
+              "description": "The unique ID of the approval."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/workPermitRequests/{workPermitRequestId}/approvals/{approvalId}",
+        "definition": {
+          "entityName": "Approval",
+          "schema": {
+            "$ref": "#/backend/entities/Approval"
+          },
+          "description": "Stores approval records for a specific work permit request.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The ID of the user who created the parent work permit request."
+            },
+            {
+              "name": "workPermitRequestId",
+              "description": "The unique ID of the parent work permit request."
+            },
+            {
+              "name": "approvalId",
+              "description": "The unique ID of the approval."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/deliveryChallans/{deliveryChallanId}",
+        "definition": {
+          "entityName": "DeliveryChallan",
+          "schema": {
+            "$ref": "#/backend/entities/DeliveryChallan"
+          },
+          "description": "Stores delivery challan documents.",
+          "params": [
+            {
+              "name": "deliveryChallanId",
+              "description": "The unique ID of the delivery challan."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to ensure authorization independence, clarity, and scalability. User profiles are stored in `/userProfiles/{userProfileId}`. Material, Scrap, and Work Permit Requests are stored under `/users/{userId}/materialMovementRequests/{materialMovementRequestId}`, `/users/{userId}/scrapMovementRequests/{scrapMovementRequestId}`, and `/users/{userId}/workPermitRequests/{workPermitRequestId}` respectively to clearly establish ownership and allow easy querying of requests per user. Approvals are stored in a subcollection `approvals` within each request document, such as `/users/{userId}/materialMovementRequests/{materialMovementRequestId}/approvals/{approvalId}`. This structure supports the app requirements and enables simple and robust security rules that are easy to debug.\n\nAuthorization Independence:\nEach request document (MaterialMovementRequest, ScrapMovementRequest, WorkPermitRequest) includes the `requesterId`, effectively denormalizing the user ID. This eliminates the need for `get()` calls to the `/users/{userId}` document to verify ownership, enabling atomic operations and simpler security rules. Similarly, for collaborative scenarios, if a request needs to be accessible by multiple users (e.g., approvers), relevant user roles or group memberships can be denormalized into the request document.\n\nQAPs (Rules are not Filters):\nThe segregation of requests into user-specific subcollections enables secure `list` operations. Rules can easily enforce that a user can only list requests under their own user ID (`/users/{userId}/materialMovementRequests`). For admin or MM team access, a separate top-level collection (e.g., `/materialMovementRequests`) could be used, with denormalized access control information (e.g., `members: {uid: role}`) copied into each document to authorize listing based on role membership. This design avoids filtering based on document content, thus maintaining security and performance."
+  }
+}
