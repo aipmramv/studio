@@ -28,6 +28,12 @@ export const mainNavItems: NavItem[] = [
     description: "Asset summary and key alerts.",
   },
   {
+    title: 'KPI Dashboard',
+    href: '/kpi-dashboard',
+    icon: PieChart,
+    description: "Key Performance Indicators.",
+  },
+  {
     title: 'Asset Management',
     href: '/asset-management/list',
     icon: LibraryBig,
@@ -116,6 +122,13 @@ export const mainNavItems: NavItem[] = [
         href: '/administration/user-management',
         icon: UserCog,
         description: "Manage users, roles, and permissions.",
+        roles: ['admin'],
+      },
+       {
+        title: 'Audit Logs',
+        href: '/administration/audit-logs',
+        icon: FileArchive,
+        description: "Track all system actions.",
         roles: ['admin'],
       },
       {

@@ -1,224 +1,177 @@
-// src/app/(app)/stores/material-returns/page.tsx
-"use client";
-
-import * as React from "react";
-import { format } from "date-fns";
-import { PageHeader } from "@/components/shared/PageHeader";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { PlusCircle, Undo2, FileText, Users, Edit, Trash2 } from "lucide-react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
-import { mockReturnsData, type MaterialReturn, mockInventoryData } from "@/lib/mock-inventory-data";
+// src/config/nav.ts
+import type { LucideIcon } from 'lucide-react';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { MaterialReturnForm } from "@/components/forms/MaterialReturnForm";
-import { type MaterialReturnFormData } from "@/lib/schemas";
+  LayoutDashboard, Truck, Recycle, FileText, ListChecks, BarChart3, UserCircle,
+  LogOut, Settings, ShieldCheck, Database, LibraryBig,
+  SlidersHorizontal, GitFork,
+  Users, UserCog, Layers, FileArchive, 
+  Group, MapPin, Users2, Workflow, Code, CheckSquare, BellRing, HelpCircle, FileClock, Send, Handshake, CornerRightDown, AlertTriangle, FileWarning, DollarSign, PieChart, Activity
+} from 'lucide-react';
 
-export default function MaterialReturnsPage() {
-  const [returns, setReturns] = React.useState<MaterialReturn[]>(mockReturnsData);
-  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-  const [editingReturn, setEditingReturn] = React.useState<MaterialReturn | null>(null);
-  const [returnToDelete, setReturnToDelete] = React.useState<MaterialReturn | null>(null);
-  const { toast } = useToast();
-
-  const openAddDialog = () => {
-    setEditingReturn(null);
-    setIsDialogOpen(true);
-  };
-
-  const openEditDialog = (itemReturn: MaterialReturn) => {
-    setEditingReturn(itemReturn);
-    setIsDialogOpen(true);
-  };
-
-  const handleDeleteConfirmation = (itemReturn: MaterialReturn) => {
-    setReturnToDelete(itemReturn);
-  };
-
-  const executeDelete = () => {
-    if (!returnToDelete) return;
-
-    // Simulate returning items to the department (subtracting from inventory)
-    returnToDelete.items.forEach(returnedItem => {
-        const inventoryIndex = mockInventoryData.findIndex(inv => inv.id === returnedItem.materialId);
-        if (inventoryIndex !== -1) {
-            mockInventoryData[inventoryIndex].quantityOnHand -= returnedItem.quantity;
-        }
-    });
-
-    setReturns(prev => prev.filter(ret => ret.id !== returnToDelete.id));
-    toast({ title: "Material Return Deleted", description: `Return record ${returnToDelete.id} and its stock adjustments have been reverted.` });
-    setReturnToDelete(null);
-  };
-
-  const handleSave = (data: MaterialReturnFormData) => {
-    if (editingReturn) {
-      // Simplified update for mock purposes
-      const updatedReturn: MaterialReturn = { 
-          ...editingReturn,
-          ...data,
-          returnDate: format(data.returnDate, "yyyy-MM-dd"),
-          totalItems: editingReturn.items.length
-      };
-      setReturns(prev => prev.map(ret => (ret.id === editingReturn.id ? updatedReturn : ret)));
-      toast({ title: "Material Return Updated", description: `Return from ${data.returnedBy} has been updated.` });
-    } else {
-      // Add stock back to inventory
-      data.items.forEach(item => {
-        const inventoryIndex = mockInventoryData.findIndex(inv => inv.id === item.materialId);
-        if (inventoryIndex !== -1) {
-          mockInventoryData[inventoryIndex].quantityOnHand += item.quantity;
-        } else {
-          // If item doesn't exist, create it (simplified)
-          mockInventoryData.push({
-            id: item.materialId,
-            name: `New Item - ${item.materialId}`,
-            category: "Raw Material",
-            storeLocation: data.storeLocation,
-            quantityOnHand: item.quantity,
-            unitOfMeasure: "Units",
-            lastUpdated: new Date(),
-            lowStockThreshold: 10,
-          });
-        }
-      });
-
-      const newReturn: MaterialReturn = {
-        id: `RET${Date.now()}`,
-        ...data,
-        returnDate: format(data.returnDate, "yyyy-MM-dd"),
-        totalItems: data.items.length,
-      };
-      setReturns(prev => [...prev, newReturn]);
-      toast({ title: "Material Return Logged", description: `New return from ${data.returnedBy} has been logged.` });
-    }
-    setIsDialogOpen(false);
-    setEditingReturn(null);
-  };
-
-  return (
-    <div className="space-y-8">
-      <PageHeader
-        title="Material Returns Log"
-        description="Record and manage materials returned to various store locations."
-        actions={
-          <Button onClick={openAddDialog}>
-            <PlusCircle className="w-4 h-4 mr-2" /> New Material Return
-          </Button>
-        }
-      />
-      
-      <Dialog open={isDialogOpen} onOpenChange={(isOpen) => {
-        setIsDialogOpen(isOpen);
-        if (!isOpen) setEditingReturn(null);
-      }}>
-        <DialogContent className="sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{editingReturn ? "Edit" : "Log New"} Material Return</DialogTitle>
-            <DialogDescription>
-              {editingReturn ? "Update the details for this material return." : "Fill the form to log a new material return. This will add quantities back to inventory."}
-            </DialogDescription>
-          </DialogHeader>
-          <MaterialReturnForm
-            initialData={editingReturn}
-            onSave={handleSave}
-            onCancel={() => setIsDialogOpen(false)}
-          />
-        </DialogContent>
-      </Dialog>
-
-       {returnToDelete && (
-        <AlertDialog open={!!returnToDelete} onOpenChange={() => setReturnToDelete(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to delete return record {returnToDelete.id}? This will revert the stock quantities and cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={executeDelete} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      )}
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Returns List</CardTitle>
-          <CardDescription>Log of all materials returned to stores. You can add new return entries or view details.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {returns.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Return ID</TableHead>
-                  <TableHead>Orig. Issue</TableHead>
-                  <TableHead>Returned By</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Store</TableHead>
-                  <TableHead className="text-right">Items</TableHead>
-                  <TableHead>Condition</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {returns.map((itemReturn) => (
-                  <TableRow key={itemReturn.id}>
-                    <TableCell className="font-medium">{itemReturn.id}</TableCell>
-                    <TableCell>{itemReturn.originalIssueId || "N/A"}</TableCell>
-                    <TableCell className="flex items-center"><Users className="w-4 h-4 mr-2 text-muted-foreground" />{itemReturn.returnedBy}</TableCell>
-                    <TableCell>{itemReturn.returnDate}</TableCell>
-                    <TableCell>{itemReturn.storeLocation}</TableCell>
-                    <TableCell className="text-right">{itemReturn.totalItems}</TableCell>
-                    <TableCell>
-                      <Badge 
-                        variant={
-                          itemReturn.condition === "Good" ? "default" :
-                          itemReturn.condition === "Damaged" ? "destructive" :
-                          "secondary"
-                        }
-                      >
-                        {itemReturn.condition}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right space-x-2">
-                       <Button variant="outline" size="sm" onClick={() => openEditDialog(itemReturn)}>
-                        <Edit className="w-3 h-3 mr-1" /> Edit
-                      </Button>
-                      <Button variant="destructive" size="sm" onClick={() => handleDeleteConfirmation(itemReturn)}>
-                        <Trash2 className="w-3 h-3 mr-1" /> Delete
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-              <TableCaption>{returns.length} material return(s) logged.</TableCaption>
-            </Table>
-          ) : (
-            <p className="text-center text-muted-foreground py-4">No material returns found. Click "New Material Return" to log one.</p>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  );
+export interface NavItem {
+  title: string;
+  href: string;
+  icon: LucideIcon;
+  disabled?: boolean;
+  external?: boolean;
+  label?: string;
+  description?: string;
+  roles?: string[];
+  items?: NavItem[];
 }
+
+export const mainNavItems: NavItem[] = [
+  {
+    title: 'Dashboard',
+    href: '/dashboard',
+    icon: LayoutDashboard,
+    description: "Asset summary and key alerts.",
+  },
+  {
+    title: 'KPI Dashboard',
+    href: '/kpi-dashboard',
+    icon: PieChart,
+    description: "Key Performance Indicators.",
+  },
+  {
+    title: 'Asset Management',
+    href: '/asset-management/list',
+    icon: LibraryBig,
+    description: "Manage all company assets.",
+  },
+  {
+    title: 'Asset Transactions',
+    href: '/asset-transactions',
+    icon: GitFork,
+    description: "Manage asset movements and lifecycle events.",
+    items: [
+       { title: 'Asset Request & Approve', href: '/asset-transactions/requests', icon: Send, description: "Request ownership changes or reassignments." },
+       { title: 'Transfer (Movement)', href: '/asset-transactions/transfers', icon: Truck, description: "Handle asset movements between locations." },
+       { title: 'Check-in / Check-out', href: '/asset-transactions/check-in-out', icon: ListChecks, description: "Manage temporary asset usage." },
+       { title: 'Verification / Audit', href: '/asset-transactions/audit', icon: ShieldCheck, description: "Perform asset verification." },
+       { title: 'Scrap Disposal', href: '/asset-transactions/scrap-disposal', icon: Recycle, description: "Manage the asset scraping process." },
+       { title: 'Feedback / Issue Log', href: '/asset-transactions/feedback', icon: Handshake, description: "Submit and track asset feedback." },
+    ]
+  },
+  {
+    title: 'Reports',
+    href: '/reports',
+    icon: BarChart3,
+    description: "View detailed reports and analytics.",
+    items: [
+        { 
+          title: 'Asset Reports', 
+          href: '/reports/asset', 
+          icon: LibraryBig, 
+          description: "Master lists and summaries.",
+          items: [
+            { title: 'Asset Register', href: '/reports/asset-register', icon: FileText, description: "View a complete list of all assets." },
+          ]
+        },
+        { 
+          title: 'Transactional Reports', 
+          href: '/reports/transactional', 
+          icon: GitFork, 
+          description: "Logs of all asset activities.",
+          items: [
+            { title: 'Movement Report', href: '/reports/movement-report', icon: Truck, description: "Track all asset movements." },
+            { title: 'Scrap Register', href: '/reports/scrap-report', icon: Recycle, description: "Log of all scrapped assets." },
+          ]
+        },
+        { 
+          title: 'Audit & Compliance', 
+          href: '/reports/audit', 
+          icon: ShieldCheck, 
+          description: "Verification and financial reports.",
+          items: [
+            { title: 'Verification Report', href: '/reports/verification-report', icon: CheckSquare, description: "Audit verification history." },
+            { title: 'Depreciation/Finance Report', href: '/reports/finance-report', icon: DollarSign, description: "View depreciation and financial data." },
+
+          ]
+        },
+        { 
+          title: 'Exception Reports', 
+          href: '/reports/exceptions', 
+          icon: AlertTriangle, 
+          description: "Reports on issues and alerts.",
+          items: [
+             { title: 'Incomplete Records', href: '/reports/incomplete-records', icon: FileWarning, description: "Assets with missing mandatory fields." },
+          ]
+        },
+         { 
+          title: 'Management Reports', 
+          href: '/reports/management', 
+          icon: PieChart, 
+          description: "Summary and analysis reports.",
+          items: [
+            { title: 'Asset Value Summary', href: '/reports/asset-value-summary', icon: DollarSign, description: "Total asset value by category." },
+            { title: 'Utilization Report', href: '/reports/utilization-report', icon: Activity, description: "Asset usage frequency." },
+          ]
+        },
+    ]
+  },
+  {
+    title: 'Administration',
+    href: '/administration',
+    icon: SlidersHorizontal,
+    description: "Manage application settings, users, and masters.",
+    roles: ['admin'],
+    items: [
+      {
+        title: 'User Management',
+        href: '/administration/user-management',
+        icon: UserCog,
+        description: "Manage users, roles, and permissions.",
+        roles: ['admin'],
+      },
+       {
+        title: 'Audit Logs',
+        href: '/administration/audit-logs',
+        icon: FileArchive,
+        description: "Track all system actions.",
+        roles: ['admin'],
+      },
+      {
+        title: 'Masters',
+        href: '/administration/masters',
+        icon: Database,
+        description: "Manage application master data.",
+        roles: ['admin'],
+        items: [
+            { title: "Classification", href: "/administration/asset-classifications", icon: Layers, description: "Standardizes asset categories" },
+            { title: "Asset Grouping", href: "/administration/asset-groupings", icon: Group, description: "Logical grouping of assets" },
+            { title: "Location", href: "/administration/locations", icon: MapPin, description: "Sites, buildings, floors, labs" },
+            { title: "Department / Team", href: "/administration/departments-teams", icon: Users2, description: "Organizational structure" },
+            { title: "Coordinator (SPOC)", href: "/administration/coordinator-mappings", icon: Workflow, description: "Map SPOCs to departments" },
+            { title: "Movement Type", href: "/administration/movement-types", icon: GitFork, description: "Allowed movement flows" },
+            { title: "Reason Code", href: "/administration/reason-codes", icon: Code, description: "Standard transaction reasons" },
+            { title: "Status", href: "/administration/statuses", icon: CheckSquare, description: "Asset lifecycle states" },
+            { title: "Condition", href: "/administration/conditions", icon: HelpCircle, description: "Asset health states" },
+            { title: "Verification/Audit Plan", href: "/administration/audit-plans", icon: FileClock, description: "Audit frequency and rules" },
+            { title: "Alert/Notification Rule", href: "/administration/notification-rules", icon: BellRing, description: "Events and recipients for alerts" },
+        ]
+      },
+    ]
+  }
+];
+
+export const userNavItems: NavItem[] = [
+    {
+        title: "Profile",
+        href: "/profile",
+        icon: UserCircle,
+        description: "Manage your profile settings."
+    },
+    {
+        title: "Settings",
+        href: "/settings",
+        icon: Settings,
+        description: "Application settings."
+    },
+    {
+        title: "Logout",
+        href: "/logout",
+        icon: LogOut,
+        description: "Sign out of your account."
+    }
+];

@@ -1,217 +1,177 @@
-// src/app/(app)/stores/material-issue/page.tsx
-"use client";
-
-import * as React from "react";
-import { format } from "date-fns";
-import { PageHeader } from "@/components/shared/PageHeader";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { PlusCircle, Edit, Trash2, FileText, Users } from "lucide-react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from "@/components/ui/table";
-import { useToast } from "@/hooks/use-toast";
-import { mockIssuesData, type MaterialIssue, mockInventoryData } from "@/lib/mock-inventory-data";
+// src/config/nav.ts
+import type { LucideIcon } from 'lucide-react';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { MaterialIssueForm } from "@/components/forms/MaterialIssueForm";
-import { type MaterialIssueFormData } from "@/lib/schemas";
+  LayoutDashboard, Truck, Recycle, FileText, ListChecks, BarChart3, UserCircle,
+  LogOut, Settings, ShieldCheck, Database, LibraryBig,
+  SlidersHorizontal, GitFork,
+  Users, UserCog, Layers, FileArchive, 
+  Group, MapPin, Users2, Workflow, Code, CheckSquare, BellRing, HelpCircle, FileClock, Send, Handshake, CornerRightDown, AlertTriangle, FileWarning, DollarSign, PieChart, Activity
+} from 'lucide-react';
 
-export default function MaterialIssuePage() {
-  const [issues, setIssues] = React.useState<MaterialIssue[]>(mockIssuesData);
-  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-  const [editingIssue, setEditingIssue] = React.useState<MaterialIssue | null>(null);
-  const [issueToDelete, setIssueToDelete] = React.useState<MaterialIssue | null>(null);
-  const { toast } = useToast();
-
-  const openAddDialog = () => {
-    setEditingIssue(null);
-    setIsDialogOpen(true);
-  };
-
-  const openEditDialog = (issue: MaterialIssue) => {
-    setEditingIssue(issue);
-    setIsDialogOpen(true);
-  };
-
-  const handleDeleteConfirmation = (issue: MaterialIssue) => {
-    setIssueToDelete(issue);
-  };
-
-  const executeDelete = () => {
-    if (!issueToDelete) return;
-
-    // Simulate returning items to stock
-    issueToDelete.items.forEach(issuedItem => {
-        const inventoryIndex = mockInventoryData.findIndex(inv => inv.id === issuedItem.materialId);
-        if (inventoryIndex !== -1) {
-            mockInventoryData[inventoryIndex].quantityOnHand += issuedItem.quantity;
-        }
-    });
-
-    setIssues(prev => prev.filter(iss => iss.issueId !== issueToDelete.id));
-    toast({ title: "Material Issue Deleted", description: `Issue record ${issueToDelete.id} and its stock adjustments have been reverted.` });
-    setIssueToDelete(null);
-  };
-
-  const handleSave = (data: MaterialIssueFormData) => {
-    if (editingIssue) {
-      // Logic for editing an issue is complex (reverting stock, then re-issuing)
-      // For this mock, we'll just update the details without stock changes.
-      const updatedIssue: MaterialIssue = { 
-        ...editingIssue,
-        ...data,
-        issueDate: format(data.issueDate, "yyyy-MM-dd"),
-        // Items are not editable in this simplified version to avoid stock complexity
-      };
-      setIssues(prev => prev.map(iss => (iss.issueId === editingIssue.issueId ? updatedIssue : iss)));
-      toast({ title: "Material Issue Updated", description: `Issue record ${data.issuedTo} has been updated.` });
-    } else {
-      // Logic for adding a new issue
-      let allItemsValid = true;
-      data.items.forEach(itemToIssue => {
-        const inventoryItem = mockInventoryData.find(inv => inv.id === itemToIssue.materialId);
-        if (!inventoryItem || inventoryItem.quantityOnHand < itemToIssue.quantity) {
-          allItemsValid = false;
-          toast({
-            title: "Insufficient Stock",
-            description: `Not enough stock for ${itemToIssue.materialId}. Available: ${inventoryItem?.quantityOnHand || 0}.`,
-            variant: "destructive"
-          });
-        }
-      });
-
-      if (!allItemsValid) return;
-
-      // Deduct from inventory
-      data.items.forEach(itemToIssue => {
-          const inventoryIndex = mockInventoryData.findIndex(inv => inv.id === itemToIssue.materialId);
-          if (inventoryIndex !== -1) {
-              mockInventoryData[inventoryIndex].quantityOnHand -= itemToIssue.quantity;
-          }
-      });
-      
-      const newIssue: MaterialIssue = {
-        issueId: `ISS${Date.now()}`,
-        ...data,
-        id: `ISS${Date.now()}`,
-        issueDate: format(data.issueDate, "yyyy-MM-dd"),
-        totalItems: data.items.length,
-      };
-      setIssues(prev => [...prev, newIssue]);
-      toast({ title: "Material Issue Logged", description: `New issue for ${data.issuedTo} has been logged.` });
-    }
-    setIsDialogOpen(false);
-    setEditingIssue(null);
-  };
-
-  return (
-    <div className="space-y-8">
-      <PageHeader
-        title="Material Issue Log"
-        description="Record and manage materials issued from various stores to departments or personnel."
-        actions={
-          <Button onClick={openAddDialog}>
-            <PlusCircle className="w-4 h-4 mr-2" /> New Material Issue
-          </Button>
-        }
-      />
-      
-      <Dialog open={isDialogOpen} onOpenChange={(isOpen) => {
-        setIsDialogOpen(isOpen);
-        if (!isOpen) setEditingIssue(null);
-      }}>
-        <DialogContent className="sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{editingIssue ? "Edit" : "Log New"} Material Issue</DialogTitle>
-            <DialogDescription>
-              {editingIssue ? "Update the details for this material issue." : "Fill the form to log a new material issue. This will deduct quantities from the inventory."}
-            </DialogDescription>
-          </DialogHeader>
-          <MaterialIssueForm
-            initialData={editingIssue}
-            onSave={handleSave}
-            onCancel={() => setIsDialogOpen(false)}
-          />
-        </DialogContent>
-      </Dialog>
-      
-      {issueToDelete && (
-        <AlertDialog open={!!issueToDelete} onOpenChange={() => setIssueToDelete(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to delete issue record {issueToDelete.id}? This will revert the stock quantities and cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={executeDelete} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      )}
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Issue List</CardTitle>
-          <CardDescription>Log of all materials issued from stores. You can add new issues or view details of existing ones.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {issues.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Issue ID</TableHead>
-                  <TableHead>Issued To</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Store</TableHead>
-                  <TableHead className="text-right">Items</TableHead>
-                  <TableHead>Purpose</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {issues.map((issue) => (
-                  <TableRow key={issue.issueId}>
-                    <TableCell className="font-medium">{issue.issueId}</TableCell>
-                    <TableCell className="flex items-center"><Users className="w-4 h-4 mr-2 text-muted-foreground" />{issue.issuedTo}</TableCell>
-                    <TableCell>{issue.issueDate}</TableCell>
-                    <TableCell>{issue.storeLocation}</TableCell>
-                    <TableCell className="text-right">{issue.totalItems}</TableCell>
-                    <TableCell>{issue.purpose}</TableCell>
-                    <TableCell className="text-right space-x-2">
-                       <Button variant="outline" size="sm" onClick={() => openEditDialog(issue)}>
-                        <Edit className="w-3 h-3 mr-1" /> Edit
-                      </Button>
-                      <Button variant="destructive" size="sm" onClick={() => handleDeleteConfirmation(issue)}>
-                        <Trash2 className="w-3 h-3 mr-1" /> Delete
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-              <TableCaption>{issues.length} material issue(s) logged.</TableCaption>
-            </Table>
-          ) : (
-            <p className="text-center text-muted-foreground py-4">No material issues found. Click "New Material Issue" to log one.</p>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  );
+export interface NavItem {
+  title: string;
+  href: string;
+  icon: LucideIcon;
+  disabled?: boolean;
+  external?: boolean;
+  label?: string;
+  description?: string;
+  roles?: string[];
+  items?: NavItem[];
 }
+
+export const mainNavItems: NavItem[] = [
+  {
+    title: 'Dashboard',
+    href: '/dashboard',
+    icon: LayoutDashboard,
+    description: "Asset summary and key alerts.",
+  },
+  {
+    title: 'KPI Dashboard',
+    href: '/kpi-dashboard',
+    icon: PieChart,
+    description: "Key Performance Indicators.",
+  },
+  {
+    title: 'Asset Management',
+    href: '/asset-management/list',
+    icon: LibraryBig,
+    description: "Manage all company assets.",
+  },
+  {
+    title: 'Asset Transactions',
+    href: '/asset-transactions',
+    icon: GitFork,
+    description: "Manage asset movements and lifecycle events.",
+    items: [
+       { title: 'Asset Request & Approve', href: '/asset-transactions/requests', icon: Send, description: "Request ownership changes or reassignments." },
+       { title: 'Transfer (Movement)', href: '/asset-transactions/transfers', icon: Truck, description: "Handle asset movements between locations." },
+       { title: 'Check-in / Check-out', href: '/asset-transactions/check-in-out', icon: ListChecks, description: "Manage temporary asset usage." },
+       { title: 'Verification / Audit', href: '/asset-transactions/audit', icon: ShieldCheck, description: "Perform asset verification." },
+       { title: 'Scrap Disposal', href: '/asset-transactions/scrap-disposal', icon: Recycle, description: "Manage the asset scraping process." },
+       { title: 'Feedback / Issue Log', href: '/asset-transactions/feedback', icon: Handshake, description: "Submit and track asset feedback." },
+    ]
+  },
+  {
+    title: 'Reports',
+    href: '/reports',
+    icon: BarChart3,
+    description: "View detailed reports and analytics.",
+    items: [
+        { 
+          title: 'Asset Reports', 
+          href: '/reports/asset', 
+          icon: LibraryBig, 
+          description: "Master lists and summaries.",
+          items: [
+            { title: 'Asset Register', href: '/reports/asset-register', icon: FileText, description: "View a complete list of all assets." },
+          ]
+        },
+        { 
+          title: 'Transactional Reports', 
+          href: '/reports/transactional', 
+          icon: GitFork, 
+          description: "Logs of all asset activities.",
+          items: [
+            { title: 'Movement Report', href: '/reports/movement-report', icon: Truck, description: "Track all asset movements." },
+            { title: 'Scrap Register', href: '/reports/scrap-report', icon: Recycle, description: "Log of all scrapped assets." },
+          ]
+        },
+        { 
+          title: 'Audit & Compliance', 
+          href: '/reports/audit', 
+          icon: ShieldCheck, 
+          description: "Verification and financial reports.",
+          items: [
+            { title: 'Verification Report', href: '/reports/verification-report', icon: CheckSquare, description: "Audit verification history." },
+            { title: 'Depreciation/Finance Report', href: '/reports/finance-report', icon: DollarSign, description: "View depreciation and financial data." },
+
+          ]
+        },
+        { 
+          title: 'Exception Reports', 
+          href: '/reports/exceptions', 
+          icon: AlertTriangle, 
+          description: "Reports on issues and alerts.",
+          items: [
+             { title: 'Incomplete Records', href: '/reports/incomplete-records', icon: FileWarning, description: "Assets with missing mandatory fields." },
+          ]
+        },
+         { 
+          title: 'Management Reports', 
+          href: '/reports/management', 
+          icon: PieChart, 
+          description: "Summary and analysis reports.",
+          items: [
+            { title: 'Asset Value Summary', href: '/reports/asset-value-summary', icon: DollarSign, description: "Total asset value by category." },
+            { title: 'Utilization Report', href: '/reports/utilization-report', icon: Activity, description: "Asset usage frequency." },
+          ]
+        },
+    ]
+  },
+  {
+    title: 'Administration',
+    href: '/administration',
+    icon: SlidersHorizontal,
+    description: "Manage application settings, users, and masters.",
+    roles: ['admin'],
+    items: [
+      {
+        title: 'User Management',
+        href: '/administration/user-management',
+        icon: UserCog,
+        description: "Manage users, roles, and permissions.",
+        roles: ['admin'],
+      },
+       {
+        title: 'Audit Logs',
+        href: '/administration/audit-logs',
+        icon: FileArchive,
+        description: "Track all system actions.",
+        roles: ['admin'],
+      },
+      {
+        title: 'Masters',
+        href: '/administration/masters',
+        icon: Database,
+        description: "Manage application master data.",
+        roles: ['admin'],
+        items: [
+            { title: "Classification", href: "/administration/asset-classifications", icon: Layers, description: "Standardizes asset categories" },
+            { title: "Asset Grouping", href: "/administration/asset-groupings", icon: Group, description: "Logical grouping of assets" },
+            { title: "Location", href: "/administration/locations", icon: MapPin, description: "Sites, buildings, floors, labs" },
+            { title: "Department / Team", href: "/administration/departments-teams", icon: Users2, description: "Organizational structure" },
+            { title: "Coordinator (SPOC)", href: "/administration/coordinator-mappings", icon: Workflow, description: "Map SPOCs to departments" },
+            { title: "Movement Type", href: "/administration/movement-types", icon: GitFork, description: "Allowed movement flows" },
+            { title: "Reason Code", href: "/administration/reason-codes", icon: Code, description: "Standard transaction reasons" },
+            { title: "Status", href: "/administration/statuses", icon: CheckSquare, description: "Asset lifecycle states" },
+            { title: "Condition", href: "/administration/conditions", icon: HelpCircle, description: "Asset health states" },
+            { title: "Verification/Audit Plan", href: "/administration/audit-plans", icon: FileClock, description: "Audit frequency and rules" },
+            { title: "Alert/Notification Rule", href: "/administration/notification-rules", icon: BellRing, description: "Events and recipients for alerts" },
+        ]
+      },
+    ]
+  }
+];
+
+export const userNavItems: NavItem[] = [
+    {
+        title: "Profile",
+        href: "/profile",
+        icon: UserCircle,
+        description: "Manage your profile settings."
+    },
+    {
+        title: "Settings",
+        href: "/settings",
+        icon: Settings,
+        description: "Application settings."
+    },
+    {
+        title: "Logout",
+        href: "/logout",
+        icon: LogOut,
+        description: "Sign out of your account."
+    }
+];
