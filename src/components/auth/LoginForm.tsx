@@ -1,4 +1,3 @@
-
 // src/components/auth/LoginForm.tsx
 "use client";
 
@@ -34,7 +33,6 @@ export function LoginForm() {
   const [loading, setLoading] = React.useState(false);
   const firestore = useFirestore();
 
-
   const form = useForm<LoginFormData>({
     resolver: zodResolver(LoginSchema),
     defaultValues: {
@@ -42,7 +40,7 @@ export function LoginForm() {
       password: "",
     },
   });
-  
+
   const ensureAdminUserDocument = async (user: User) => {
     if (!firestore) return;
     const userDocRef = doc(firestore, "users", user.uid);
@@ -51,7 +49,7 @@ export function LoginForm() {
         id: user.uid,
         email: user.email,
         role: 'admin',
-        displayName: user.email === 'aipm.ramv@gmail.com' ? 'RamV' : (user.email === 'admin@example.com' ? 'Default Admin' : user.displayName),
+        displayName: user.email === 'aipm.ramv@gmail.com' ? 'Ram Kumar V' : (user.email === 'admin@example.com' ? 'Default Admin' : user.displayName),
         department: 'IT'
     }, { merge: true });
   };

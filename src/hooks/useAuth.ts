@@ -1,3 +1,4 @@
+
 // src/hooks/useAuth.ts
 "use client";
 
@@ -47,18 +48,10 @@ export function useAuth() {
     }
 
     // If the user is authenticated, but we don't have a profile yet (could be a brief state),
-    // we can return a default user object, but it's safer to wait until profile is loaded.
-    // However, if we wait, the UI might flicker. Let's return the merged object once profile is available.
+    // we must wait. Returning a default user object here caused the race condition.
+    // By returning null, downstream components will correctly wait until the full user object is ready.
     if (!userProfile) {
-        // This case can happen if the user document hasn't been created yet for a new user.
-        // Or during the very brief moment between auth loading and doc loading.
-        // We can return a default 'user' role to prevent crashes, but admin functionality
-        // will only appear once the profile with 'admin' role is loaded.
-         return {
-            ...firebaseUser,
-            role: 'user', // Default to 'user' if profile isn't loaded yet
-            department: 'Unassigned',
-        } as AppUser;
+        return null;
     }
 
     // Both firebaseUser and userProfile are available. Merge them.
