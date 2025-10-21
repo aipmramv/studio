@@ -1,4 +1,3 @@
-
 // src/components/auth/SignupForm.tsx
 "use client";
 
@@ -6,7 +5,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AtSign, Lock, UserPlus, Briefcase } from "lucide-react";
+import { AtSign, Lock, UserPlus, Briefcase, Loader2, User } from "lucide-react";
+import * as React from "react";
+import { getAuth, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -21,51 +23,92 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { SignupSchema, type SignupFormData } from "@/lib/schemas";
-import { USER_ROLES } from "@/lib/constants";
+import { USER_ROLES, DEPARTMENTS } from "@/lib/constants";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
+import { KoneLogo } from "../shared/KoneLogo";
+import { useFirestore } from "@/firebase";
 
 export function SignupForm() {
   const router = useRouter();
   const { toast } = useToast();
-  const { signup, loading } = useAuth();
+  const [loading, setLoading] = React.useState(false);
+  const firestore = useFirestore();
 
   const form = useForm<SignupFormData>({
     resolver: zodResolver(SignupSchema),
     defaultValues: {
+      displayName: "",
       email: "",
       password: "",
       confirmPassword: "",
-      role: "user", // Default to 'user'
+      department: undefined,
     },
   });
 
   async function onSubmit(data: SignupFormData) {
+    setLoading(true);
+    const auth = getAuth();
+
     try {
-      await signup(/* data.email, data.password, data.role */); // Mock signup
+      const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+      const user = userCredential.user;
+
+      // Update user's profile with display name
+      await updateProfile(user, { displayName: data.displayName });
+      
+      if (!firestore) {
+          throw new Error("Firestore is not initialized.");
+      }
+
+      // Create a user profile document in Firestore
+      const userDocRef = doc(firestore, "users", user.uid);
+      await setDoc(userDocRef, {
+        id: user.uid,
+        email: user.email,
+        displayName: data.displayName,
+        role: "user", // All signups are 'user' role by default
+        department: data.department,
+      });
+
       toast({
         title: "Signup Successful",
         description: "Your account has been created. Please login.",
       });
       router.push("/"); // Redirect to login page after successful signup
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Signup Failed",
-        description: (error as Error).message || "An unexpected error occurred.",
+        description: error.message || "An unexpected error occurred.",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
-    <Card className="w-full max-w-md shadow-2xl">
-      <CardHeader className="text-center">
-        <CardTitle className="text-3xl font-bold font-headline">Create Account</CardTitle>
-        <CardDescription>Join R&D Stores Flow by filling out the form below.</CardDescription>
+    <Card className="w-full max-w-md">
+       <CardHeader className="text-center">
+        <KoneLogo className="h-12 w-auto mx-auto mb-6" />
+        <CardTitle className="text-3xl font-bold font-headline">Create an Account</CardTitle>
+        <CardDescription>Join the KTI Asset Management platform.</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+             <FormField
+              control={form.control}
+              name="displayName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center"><User className="w-4 h-4 mr-2" />Full Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., Ram Kumar" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="email"
@@ -107,20 +150,20 @@ export function SignupForm() {
             />
             <FormField
               control={form.control}
-              name="role"
+              name="department"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex items-center"><Briefcase className="w-4 h-4 mr-2" />Role</FormLabel>
+                  <FormLabel className="flex items-center"><Briefcase className="w-4 h-4 mr-2" />Department</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select your role" />
+                        <SelectValue placeholder="Select your department" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {USER_ROLES.map((role) => (
-                        <SelectItem key={role} value={role}>
-                          {role.charAt(0).toUpperCase() + role.slice(1).replace('_', ' ')}
+                      {DEPARTMENTS.map((dept) => (
+                        <SelectItem key={dept} value={dept}>
+                          {dept}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -130,7 +173,7 @@ export function SignupForm() {
               )}
             />
             <Button type="submit" className="w-full" disabled={loading}>
-               {loading ? "Creating account..." : <><UserPlus className="w-4 h-4 mr-2" /> Sign Up</>}
+               {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin"/>Creating account...</> : <><UserPlus className="w-4 h-4 mr-2" /> Sign Up</>}
             </Button>
           </form>
         </Form>

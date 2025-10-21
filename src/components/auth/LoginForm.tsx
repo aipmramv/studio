@@ -4,8 +4,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import Link from "next/link";
-import { useRouter } from "next/navigation"; // Use next/navigation for App Router
-import { AtSign, Lock, LogIn, Briefcase } from "lucide-react"; // Added Briefcase for KONE SSO example
+import { useRouter } from "next/navigation";
+import { AtSign, Lock, LogIn, Briefcase, Loader2 } from "lucide-react";
+import * as React from "react";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, type AuthError } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
+
 
 import { Button } from "@/components/ui/button";
 import {
@@ -20,13 +24,15 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoginSchema, type LoginFormData } from "@/lib/schemas";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth"; // Mock auth hook
-import { KoneLogo } from "@/components/shared/KoneLogo"; // Import KONE Logo
+import { KoneLogo } from "@/components/shared/KoneLogo";
+import { useFirestore } from "@/firebase";
 
 export function LoginForm() {
   const router = useRouter();
   const { toast } = useToast();
-  const { login, loading } = useAuth(); // Using mock login
+  const [loading, setLoading] = React.useState(false);
+  const firestore = useFirestore();
+
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(LoginSchema),
@@ -37,45 +43,72 @@ export function LoginForm() {
   });
 
   async function onSubmit(data: LoginFormData) {
+    setLoading(true);
+    const auth = getAuth();
+    
     try {
-      await login(/*data.email, data.password*/); // Mock login doesn't need params
+      await signInWithEmailAndPassword(auth, data.email, data.password);
       toast({
         title: "Login Successful",
         description: "Welcome back!",
       });
-      router.push("/dashboard"); // Redirect to dashboard after successful login
-    } catch (error) {
-      toast({
-        title: "Login Failed",
-        description: (error as Error).message || "An unexpected error occurred.",
-        variant: "destructive",
-      });
-    }
-  }
-
-  async function handleKoneSsoLogin() {
-    try {
-      await login(); // Mock login doesn't need specific params for SSO
-      toast({
-        title: "Login Successful",
-        description: "Signed in with KONE SSO (mocked).",
-      });
       router.push("/dashboard");
     } catch (error) {
-      toast({
-        title: "KONE SSO Login Failed",
-        description: (error as Error).message || "An unexpected error occurred.",
-        variant: "destructive",
-      });
+      const authError = error as AuthError;
+      
+      // Special handling for the default admin user on first login
+      if (
+        authError.code === 'auth/user-not-found' &&
+        data.email === 'admin@example.com' &&
+        data.password === 'admin123' &&
+        firestore
+      ) {
+        try {
+          const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+          const user = userCredential.user;
+
+          // Create a user profile in Firestore
+          const userDocRef = doc(firestore, "users", user.uid);
+          await setDoc(userDocRef, {
+            id: user.uid,
+            email: user.email,
+            role: 'admin',
+            displayName: 'Admin User',
+            department: 'IT'
+          });
+
+          toast({
+            title: "Admin Account Created",
+            description: "Default administrator account has been set up. Welcome!",
+          });
+          router.push("/dashboard");
+
+        } catch (creationError) {
+          const creationAuthError = creationError as AuthError;
+          toast({
+            title: "Admin Creation Failed",
+            description: creationAuthError.message || "Could not create the default admin account.",
+            variant: "destructive",
+          });
+        }
+      } else {
+         toast({
+          title: "Login Failed",
+          description: authError.message || "An unexpected error occurred.",
+          variant: "destructive",
+        });
+      }
+    } finally {
+        setLoading(false);
     }
   }
 
   return (
-    <Card className="w-full max-w-md"> {/* Removed shadow-2xl for KONE's flatter design */}
+    <Card className="w-full max-w-md">
       <CardHeader className="text-center">
-        <KoneLogo className="h-12 w-auto mx-auto mb-6" /> {/* KONE Logo Added */}
+        <KoneLogo className="h-12 w-auto mx-auto mb-6" />
         <CardTitle className="text-3xl font-bold font-headline">KTI Assets Login</CardTitle>
-        <CardDescription>Enter your credentials or sign in with KONE SSO.</CardDescription>
+        <CardDescription>Enter your credentials to access the system.</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -107,34 +140,14 @@ export function LoginForm() {
               )}
             />
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Logging in..." : <><LogIn className="w-4 h-4 mr-2" /> Login</>}
+              {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Logging in...</> : <><LogIn className="w-4 h-4 mr-2" /> Login</>}
             </Button>
           </form>
         </Form>
-
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-card px-2 text-muted-foreground">
-              Or continue with
-            </span>
-          </div>
-        </div>
-
-        <Button variant="outline" className="w-full flex items-center justify-center gap-2" onClick={handleKoneSsoLogin} disabled={loading}>
-           <Briefcase className="w-4 h-4" /> {/* Example icon for SSO */}
-          Sign in with KONE SSO
-        </Button>
-
       </CardContent>
       <CardFooter className="flex flex-col items-center space-y-2 pt-6">
-        <Link href="#" className="text-sm text-primary hover:underline">
-            Forgot password?
-        </Link>
         <p className="text-sm text-muted-foreground">
-          Don&apos;t have an account?{" "}
+          Don't have an account?{" "}
           <Link href="/signup" className="font-medium text-primary hover:underline">
             Sign up
           </Link>

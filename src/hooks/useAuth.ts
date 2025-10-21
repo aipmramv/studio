@@ -1,102 +1,43 @@
-
 // src/hooks/useAuth.ts
 "use client";
 
-import type { UserRole } from '@/lib/constants';
-import { useState, useEffect } from 'react';
+import { useUser } from '@/firebase'; // Import the real useUser hook from your firebase setup
+import { getAuth, signOut } from "firebase/auth";
+import { useRouter } from 'next/navigation';
+import { useToast } from './use-toast';
 
-interface AuthUser {
-  uid: string;
-  email: string | null;
-  displayName: string | null;
-  role: UserRole;
-  department?: string; // Added department for role-based filtering
-}
-
-// This is a mock hook. In a real Firebase app, you'd use `onAuthStateChanged`
-// and potentially a custom claims system for roles.
+// This is a real auth hook that uses the Firebase context.
 export function useAuth() {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, isUserLoading, userError } = useUser();
+  const router = useRouter();
+  const { toast } = useToast();
 
-  useEffect(() => {
-    // Simulate fetching auth state
-    const timer = setTimeout(() => {
-      // To test different roles, you can change this:
-      const mockUser: AuthUser = {
-        uid: 'mock-user-id-ram',
-        email: 'ram.admin@example.com',
-        displayName: 'Ram Kumar',
-        role: 'admin', 
-        department: 'IT', // Example department
-      };
-      // To simulate a different user for testing:
-      // const mockUser: AuthUser = {
-      //   uid: 'mock-user-id-prem',
-      //   email: 'prem.dh@example.com',
-      //   displayName: 'Prem Kumar',
-      //   role: 'spoc',
-      //   department: 'Finance', 
-      // };
-      // To simulate a logged-out state:
-      // setUser(null);
-      setUser(mockUser);
-      setLoading(false);
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  const login = async (/* email, password */) => {
-    // Mock login
-    setLoading(true);
-    return new Promise<void>((resolve) => {
-      setTimeout(() => {
-        // This mock now defaults to the 'admin' user for broader testing access
-        setUser({
-          uid: 'mock-user-id-ram',
-          email: 'ram.admin@example.com',
-          displayName: 'Ram Kumar',
-          role: 'admin',
-          department: 'IT'
-        });
-        setLoading(false);
-        resolve();
-      }, 500);
-    });
-  };
-
-  const signup = async (/* email, password, role */) => {
-     // Mock signup
-     setLoading(true);
-     return new Promise<void>((resolve) => {
-       setTimeout(() => {
-         setUser({
-           uid: 'new-mock-user-id-nagaraj',
-           email: 'nagaraj.new@example.com',
-           displayName: 'Nagaraj V.',
-           role: 'user', // Default role for new signups
-           department: 'Production'
-         });
-         setLoading(false);
-         resolve();
-       }, 500);
-     });
-  };
+  const authUser = user ? {
+    ...user,
+    // The role should come from custom claims or a Firestore document.
+    // For now, we'll assign a role based on email for demonstration.
+    role: user.email === 'admin@example.com' ? 'admin' : 'user',
+    department: user.email === 'admin@example.com' ? 'IT' : 'Unassigned',
+  } : null;
 
   const logout = async () => {
-    // Mock logout
-    setLoading(true);
-    return new Promise<void>((resolve) => {
-      setTimeout(() => {
-        setUser(null);
-        setLoading(false);
-        // In a real app, you'd redirect here:
-        // window.location.href = '/';
-        resolve();
-      }, 300);
-    });
+    const auth = getAuth();
+    try {
+      await signOut(auth);
+      toast({ title: "Logged Out", description: "You have been successfully signed out." });
+      router.push('/');
+    } catch (error) {
+      console.error("Logout Error: ", error);
+      toast({ title: "Logout Failed", description: "Could not log you out. Please try again.", variant: "destructive" });
+    }
   };
 
-  return { user, loading, login, signup, logout };
+  return { 
+    user: authUser, 
+    loading: isUserLoading, 
+    error: userError,
+    logout,
+    // The login and signup functions are now handled directly in their respective forms
+    // to have access to form data. This hook primarily provides user state and logout.
+  };
 }

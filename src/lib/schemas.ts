@@ -8,10 +8,11 @@ export const LoginSchema = z.object({
 export type LoginFormData = z.infer<typeof LoginSchema>;
 
 export const SignupSchema = z.object({
+  displayName: z.string().min(2, { message: "Name must be at least 2 characters."}),
   email: z.string().email({ message: "Invalid email address." }),
   password: z.string().min(6, { message: "Password must be at least 6 characters." }),
   confirmPassword: z.string().min(6, { message: "Password must be at least 6 characters." }),
-  role: z.enum(USER_ROLES, { required_error: "Role is required."}),
+  department: z.enum(DEPARTMENTS, { required_error: "Department is required." }),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],

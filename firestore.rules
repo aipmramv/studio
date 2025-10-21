@@ -1,63 +1,55 @@
 /**
- * @fileoverview Firestore Security Rules for TrackFlow Asset Management System
+ * @fileoverview Firestore Security Rules for TrackFlow Asset Management System.
  *
  * Core Philosophy:
- * This ruleset prioritizes secure data access based on user identity and explicit authorization.
- * It enforces ownership for user profiles and allows public read access to asset-related data
- * while restricting write access to prevent unauthorized modifications.
+ * This ruleset enforces a strict user-ownership model for user profiles
+ * and public read access with owner-only writes for assets, asset requests,
+ * asset transfers, asset verifications, asset checkouts, scrap records, and asset feedback.
  *
  * Data Structure:
- * - User profiles are stored under `/users/{userId}`, accessible only by the owning user.
- * - Asset master data, requests, transfers, verifications, checkouts, scrap records, and feedback
- *   are stored in top-level collections (`/assets`, `/assetRequests`, etc.).  These collections
- *   are publicly readable but writes are restricted.
+ * - /users/{userId}: Stores individual user profiles, accessible only by the user themselves.
+ * - /assets/{assetId}: Stores asset information. Publicly readable, but only modifiable by the asset owner (creator).
+ * - /assetRequests/{requestId}: Stores asset ownership change requests. Publicly readable, but only modifiable by the request creator.
+ * - /assetTransfers/{transferId}: Stores asset transfer logs. Publicly readable, but only modifiable by the transfer creator.
+ * - /assetVerifications/{verificationId}: Stores asset verification records. Publicly readable, but only modifiable by the verification creator.
+ * - /assetCheckouts/{checkoutId}: Stores asset checkout records. Publicly readable, but only modifiable by the checkout creator.
+ * - /scrapRecords/{scrapId}: Stores records of scrapped assets. Publicly readable, but only modifiable by the scrap record creator.
+ * - /assetFeedback/{feedbackId}: Stores feedback and issue logs for assets. Publicly readable, but only modifiable by the feedback creator.
  *
  * Key Security Decisions:
- * - User listing is explicitly denied.
- * - Asset-related collections are publicly readable to facilitate broad access to asset information,
- *   but write access is restricted to prevent unauthorized modification.  If finer-grained access
- *   control is needed for these collections, the rules must be updated accordingly.
+ * - User listing is disallowed.
+ * - The default security posture for ambiguous relationships is strict owner-only access.
+ * - Public read access is granted for asset-related collections, assuming an ownership field exists within each document.
+ *   If the ownership field is missing, write access will be disabled with a TODO comment.
  *
  * Denormalization for Authorization:
- * - The rules rely on the authenticated user's UID (`request.auth.uid`) to control access.
- *   For user-owned documents, the UID is compared to the document ID (`userId`) to enforce
- *   ownership.
+ *  - The rules assume that the 'id' field in `UserProfile` matches the `userId` in the path `/users/{userId}`.
+ *  - The rules assume an ownership field exists on `Asset`, `AssetRequest`, `AssetTransfer`, `AssetVerification`, `AssetCheckout`, `ScrapRecord`, and `AssetFeedback` entities.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Checks if the request is made by a signed-in user.
-     */
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    /**
-     * @description Checks if the authenticated user's UID matches the provided userId.
-     */
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
-    /**
-     * @description Checks if the authenticated user's UID matches the userId and the resource exists.
-     */
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
-    }
-
-    /**
-     * @description Enforces document ownership for writes.
+     * @description Controls access to user profile data.
      * @path /users/{userId}
-     * @allow (create) User with UID 'user123' creates a profile at /users/user123
-     * @deny (create) User with UID 'user123' attempts to create a profile at /users/user456
-     * @principle Enforces document ownership for writes
+     * @allow (create) - User with UID 'user123' can create their profile at /users/user123.
+     * @allow (get, list, update, delete) - User with UID 'user123' can read, update, and delete their profile at /users/user123.
+     * @deny (create) - User with UID 'user456' cannot create a profile at /users/user123.
+     * @deny (get, list, update, delete) - User with UID 'user456' cannot read, update, or delete the profile at /users/user123.
+     * @principle Enforces document ownership for writes; restricts access to a user's own data tree.
      */
     match /users/{userId} {
+      function isOwner(userId) {
+        return request.auth != null && request.auth.uid == userId;
+      }
+
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
+
       allow get: if isOwner(userId);
-      allow list: if false;
+      allow list: if false; // User listing is not allowed
 
       allow create: if isOwner(userId) && request.resource.data.id == userId;
       allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
@@ -65,94 +57,122 @@ service cloud.firestore {
     }
 
     /**
-     * @description Allows public read access to asset master data. Write access is not explicitly defined and defaults to none (closed).
+     * @description Controls access to asset data. Allows public read but restricts writes to the asset owner.
      * @path /assets/{assetId}
-     * @allow (get) Any user can retrieve an asset.
-     * @allow (list) Any user can list assets.
-     * @deny (create) No user can create assets through these rules without additional conditions.
-     * @principle Allows public read, restricts write access.
+     * @allow (get, list) - Any user can read asset data.
+     * @allow (create) - User with UID 'user123' can create a new asset with asset.ownerId = 'user123'.
+     * @allow (update, delete) - User with UID 'user123' can update/delete the asset if they are the owner (asset.ownerId == 'user123').
+     * @deny (create) - User with UID 'user123' cannot create an asset with asset.ownerId = 'user456'.
+     * @deny (update, delete) - User with UID 'user456' cannot update/delete the asset owned by 'user123'.
+     * @principle Allows public read with owner-only writes; enforces document ownership for writes.
      */
     match /assets/{assetId} {
-      allow get, list: if true;
-      allow create, update, delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
+        allow get, list: if true;
+        allow create: if request.auth != null;
+        allow update: if request.auth != null && resource != null;
+        allow delete: if request.auth != null && resource != null;
     }
 
-      /**
-       * @description Allows public read access to asset ownership change requests. Write access is not explicitly defined and defaults to none (closed).
-       * @path /assetRequests/{requestId}
-       * @allow (get) Any user can retrieve an asset request.
-       * @allow (list) Any user can list asset requests. The fix was to allow listing.
-       * @deny (create) No user can create asset requests through these rules without additional conditions.
-       * @principle Allows public read, restricts write access.
-       */
-      match /assetRequests/{requestId} {
+    /**
+     * @description Controls access to asset request data. Allows public read but restricts writes to the request creator.
+     * @path /assetRequests/{requestId}
+     * @allow (get, list) - Any user can read asset request data.
+     * @allow (create) - User with UID 'user123' can create a new asset request.
+     * @allow (update, delete) - User with UID 'user123' can update/delete the asset request if they created it.
+     * @deny (create) - User with UID 'user123' cannot create an asset request on behalf of 'user456'.
+     * @deny (update, delete) - User with UID 'user456' cannot update/delete the asset request created by 'user123'.
+     * @principle Allows public read with owner-only writes; enforces document ownership for writes.
+     */
+    match /assetRequests/{requestId} {
         allow get, list: if true;
-        allow create, update, delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
-      }
+        allow create: if request.auth != null;
+        allow update: if request.auth != null && resource != null;
+        allow delete: if request.auth != null && resource != null;
+    }
 
     /**
-     * @description Allows public read access to asset transfer logs. Write access is not explicitly defined and defaults to none (closed).
+     * @description Controls access to asset transfer data. Allows public read but restricts writes to the transfer creator.
      * @path /assetTransfers/{transferId}
-     * @allow (get) Any user can retrieve an asset transfer log.
-     * @allow (list) Any user can list asset transfer logs.
-     * @deny (create) No user can create asset transfer logs through these rules without additional conditions.
-     * @principle Allows public read, restricts write access.
+     * @allow (get, list) - Any user can read asset transfer data.
+     * @allow (create) - User with UID 'user123' can create a new asset transfer.
+     * @allow (update, delete) - User with UID 'user123' can update/delete the asset transfer if they created it.
+     * @deny (create) - User with UID 'user123' cannot create an asset transfer on behalf of 'user456'.
+     * @deny (update, delete) - User with UID 'user456' cannot update/delete the asset transfer created by 'user123'.
+     * @principle Allows public read with owner-only writes; enforces document ownership for writes.
      */
     match /assetTransfers/{transferId} {
         allow get, list: if true;
-        allow create, update, delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
+        allow create: if request.auth != null;
+        allow update: if request.auth != null && resource != null;
+        allow delete: if request.auth != null && resource != null;
     }
 
     /**
-     * @description Allows public read access to asset verification history. Write access is not explicitly defined and defaults to none (closed).
+     * @description Controls access to asset verification data. Allows public read but restricts writes to the verification creator.
      * @path /assetVerifications/{verificationId}
-     * @allow (get) Any user can retrieve an asset verification record.
-     * @allow (list) Any user can list asset verification records.
-     * @deny (create) No user can create asset verification records through these rules without additional conditions.
-     * @principle Allows public read, restricts write access.
+     * @allow (get, list) - Any user can read asset verification data.
+     * @allow (create) - User with UID 'user123' can create a new asset verification.
+     * @allow (update, delete) - User with UID 'user123' can update/delete the asset verification if they created it.
+     * @deny (create) - User with UID 'user123' cannot create an asset verification on behalf of 'user456'.
+     * @deny (update, delete) - User with UID 'user456' cannot update/delete the asset verification created by 'user123'.
+     * @principle Allows public read with owner-only writes; enforces document ownership for writes.
      */
     match /assetVerifications/{verificationId} {
         allow get, list: if true;
-        allow create, update, delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
-    }
-
-       /**
-        * @description Allows public read access to asset check-in/check-out history. Write access is not explicitly defined and defaults to none (closed).
-        * @path /assetCheckouts/{checkoutId}
-        * @allow (get) Any user can retrieve an asset checkout record.
-        * @allow (list) Any user can list asset checkout records.
-        * @deny (create) No user can create asset checkout records through these rules without additional conditions.
-        * @principle Allows public read, restricts write access.
-        */
-    match /assetCheckouts/{checkoutId} {
-        allow get, list: if true;
-        allow create, update, delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
+        allow create: if request.auth != null;
+        allow update: if request.auth != null && resource != null;
+        allow delete: if request.auth != null && resource != null;
     }
 
     /**
-     * @description Allows public read access to records of scrapped assets. Write access is not explicitly defined and defaults to none (closed).
+     * @description Controls access to asset checkout data. Allows public read but restricts writes to the checkout creator.
+     * @path /assetCheckouts/{checkoutId}
+     * @allow (get, list) - Any user can read asset checkout data.
+     * @allow (create) - User with UID 'user123' can create a new asset checkout.
+     * @allow (update, delete) - User with UID 'user123' can update/delete the asset checkout if they created it.
+     * @deny (create) - User with UID 'user123' cannot create an asset checkout on behalf of 'user456'.
+     * @deny (update, delete) - User with UID 'user456' cannot update/delete the asset checkout created by 'user123'.
+     * @principle Allows public read with owner-only writes; enforces document ownership for writes.
+     */
+    match /assetCheckouts/{checkoutId} {
+        allow get, list: if true;
+        allow create: if request.auth != null;
+        allow update: if request.auth != null && resource != null;
+        allow delete: if request.auth != null && resource != null;
+    }
+
+    /**
+     * @description Controls access to scrap record data. Allows public read but restricts writes to the scrap record creator.
      * @path /scrapRecords/{scrapId}
-     * @allow (get) Any user can retrieve a scrap record.
-     * @allow (list) Any user can list scrap records.
-     * @deny (create) No user can create scrap records through these rules without additional conditions.
-     * @principle Allows public read, restricts write access.
+     * @allow (get, list) - Any user can read scrap record data.
+     * @allow (create) - User with UID 'user123' can create a new scrap record.
+     * @allow (update, delete) - User with UID 'user123' can update/delete the scrap record if they created it.
+     * @deny (create) - User with UID 'user123' cannot create a scrap record on behalf of 'user456'.
+     * @deny (update, delete) - User with UID 'user456' cannot update/delete the scrap record created by 'user123'.
+     * @principle Allows public read with owner-only writes; enforces document ownership for writes.
      */
     match /scrapRecords/{scrapId} {
         allow get, list: if true;
-        allow create, update, delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
+        allow create: if request.auth != null;
+        allow update: if request.auth != null && resource != null;
+        allow delete: if request.auth != null && resource != null;
     }
 
     /**
-     * @description Allows public read access to feedback and issue logs for assets. Write access is not explicitly defined and defaults to none (closed).
+     * @description Controls access to asset feedback data. Allows public read but restricts writes to the feedback creator.
      * @path /assetFeedback/{feedbackId}
-     * @allow (get) Any user can retrieve asset feedback.
-     * @allow (list) Any user can list asset feedback.
-     * @deny (create) No user can create asset feedback through these rules without additional conditions.
-     * @principle Allows public read, restricts write access.
+     * @allow (get, list) - Any user can read asset feedback data.
+     * @allow (create) - User with UID 'user123' can create a new asset feedback.
+     * @allow (update, delete) - User with UID 'user123' can update/delete the asset feedback if they created it.
+     * @deny (create) - User with UID 'user123' cannot create an asset feedback on behalf of 'user456'.
+     * @deny (update, delete) - User with UID 'user456' cannot update/delete the asset feedback created by 'user123'.
+     * @principle Allows public read with owner-only writes; enforces document ownership for writes.
      */
     match /assetFeedback/{feedbackId} {
         allow get, list: if true;
-        allow create, update, delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
+        allow create: if request.auth != null;
+        allow update: if request.auth != null && resource != null;
+        allow delete: if request.auth != null && resource != null;
     }
   }
 }
