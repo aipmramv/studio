@@ -18,7 +18,8 @@ import { useToast } from "@/hooks/use-toast";
 import type { AssetManagementFormData } from "@/lib/schemas";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useAuth, useCollection, useFirestore, useMemoFirebase } from "@/firebase";
+import { useAuth } from "@/hooks/useAuth";
+import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { collection, query, where, doc } from "firebase/firestore";
 import { addDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
@@ -55,15 +56,15 @@ export default function AssetRequestPage() {
   const firestore = useFirestore();
 
   const assetsQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
+    if (!firestore || !user) return null; // Only query if user is logged in
     return query(collection(firestore, "assets"));
-  }, [firestore]);
+  }, [firestore, user]);
   const { data: allAssets, isLoading: isLoadingAssets } = useCollection<AssetManagementFormData>(assetsQuery);
 
   const requestsQuery = useMemoFirebase(() => {
-    if (!firestore || !user) return null; // Wait for user to be authenticated
+    if (!firestore || !user) return null;
     return query(collection(firestore, "assetRequests"));
-  }, [firestore, user]); // Add user as a dependency
+  }, [firestore, user]);
   const { data: requests, isLoading: isLoadingRequests } = useCollection<OwnershipRequest>(requestsQuery);
 
   // Filter for available assets for the selection dialog
@@ -168,7 +169,7 @@ export default function AssetRequestPage() {
                     <TableCell>{req.toDepartment}</TableCell>
                     <TableCell><Badge variant={getStatusBadgeVariant(req.status)}>{req.status}</Badge></TableCell>
                     <TableCell className="text-right space-x-2">
-                        {req.status === "Pending" && (
+                        {req.status === "Pending" && user?.role === 'admin' && (
                             <>
                                 <Button variant="outline" size="sm" onClick={() => handleRequestAction(req.id, "Approve")}><Check className="w-3 h-3 mr-1"/>Approve</Button>
                                 <Button variant="destructive" size="sm" onClick={() => handleRequestAction(req.id, "Reject")}><X className="w-3 h-3 mr-1"/>Reject</Button>

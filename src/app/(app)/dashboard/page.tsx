@@ -6,9 +6,7 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { LibraryBig, AlertTriangle, Truck, TestTube2, Recycle, HardHat, PlusCircle, BarChart3, ListChecks, Users, Clock, Package, CheckSquare } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
-import { mockAssetData } from "@/lib/mock-asset-data";
-import { allRequestsSource } from '@/lib/mock-data';
+import { useAuth, useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { DEPARTMENTS, TEAMS_AND_TRIBES, ASSET_CLASSIFICATIONS } from "@/lib/constants";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useRouter } from "next/navigation";
@@ -16,22 +14,38 @@ import { SampleBarChart } from "@/components/charts/SampleBarChart";
 import { SampleLineChart } from "@/components/charts/SampleLineChart";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
+import { collection, query } from "firebase/firestore";
+import { AssetManagementFormData } from "@/lib/schemas";
+import { ApprovalItem } from "@/lib/mock-data";
 
 
 export default function DashboardPage() {
     const { user } = useAuth();
     const router = useRouter();
+    const firestore = useFirestore();
+    
     const [selectedDepartment, setSelectedDepartment] = React.useState<string | undefined>(
         user?.role === 'spoc' && user.department ? user.department : undefined
     );
     const [selectedTeam, setSelectedTeam] = React.useState<string | undefined>(undefined);
     const [selectedLocation, setSelectedLocation] = React.useState<string | undefined>(undefined);
     const [selectedClassification, setSelectedClassification] = React.useState<string | undefined>(undefined);
+    
+    const assetsQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return query(collection(firestore, "assets"));
+    }, [firestore]);
+    const { data: allAssets, isLoading: isLoadingAssets } = useCollection<AssetManagementFormData>(assetsQuery);
+
+    const requestsQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return query(collection(firestore, "assetRequests"));
+    }, [firestore]);
+    const { data: allRequests, isLoading: isLoadingRequests } = useCollection<ApprovalItem>(requestsQuery);
 
 
     const filteredAssets = React.useMemo(() => {
-        let assets = mockAssetData;
+        let assets = allAssets || [];
         if(selectedDepartment && selectedDepartment !== "all") {
             assets = assets.filter(a => a.department === selectedDepartment);
         }
@@ -45,7 +59,7 @@ export default function DashboardPage() {
             assets = assets.filter(a => a.assetClassification === selectedClassification);
         }
         return assets;
-    }, [selectedDepartment, selectedTeam, selectedLocation, selectedClassification]);
+    }, [allAssets, selectedDepartment, selectedTeam, selectedLocation, selectedClassification]);
 
 
     const kpiCards = React.useMemo(() => {
@@ -97,10 +111,10 @@ export default function DashboardPage() {
         { month: "Jun", "TT <> ITEC": 14, "ITEC -> Site": 9, "Calibration": 5, "Scrap": 1 },
     ];
 
-    const pendingRequests = allRequestsSource.filter(r => 
+    const pendingRequests = (allRequests || []).filter(r => 
         (r.requestType === 'Asset Request' || r.requestType === 'Material Movement' || r.requestType === 'Scrap Request') &&
         !r.isVoided && 
-        r.currentAssignees.length > 0
+        (r.currentStepName.toLowerCase().includes('pending') || r.currentAssignees?.length > 0)
     );
 
   return (
@@ -166,7 +180,8 @@ export default function DashboardPage() {
                 <Table>
                     <TableHeader><TableRow><TableHead>ID</TableHead><TableHead>Type</TableHead><TableHead>Requester</TableHead><TableHead>Current Step</TableHead></TableRow></TableHeader>
                     <TableBody>
-                        {pendingRequests.slice(0,5).map(req => (
+                        {isLoadingRequests ? <TableRow><TableCell colSpan={4} className="text-center">Loading requests...</TableCell></TableRow> :
+                        pendingRequests.slice(0,5).map(req => (
                             <TableRow key={req.id}>
                                 <TableCell><Button variant="link" size="sm" className="p-0 h-auto font-medium" onClick={() => router.push('/all-requests')}>{req.id}</Button></TableCell>
                                 <TableCell>{req.requestType}</TableCell>
