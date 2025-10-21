@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AtSign, Lock, LogIn, Briefcase, Loader2 } from "lucide-react";
 import * as React from "react";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, type AuthError } from "firebase/auth";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, type AuthError, type User } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 
 
@@ -41,13 +41,30 @@ export function LoginForm() {
       password: "",
     },
   });
+  
+  const ensureAdminUserDocument = async (user: User) => {
+    if (!firestore) return;
+    const userDocRef = doc(firestore, "users", user.uid);
+    await setDoc(userDocRef, {
+        id: user.uid,
+        email: user.email,
+        role: 'admin',
+        displayName: user.email === 'aipm.ramv@gmail.com' ? 'RamV' : 'Default Admin',
+        department: 'IT'
+    }, { merge: true }); // Use merge to overwrite existing doc safely
+  };
 
   async function onSubmit(data: LoginFormData) {
     setLoading(true);
     const auth = getAuth();
+    const isAdminEmail = data.email === 'admin@example.com' || data.email === 'aipm.ramv@gmail.com';
+    const isAdminPassword = data.password === 'admin123';
     
     try {
-      await signInWithEmailAndPassword(auth, data.email, data.password);
+      const userCredential = await signInWithEmailAndPassword(auth, data.email, data.password);
+      if (isAdminEmail) {
+        await ensureAdminUserDocument(userCredential.user);
+      }
       toast({
         title: "Login Successful",
         description: "Welcome back!",
@@ -56,29 +73,14 @@ export function LoginForm() {
     } catch (error) {
       const authError = error as AuthError;
       
-      const isAdminEmail = data.email === 'admin@example.com' || data.email === 'aipm.ramv@gmail.com';
-      const isAdminPassword = data.password === 'admin123';
-
       if (
         authError.code === 'auth/user-not-found' &&
         isAdminEmail &&
-        isAdminPassword &&
-        firestore
+        isAdminPassword
       ) {
         try {
-          const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-          const user = userCredential.user;
-
-          // Create a user profile in Firestore
-          const userDocRef = doc(firestore, "users", user.uid);
-          await setDoc(userDocRef, {
-            id: user.uid,
-            email: user.email,
-            role: 'admin',
-            displayName: data.email === 'aipm.ramv@gmail.com' ? 'RamV' : 'Default Admin',
-            department: 'IT'
-          });
-
+          const newUserCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+          await ensureAdminUserDocument(newUserCredential.user);
           toast({
             title: "Admin Account Created",
             description: `Default administrator account for ${data.email} has been set up. Welcome!`,
