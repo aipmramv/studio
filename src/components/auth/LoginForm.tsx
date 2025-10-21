@@ -1,3 +1,4 @@
+
 // src/components/auth/LoginForm.tsx
 "use client";
 
@@ -45,13 +46,14 @@ export function LoginForm() {
   const ensureAdminUserDocument = async (user: User) => {
     if (!firestore) return;
     const userDocRef = doc(firestore, "users", user.uid);
+    // Overwrite the user document to ensure the role is admin.
     await setDoc(userDocRef, {
         id: user.uid,
         email: user.email,
         role: 'admin',
-        displayName: user.email === 'aipm.ramv@gmail.com' ? 'RamV' : 'Default Admin',
+        displayName: user.email === 'aipm.ramv@gmail.com' ? 'RamV' : (user.email === 'admin@example.com' ? 'Default Admin' : user.displayName),
         department: 'IT'
-    }, { merge: true }); // Use merge to overwrite existing doc safely
+    }, { merge: true });
   };
 
   async function onSubmit(data: LoginFormData) {
@@ -61,18 +63,24 @@ export function LoginForm() {
     const isAdminPassword = data.password === 'admin123';
     
     try {
+      // First, attempt to sign in the user.
       const userCredential = await signInWithEmailAndPassword(auth, data.email, data.password);
+      
+      // If sign-in is successful AND it's an admin email, ensure the role is set correctly.
       if (isAdminEmail) {
         await ensureAdminUserDocument(userCredential.user);
       }
+      
       toast({
         title: "Login Successful",
         description: "Welcome back!",
       });
       router.push("/dashboard");
+
     } catch (error) {
       const authError = error as AuthError;
       
+      // If the user does not exist AND it's the default admin credentials, create the account.
       if (
         authError.code === 'auth/user-not-found' &&
         isAdminEmail &&
@@ -96,6 +104,7 @@ export function LoginForm() {
           });
         }
       } else {
+         // For any other login error (wrong password, etc.)
          toast({
           title: "Login Failed",
           description: authError.message || "An unexpected error occurred.",
