@@ -18,8 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { AssetManagementFormData } from "@/lib/schemas";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useAuth } from "@/hooks/useAuth";
-import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
+import { useAuth, useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { collection, query, where, doc } from "firebase/firestore";
 import { addDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
@@ -55,10 +54,16 @@ export default function AssetRequestPage() {
   const { user } = useAuth();
   const firestore = useFirestore();
 
-  const assetsQuery = useMemoFirebase(() => firestore && query(collection(firestore, "assets")), [firestore]);
+  const assetsQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, "assets"));
+  }, [firestore]);
   const { data: allAssets, isLoading: isLoadingAssets } = useCollection<AssetManagementFormData>(assetsQuery);
 
-  const requestsQuery = useMemoFirebase(() => firestore && query(collection(firestore, "assetRequests")), [firestore]);
+  const requestsQuery = useMemoFirebase(() => {
+    if (!firestore || !user) return null; // Wait for user to be authenticated
+    return query(collection(firestore, "assetRequests"));
+  }, [firestore, user]); // Add user as a dependency
   const { data: requests, isLoading: isLoadingRequests } = useCollection<OwnershipRequest>(requestsQuery);
 
   // Filter for available assets for the selection dialog
