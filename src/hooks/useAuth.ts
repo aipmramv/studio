@@ -1,37 +1,61 @@
 // src/hooks/useAuth.ts
 "use client";
 
-import { useUser, useDoc, useFirestore } from '@/firebase'; // Import the real useUser hook from your firebase setup
+import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { getAuth, signOut } from "firebase/auth";
 import { useRouter } from 'next/navigation';
 import { useToast } from './use-toast';
 import { doc } from 'firebase/firestore';
 import * as React from 'react';
+import type { User as FirebaseUser } from 'firebase/auth';
 
-// This is a real auth hook that uses the Firebase context.
+// Define the shape of our user profile data in Firestore
+interface UserProfile {
+  role: 'admin' | 'spoc' | 'user';
+  department: string;
+  displayName: string;
+  email: string;
+  id: string;
+}
+
+// Define the shape of the user object we'll use throughout the app
+export interface AppUser extends FirebaseUser {
+  role: 'admin' | 'spoc' | 'user';
+  department: string;
+}
+
 export function useAuth() {
   const { user: firebaseUser, isUserLoading, userError } = useUser();
   const router = useRouter();
   const { toast } = useToast();
   const firestore = useFirestore();
 
-  // Create a document reference to the user's profile in Firestore
-  const userDocRef = React.useMemo(() => {
+  // Create a memoized document reference to the user's profile in Firestore
+  const userDocRef = useMemoFirebase(() => {
     if (!firestore || !firebaseUser) return null;
     return doc(firestore, 'users', firebaseUser.uid);
   }, [firestore, firebaseUser]);
 
   // Use the useDoc hook to get the user's profile data
-  const { data: userProfile, isLoading: isProfileLoading } = useDoc(userDocRef);
+  const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userDocRef);
 
+  // Memoize the final combined user object
   const authUser = React.useMemo(() => {
-    if (!firebaseUser) return null;
+    // If there's no firebaseUser, there's no authenticated user
+    if (!firebaseUser) {
+      return null;
+    }
+    
+    // The user is authenticated, but we might still be loading their profile from Firestore.
+    // We create a complete AppUser object by merging FirebaseUser and our Firestore profile.
     return {
       ...firebaseUser,
-      // The role and department now come from the Firestore document
-      role: userProfile?.role || 'user',
+      // Use the role from the profile if available, otherwise default to 'user'
+      role: userProfile?.role || 'user', 
+      // Use the department from the profile if available, otherwise default to 'Unassigned'
       department: userProfile?.department || 'Unassigned',
-    };
+    } as AppUser; // Cast to our AppUser type
+
   }, [firebaseUser, userProfile]);
 
   const logout = async () => {
@@ -48,6 +72,7 @@ export function useAuth() {
 
   return { 
     user: authUser, 
+    // The overall loading state is true if either Firebase Auth is loading or the profile is loading.
     loading: isUserLoading || isProfileLoading, 
     error: userError,
     logout,

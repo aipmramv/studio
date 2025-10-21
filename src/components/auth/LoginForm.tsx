@@ -56,11 +56,13 @@ export function LoginForm() {
     } catch (error) {
       const authError = error as AuthError;
       
-      // Special handling for the default admin user on first login
+      const isAdminEmail = data.email === 'admin@example.com' || data.email === 'aipm.ramv@gmail.com';
+      const isAdminPassword = data.password === 'admin123';
+
       if (
         authError.code === 'auth/user-not-found' &&
-        data.email === 'admin@example.com' &&
-        data.password === 'admin123' &&
+        isAdminEmail &&
+        isAdminPassword &&
         firestore
       ) {
         try {
@@ -73,13 +75,13 @@ export function LoginForm() {
             id: user.uid,
             email: user.email,
             role: 'admin',
-            displayName: 'Admin User',
+            displayName: data.email === 'aipm.ramv@gmail.com' ? 'RamV' : 'Default Admin',
             department: 'IT'
           });
 
           toast({
             title: "Admin Account Created",
-            description: "Default administrator account has been set up. Welcome!",
+            description: `Default administrator account for ${data.email} has been set up. Welcome!`,
           });
           router.push("/dashboard");
 
