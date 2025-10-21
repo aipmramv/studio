@@ -16,8 +16,8 @@ export function useAuth() {
     ...user,
     // The role should come from custom claims or a Firestore document.
     // For now, we'll assign a role based on email for demonstration.
-    role: user.email === 'admin@example.com' ? 'admin' : 'user',
-    department: user.email === 'admin@example.com' ? 'IT' : 'Unassigned',
+    role: user.email === 'admin@example.com' || user.email === 'aipm.ramv@gmail.com' ? 'admin' : 'user',
+    department: user.email === 'admin@example.com' || user.email === 'aipm.ramv@gmail.com' ? 'IT' : 'Unassigned',
   } : null;
 
   const logout = async () => {
