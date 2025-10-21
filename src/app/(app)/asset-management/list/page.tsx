@@ -17,7 +17,7 @@ import { PlusCircle, Edit, Search, ChevronsLeft, ChevronsRight, Upload, ListFilt
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogClose, DialogFooter } from "@/components/ui/dialog";
 
 import { useToast } from "@/hooks/use-toast";
-import { DEPARTMENTS, ASSET_CLASSIFICations, ASSET_STATUSES, STORE_LOCATIONS } from "@/lib/constants";
+import { DEPARTMENTS, ASSET_CLASSIFICATIONS, ASSET_STATUSES, STORE_LOCATIONS } from "@/lib/constants";
 import { AssetManagementForm } from "@/components/forms/AssetForm";
 import type { AssetManagementFormData } from "@/lib/schemas";
 import { FileUpload } from "@/components/ui/file-upload";
