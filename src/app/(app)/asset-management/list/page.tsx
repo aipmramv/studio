@@ -197,13 +197,11 @@ export default function AssetListPage() {
         title="Asset Management"
         description="Search, filter, manage, and report on all registered assets."
         actions={
-          isUserAdmin && (
-            <Button asChild>
-              <Link href="/asset-management/new">
-                <PlusCircle className="w-4 h-4 mr-2" /> Add New Asset
-              </Link>
-            </Button>
-          )
+          <Button asChild>
+            <Link href="/asset-management/new">
+              <PlusCircle className="w-4 h-4 mr-2" /> Add New Asset
+            </Link>
+          </Button>
         }
       />
       <Dialog open={!!editingAsset} onOpenChange={(isOpen) => {
