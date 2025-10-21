@@ -44,11 +44,15 @@ export function AssetManagementForm({ initialData, onSave, onCancel, isEditing =
     : {
         assetNumber: "",
         assetDescription: "",
-        department: undefined,
-        location: undefined,
-        assetClassification: undefined,
-        currentStatus: undefined,
+        department: "",
+        location: "",
+        assetClassification: "",
+        assetGrouping: "",
+        currentStatus: "",
         ledgerQty: 1,
+        purchaseValue: 0,
+        lifecycleYears: 0,
+        weeklyUsageFrequency: 0,
     },
   });
 
@@ -83,7 +87,7 @@ export function AssetManagementForm({ initialData, onSave, onCancel, isEditing =
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <FormField control={form.control} name="assetClassification" render={({ field }) => (
                         <FormItem><FormLabel>Asset Classification</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value} disabled={readOnly}>
+                          <Select onValueChange={field.onChange} value={field.value} disabled={readOnly}>
                             <FormControl><SelectTrigger><SelectValue placeholder="Select Classification" /></SelectTrigger></FormControl>
                             <SelectContent>{ASSET_CLASSIFICATIONS.map(item => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent>
                           </Select>
@@ -91,7 +95,7 @@ export function AssetManagementForm({ initialData, onSave, onCancel, isEditing =
                     )}/>
                     <FormField control={form.control} name="assetGrouping" render={({ field }) => (
                         <FormItem><FormLabel>Asset Grouping</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value} disabled={readOnly}>
+                          <Select onValueChange={field.onChange} value={field.value} disabled={readOnly}>
                             <FormControl><SelectTrigger><SelectValue placeholder="Select Grouping" /></SelectTrigger></FormControl>
                             <SelectContent>{ASSET_GROUPINGS.map(item => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent>
                           </Select>
@@ -149,7 +153,7 @@ export function AssetManagementForm({ initialData, onSave, onCancel, isEditing =
                     )}/>
                     <FormField control={form.control} name="department" render={({ field }) => (
                         <FormItem><FormLabel>Department</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={readOnly}>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={readOnly}>
                             <FormControl><SelectTrigger><SelectValue placeholder="Select Department" /></SelectTrigger></FormControl>
                             <SelectContent>{DEPARTMENTS.map(dept => <SelectItem key={dept} value={dept}>{dept}</SelectItem>)}</SelectContent>
                         </Select><FormMessage /></FormItem>
@@ -159,7 +163,7 @@ export function AssetManagementForm({ initialData, onSave, onCancel, isEditing =
                     )}/>
                     <FormField control={form.control} name="teamOrTribe" render={({ field }) => (
                         <FormItem><FormLabel>Team / Tribe</FormLabel>
-                         <Select onValueChange={field.onChange} defaultValue={field.value} disabled={readOnly}>
+                         <Select onValueChange={field.onChange} value={field.value} disabled={readOnly}>
                             <FormControl><SelectTrigger><SelectValue placeholder="Select Team/Tribe" /></SelectTrigger></FormControl>
                             <SelectContent>{TEAMS_AND_TRIBES.map(item => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent>
                           </Select>
@@ -180,7 +184,7 @@ export function AssetManagementForm({ initialData, onSave, onCancel, isEditing =
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                     <FormField control={form.control} name="location" render={({ field }) => (
                         <FormItem><FormLabel>Location</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={readOnly}>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={readOnly}>
                             <FormControl><SelectTrigger><SelectValue placeholder="Select Location" /></SelectTrigger></FormControl>
                             <SelectContent>{STORE_LOCATIONS.map(loc => <SelectItem key={loc} value={loc}>{loc}</SelectItem>)}</SelectContent>
                         </Select>
@@ -201,14 +205,14 @@ export function AssetManagementForm({ initialData, onSave, onCancel, isEditing =
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                      <FormField control={form.control} name="currentStatus" render={({ field }) => (
                         <FormItem><FormLabel>Current Status</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={readOnly}>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={readOnly}>
                             <FormControl><SelectTrigger><SelectValue placeholder="Select Status" /></SelectTrigger></FormControl>
                             <SelectContent>{ASSET_STATUSES.map(item => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent>
                         </Select><FormMessage /></FormItem>
                     )}/>
                     <FormField control={form.control} name="verificationStatus" render={({ field }) => (
                         <FormItem><FormLabel>Verification Status</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={readOnly}>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={readOnly}>
                             <FormControl><SelectTrigger><SelectValue placeholder="Select Status" /></SelectTrigger></FormControl>
                             <SelectContent><SelectItem value="Verified">Verified</SelectItem><SelectItem value="Pending">Pending</SelectItem><SelectItem value="Discrepancy">Discrepancy</SelectItem></SelectContent>
                         </Select><FormMessage /></FormItem>
@@ -220,14 +224,14 @@ export function AssetManagementForm({ initialData, onSave, onCancel, isEditing =
                     )}/>
                     <FormField control={form.control} name="usableCondition" render={({ field }) => (
                         <FormItem><FormLabel>Usable Condition</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={readOnly}>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={readOnly}>
                             <FormControl><SelectTrigger><SelectValue placeholder="Select Condition" /></SelectTrigger></FormControl>
                             <SelectContent><SelectItem value="Yes">Yes</SelectItem><SelectItem value="No">No</SelectItem><SelectItem value="Partial">Partial</SelectItem></SelectContent>
                         </Select><FormMessage /></FormItem>
                     )}/>
                     <FormField control={form.control} name="workingConditionStatus" render={({ field }) => (
                         <FormItem><FormLabel>Working Condition</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={readOnly}>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={readOnly}>
                             <FormControl><SelectTrigger><SelectValue placeholder="Select Status" /></SelectTrigger></FormControl>
                             <SelectContent><SelectItem value="Working">Working</SelectItem><SelectItem value="Not Working">Not Working</SelectItem><SelectItem value="Under Maintenance">Under Maintenance</SelectItem></SelectContent>
                         </Select><FormMessage /></FormItem>
