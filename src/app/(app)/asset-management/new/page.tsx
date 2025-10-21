@@ -4,24 +4,38 @@
 import { PageHeader } from "@/components/shared/PageHeader";
 import { AssetManagementForm } from "@/components/forms/AssetForm";
 import { type AssetManagementFormData } from "@/lib/schemas";
-import { mockAssetData } from "@/lib/mock-asset-data";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import { useFirestore, addDocumentNonBlocking } from "@/firebase";
+import { collection } from "firebase/firestore";
 
 export default function NewAssetPage() {
     const { toast } = useToast();
     const router = useRouter();
+    const firestore = useFirestore();
 
     const handleSave = (data: AssetManagementFormData) => {
-        const newAsset: AssetManagementFormData = {
+        if (!firestore) {
+            toast({ title: "Firestore not available", variant: "destructive" });
+            return;
+        }
+        
+        // Convert dates to string format for Firestore if they are Date objects
+        const dataToSave = {
             ...data,
-            id: `ASSET-${Date.now()}` // Create a unique ID
+            id: `ASSET-${Date.now()}`, // Create a unique ID
+            capitalizationDate: data.capitalizationDate ? new Date(data.capitalizationDate).toISOString() : null,
+            eolDate: data.eolDate ? new Date(data.eolDate).toISOString() : null,
+            verifiedOn: data.verifiedOn ? new Date(data.verifiedOn).toISOString() : null,
+            statusChangedOn: new Date().toISOString(), // Set current date as status changed
         };
-        // In a real app, you'd send this to an API. Here we just update the mock data.
-        mockAssetData.unshift(newAsset); 
+        
+        const assetsCollection = collection(firestore, "assets");
+        addDocumentNonBlocking(assetsCollection, dataToSave);
+
         toast({
             title: "Asset Added Successfully",
-            description: `Asset ${newAsset.assetNumber} has been added to the register.`,
+            description: `Asset ${dataToSave.assetNumber} has been added to the register.`,
         });
         router.push('/asset-management/list'); // Redirect back to the list
     };
