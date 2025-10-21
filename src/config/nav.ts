@@ -28,12 +28,6 @@ export const mainNavItems: NavItem[] = [
     description: "Asset summary and key alerts.",
   },
   {
-    title: 'KPI Dashboard',
-    href: '/kpi-dashboard',
-    icon: PieChart,
-    description: "Key Performance Indicators.",
-  },
-  {
     title: 'Asset Management',
     href: '/asset-management/list',
     icon: LibraryBig,
