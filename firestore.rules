@@ -1,257 +1,158 @@
+/**
+ * @fileoverview Firestore Security Rules for TrackFlow Asset Management System
+ *
+ * Core Philosophy:
+ * This ruleset prioritizes secure data access based on user identity and explicit authorization.
+ * It enforces ownership for user profiles and allows public read access to asset-related data
+ * while restricting write access to prevent unauthorized modifications.
+ *
+ * Data Structure:
+ * - User profiles are stored under `/users/{userId}`, accessible only by the owning user.
+ * - Asset master data, requests, transfers, verifications, checkouts, scrap records, and feedback
+ *   are stored in top-level collections (`/assets`, `/assetRequests`, etc.).  These collections
+ *   are publicly readable but writes are restricted.
+ *
+ * Key Security Decisions:
+ * - User listing is explicitly denied.
+ * - Asset-related collections are publicly readable to facilitate broad access to asset information,
+ *   but write access is restricted to prevent unauthorized modification.  If finer-grained access
+ *   control is needed for these collections, the rules must be updated accordingly.
+ *
+ * Denormalization for Authorization:
+ * - The rules rely on the authenticated user's UID (`request.auth.uid`) to control access.
+ *   For user-owned documents, the UID is compared to the document ID (`userId`) to enforce
+ *   ownership.
+ */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Grants access to user profile documents.
-     * @path /userProfiles/{userProfileId}
-     * @allow (create) User with matching UID can create their profile.
-     * @allow (get) User with matching UID can read their profile.
-     * @allow (update) User with matching UID can update their profile.
-     * @allow (delete) User with matching UID can delete their profile.
-     * @deny (create) User cannot create a profile with a different UID.
-     * @deny (get) User cannot read another user's profile.
-     * @deny (update) User cannot update another user's profile.
-     * @deny (delete) User cannot delete another user's profile.
-     * @principle Enforces document ownership for all operations on user profiles.
+     * @description Checks if the request is made by a signed-in user.
      */
-    match /userProfiles/{userProfileId} {
-      function isOwner(userProfileId) {
-        return request.auth != null && request.auth.uid == userProfileId;
-      }
+    function isSignedIn() {
+      return request.auth != null;
+    }
 
-      function isExistingOwner(userProfileId) {
-        return request.auth != null && request.auth.uid == resource.data.uid;
-      }
+    /**
+     * @description Checks if the authenticated user's UID matches the provided userId.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
 
-      allow get: if isOwner(userProfileId);
+    /**
+     * @description Checks if the authenticated user's UID matches the userId and the resource exists.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    /**
+     * @description Enforces document ownership for writes.
+     * @path /users/{userId}
+     * @allow (create) User with UID 'user123' creates a profile at /users/user123
+     * @deny (create) User with UID 'user123' attempts to create a profile at /users/user456
+     * @principle Enforces document ownership for writes
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId);
       allow list: if false;
-      allow create: if isOwner(userProfileId) && request.auth.uid == request.resource.data.uid;
-      allow update: if isExistingOwner(userProfileId);
-      allow delete: if isExistingOwner(userProfileId);
-    }
 
-    /**
-     * @description Grants access to material movement request documents within a user's collection.
-     * @path /users/{userId}/materialMovementRequests/{materialMovementRequestId}
-     * @allow (create) User can create a material movement request under their own userId.
-     * @allow (get) User can read a material movement request under their own userId.
-     * @allow (list) User can list material movement requests under their own userId.
-     * @allow (update) User can update a material movement request under their own userId.
-     * @allow (delete) User can delete a material movement request under their own userId.
-     * @deny (create) User cannot create a material movement request under another user's userId.
-     * @deny (get) User cannot read a material movement request under another user's userId.
-     * @deny (list) User cannot list material movement requests under another user's userId.
-     * @deny (update) User cannot update a material movement request under another user's userId.
-     * @deny (delete) User cannot delete a material movement request under another user's userId.
-     * @principle Enforces document ownership for all operations on material movement requests.
-     */
-    match /users/{userId}/materialMovementRequests/{materialMovementRequestId} {
-      function isOwner(userId) {
-        return request.auth != null && request.auth.uid == userId;
-      }
-
-      function isExistingOwner(userId) {
-        return request.auth != null && request.auth.uid == resource.data.requesterId;
-      }
-
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.requesterId == userId;
-      allow update: if isExistingOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
       allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Grants access to scrap movement request documents within a user's collection.
-     * @path /users/{userId}/scrapMovementRequests/{scrapMovementRequestId}
-     * @allow (create) User can create a scrap movement request under their own userId.
-     * @allow (get) User can read a scrap movement request under their own userId.
-     * @allow (list) User can list scrap movement requests under their own userId.
-     * @allow (update) User can update a scrap movement request under their own userId.
-     * @allow (delete) User can delete a scrap movement request under their own userId.
-     * @deny (create) User cannot create a scrap movement request under another user's userId.
-     * @deny (get) User cannot read a scrap movement request under another user's userId.
-     * @deny (list) User cannot list scrap movement requests under another user's userId.
-     * @deny (update) User cannot update a scrap movement request under another user's userId.
-     * @deny (delete) User cannot delete a scrap movement request under another user's userId.
-     * @principle Enforces document ownership for all operations on scrap movement requests.
+     * @description Allows public read access to asset master data. Write access is not explicitly defined and defaults to none (closed).
+     * @path /assets/{assetId}
+     * @allow (get) Any user can retrieve an asset.
+     * @allow (list) Any user can list assets.
+     * @deny (create) No user can create assets through these rules without additional conditions.
+     * @principle Allows public read, restricts write access.
      */
-    match /users/{userId}/scrapMovementRequests/{scrapMovementRequestId} {
-      function isOwner(userId) {
-        return request.auth != null && request.auth.uid == userId;
-      }
-
-      function isExistingOwner(userId) {
-        return request.auth != null && request.auth.uid == resource.data.requesterId;
-      }
-
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.requesterId == userId;
-      allow update: if isExistingOwner(userId);
-      allow delete: if isExistingOwner(userId);
-    }
-
-    /**
-     * @description Grants access to work permit request documents within a user's collection.
-     * @path /users/{userId}/workPermitRequests/{workPermitRequestId}
-     * @allow (create) User can create a work permit request under their own userId.
-     * @allow (get) User can read a work permit request under their own userId.
-     * @allow (list) User can list work permit requests under their own userId.
-     * @allow (update) User can update a work permit request under their own userId.
-     * @allow (delete) User can delete a work permit request under their own userId.
-     * @deny (create) User cannot create a work permit request under another user's userId.
-     * @deny (get) User cannot read a work permit request under another user's userId.
-     * @deny (list) User cannot list work permit requests under another user's userId.
-     * @deny (update) User cannot update a work permit request under another user's userId.
-     * @deny (delete) User cannot delete a work permit request under another user's userId.
-     * @principle Enforces document ownership for all operations on work permit requests.
-     */
-    match /users/{userId}/workPermitRequests/{workPermitRequestId} {
-      function isOwner(userId) {
-        return request.auth != null && request.auth.uid == userId;
-      }
-
-      function isExistingOwner(userId) {
-        return request.auth != null && request.auth.uid == resource.data.requesterId;
-      }
-
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.requesterId == userId;
-      allow update: if isExistingOwner(userId);
-      allow delete: if isExistingOwner(userId);
-    }
-
-    /**
-     * @description Grants access to approval documents within a material movement request's subcollection.
-     * @path /users/{userId}/materialMovementRequests/{materialMovementRequestId}/approvals/{approvalId}
-     * @allow (create) User can create an approval under a material movement request they own.
-     * @allow (get) User can read an approval under a material movement request they own.
-     * @allow (list) User can list approvals under a material movement request they own.
-     * @allow (update) User can update an approval under a material movement request they own.
-     * @allow (delete) User can delete an approval under a material movement request they own.
-     * @deny (create) User cannot create an approval under another user's material movement request.
-     * @deny (get) User cannot read an approval under another user's material movement request.
-     * @deny (list) User cannot list approvals under another user's material movement request.
-     * @deny (update) User cannot update an approval under another user's material movement request.
-     * @deny (delete) User cannot delete an approval under another user's material movement request.
-     * @principle Enforces document ownership for all operations on approvals within material movement requests.
-     */
-    match /users/{userId}/materialMovementRequests/{materialMovementRequestId}/approvals/{approvalId} {
-      function isOwner(userId) {
-        return request.auth != null && request.auth.uid == userId;
-      }
-
-      function isParentOwner(userId, materialMovementRequestId) {
-          return get(/databases/$(database)/documents/users/$(userId)/materialMovementRequests/$(materialMovementRequestId)).data.requesterId == userId;
-      }
-
-
-      function isExistingOwner(userId) {
-        return request.auth != null && request.auth.uid == userId;
-      }
-
-      allow get: if isOwner(userId) && isParentOwner(userId, materialMovementRequestId);
-      allow list: if isOwner(userId) && isParentOwner(userId, materialMovementRequestId);
-      allow create: if isOwner(userId) && isParentOwner(userId, materialMovementRequestId);
-      allow update: if isOwner(userId) && isParentOwner(userId, materialMovementRequestId);
-      allow delete: if isOwner(userId) && isParentOwner(userId, materialMovementRequestId);
-    }
-
-    /**
-     * @description Grants access to approval documents within a scrap movement request's subcollection.
-     * @path /users/{userId}/scrapMovementRequests/{scrapMovementRequestId}/approvals/{approvalId}
-     * @allow (create) User can create an approval under a scrap movement request they own.
-     * @allow (get) User can read an approval under a scrap movement request they own.
-     * @allow (list) User can list approvals under a scrap movement request they own.
-     * @allow (update) User can update an approval under a scrap movement request they own.
-     * @allow (delete) User can delete an approval under a scrap movement request they own.
-     * @deny (create) User cannot create an approval under another user's scrap movement request.
-     * @deny (get) User cannot read an approval under another user's scrap movement request.
-     * @deny (list) User cannot list approvals under another user's scrap movement request.
-     * @deny (update) User cannot update an approval under another user's scrap movement request.
-     * @deny (delete) User cannot delete an approval under another user's scrap movement request.
-     * @principle Enforces document ownership for all operations on approvals within scrap movement requests.
-     */
-    match /users/{userId}/scrapMovementRequests/{scrapMovementRequestId}/approvals/{approvalId} {
-      function isOwner(userId) {
-        return request.auth != null && request.auth.uid == userId;
-      }
-
-      function isParentOwner(userId, scrapMovementRequestId) {
-          return get(/databases/$(database)/documents/users/$(userId)/scrapMovementRequests/$(scrapMovementRequestId)).data.requesterId == userId;
-      }
-
-      function isExistingOwner(userId) {
-        return request.auth != null && request.auth.uid == userId;
-      }
-
-      allow get: if isOwner(userId) && isParentOwner(userId, scrapMovementRequestId);
-      allow list: if isOwner(userId) && isParentOwner(userId, scrapMovementRequestId);
-      allow create: if isOwner(userId) && isParentOwner(userId, scrapMovementRequestId);
-      allow update: if isOwner(userId) && isParentOwner(userId, scrapMovementRequestId);
-      allow delete: if isOwner(userId) && isParentOwner(userId, scrapMovementRequestId);
-    }
-
-    /**
-     * @description Grants access to approval documents within a work permit request's subcollection.
-     * @path /users/{userId}/workPermitRequests/{workPermitRequestId}/approvals/{approvalId}
-     * @allow (create) User can create an approval under a work permit request they own.
-     * @allow (get) User can read an approval under a work permit request they own.
-     * @allow (list) User can list approvals under a work permit request they own.
-     * @allow (update) User can update an approval under a work permit request they own.
-     * @allow (delete) User can delete an approval under a work permit request they own.
-     * @deny (create) User cannot create an approval under another user's work permit request.
-     * @deny (get) User cannot read an approval under another user's work permit request.
-     * @deny (list) User cannot list approvals under another user's work permit request.
-     * @deny (update) User cannot update an approval under another user's work permit request.
-     * @deny (delete) User cannot delete an approval under another user's work permit request.
-     * @principle Enforces document ownership for all operations on approvals within work permit requests.
-     */
-    match /users/{userId}/workPermitRequests/{workPermitRequestId}/approvals/{approvalId} {
-      function isOwner(userId) {
-        return request.auth != null && request.auth.uid == userId;
-      }
-
-       function isParentOwner(userId, workPermitRequestId) {
-          return get(/databases/$(database)/documents/users/$(userId)/workPermitRequests/$(workPermitRequestId)).data.requesterId == userId;
-      }
-
-      function isExistingOwner(userId) {
-        return request.auth != null && request.auth.uid == userId;
-      }
-
-      allow get: if isOwner(userId) && isParentOwner(userId, workPermitRequestId);
-      allow list: if isOwner(userId) && isParentOwner(userId, workPermitRequestId);
-      allow create: if isOwner(userId) && isParentOwner(userId, workPermitRequestId);
-      allow update: if isOwner(userId) && isParentOwner(userId, workPermitRequestId);
-      allow delete: if isOwner(userId) && isParentOwner(userId, workPermitRequestId);
-    }
-
-     /**
-      * @description Grants public read access to delivery challan documents but restricts write access to the creator.
-      * @path /deliveryChallans/{deliveryChallanId}
-      * @allow (get) Any user can read any delivery challan.
-      * @allow (list) Any user can list delivery challans.
-      * @allow (create) Authenticated user can create a delivery challan.
-      * @allow (update) Authenticated user can update the delivery challan if they are the original creator.
-      * @allow (delete) Authenticated user can delete the delivery challan if they are the original creator.
-      * @deny (create) Non-authenticated user cannot create a delivery challan.
-      * @deny (update) Non-authenticated user cannot update a delivery challan.
-      * @deny (delete) Non-authenticated user cannot delete a delivery challan.
-      * @principle Allows public read access while enforcing owner-only write access based on the requesterId field.
-      */
-    match /deliveryChallans/{deliveryChallanId} {
-
-      function isSignedIn() {
-        return request.auth != null;
-      }
-
+    match /assets/{assetId} {
       allow get, list: if true;
-      allow create: if isSignedIn();
-      allow update, delete: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create, update, delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
+    }
+
+      /**
+       * @description Allows public read access to asset ownership change requests. Write access is not explicitly defined and defaults to none (closed).
+       * @path /assetRequests/{requestId}
+       * @allow (get) Any user can retrieve an asset request.
+       * @allow (list) Any user can list asset requests. The fix was to allow listing.
+       * @deny (create) No user can create asset requests through these rules without additional conditions.
+       * @principle Allows public read, restricts write access.
+       */
+      match /assetRequests/{requestId} {
+        allow get, list: if true;
+        allow create, update, delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
+      }
+
+    /**
+     * @description Allows public read access to asset transfer logs. Write access is not explicitly defined and defaults to none (closed).
+     * @path /assetTransfers/{transferId}
+     * @allow (get) Any user can retrieve an asset transfer log.
+     * @allow (list) Any user can list asset transfer logs.
+     * @deny (create) No user can create asset transfer logs through these rules without additional conditions.
+     * @principle Allows public read, restricts write access.
+     */
+    match /assetTransfers/{transferId} {
+        allow get, list: if true;
+        allow create, update, delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
+    }
+
+    /**
+     * @description Allows public read access to asset verification history. Write access is not explicitly defined and defaults to none (closed).
+     * @path /assetVerifications/{verificationId}
+     * @allow (get) Any user can retrieve an asset verification record.
+     * @allow (list) Any user can list asset verification records.
+     * @deny (create) No user can create asset verification records through these rules without additional conditions.
+     * @principle Allows public read, restricts write access.
+     */
+    match /assetVerifications/{verificationId} {
+        allow get, list: if true;
+        allow create, update, delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
+    }
+
+       /**
+        * @description Allows public read access to asset check-in/check-out history. Write access is not explicitly defined and defaults to none (closed).
+        * @path /assetCheckouts/{checkoutId}
+        * @allow (get) Any user can retrieve an asset checkout record.
+        * @allow (list) Any user can list asset checkout records.
+        * @deny (create) No user can create asset checkout records through these rules without additional conditions.
+        * @principle Allows public read, restricts write access.
+        */
+    match /assetCheckouts/{checkoutId} {
+        allow get, list: if true;
+        allow create, update, delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
+    }
+
+    /**
+     * @description Allows public read access to records of scrapped assets. Write access is not explicitly defined and defaults to none (closed).
+     * @path /scrapRecords/{scrapId}
+     * @allow (get) Any user can retrieve a scrap record.
+     * @allow (list) Any user can list scrap records.
+     * @deny (create) No user can create scrap records through these rules without additional conditions.
+     * @principle Allows public read, restricts write access.
+     */
+    match /scrapRecords/{scrapId} {
+        allow get, list: if true;
+        allow create, update, delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
+    }
+
+    /**
+     * @description Allows public read access to feedback and issue logs for assets. Write access is not explicitly defined and defaults to none (closed).
+     * @path /assetFeedback/{feedbackId}
+     * @allow (get) Any user can retrieve asset feedback.
+     * @allow (list) Any user can list asset feedback.
+     * @deny (create) No user can create asset feedback through these rules without additional conditions.
+     * @principle Allows public read, restricts write access.
+     */
+    match /assetFeedback/{feedbackId} {
+        allow get, list: if true;
+        allow create, update, delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
     }
   }
 }
