@@ -25,38 +25,51 @@ export interface AppUser extends FirebaseUser {
 }
 
 export function useAuth() {
-  const { user: firebaseUser, isUserLoading, userError } = useUser();
+  const { user: firebaseUser, isUserLoading: isAuthLoading, userError } = useUser();
   const router = useRouter();
   const { toast } = useToast();
   const firestore = useFirestore();
 
-  // Create a memoized document reference to the user's profile in Firestore
   const userDocRef = useMemoFirebase(() => {
     if (!firestore || !firebaseUser) return null;
     return doc(firestore, 'users', firebaseUser.uid);
   }, [firestore, firebaseUser]);
 
-  // Use the useDoc hook to get the user's profile data
   const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userDocRef);
 
-  // Memoize the final combined user object
+  // The overall loading state is true if either Firebase Auth is loading or the profile is loading.
+  const isLoading = isAuthLoading || isProfileLoading;
+
   const authUser = React.useMemo(() => {
-    // If there's no firebaseUser, there's no authenticated user
-    if (!firebaseUser) {
+    // If we're still loading, or if there's no authenticated user, return null.
+    if (isLoading || !firebaseUser) {
       return null;
     }
-    
-    // The user is authenticated, but we might still be loading their profile from Firestore.
-    // We create a complete AppUser object by merging FirebaseUser and our Firestore profile.
+
+    // If the user is authenticated, but we don't have a profile yet (could be a brief state),
+    // we can return a default user object, but it's safer to wait until profile is loaded.
+    // However, if we wait, the UI might flicker. Let's return the merged object once profile is available.
+    if (!userProfile) {
+        // This case can happen if the user document hasn't been created yet for a new user.
+        // Or during the very brief moment between auth loading and doc loading.
+        // We can return a default 'user' role to prevent crashes, but admin functionality
+        // will only appear once the profile with 'admin' role is loaded.
+         return {
+            ...firebaseUser,
+            role: 'user', // Default to 'user' if profile isn't loaded yet
+            department: 'Unassigned',
+        } as AppUser;
+    }
+
+    // Both firebaseUser and userProfile are available. Merge them.
     return {
       ...firebaseUser,
-      // Use the role from the profile if available, otherwise default to 'user'
-      role: userProfile?.role || 'user', 
-      // Use the department from the profile if available, otherwise default to 'Unassigned'
-      department: userProfile?.department || 'Unassigned',
-    } as AppUser; // Cast to our AppUser type
+      role: userProfile.role,
+      department: userProfile.department,
+      displayName: userProfile.displayName, // Ensure displayName from Firestore is used
+    } as AppUser;
 
-  }, [firebaseUser, userProfile]);
+  }, [firebaseUser, userProfile, isLoading]);
 
   const logout = async () => {
     const auth = getAuth();
@@ -70,10 +83,9 @@ export function useAuth() {
     }
   };
 
-  return { 
-    user: authUser, 
-    // The overall loading state is true if either Firebase Auth is loading or the profile is loading.
-    loading: isUserLoading || isProfileLoading, 
+  return {
+    user: authUser,
+    loading: isLoading, // Return the combined loading state
     error: userError,
     logout,
   };
