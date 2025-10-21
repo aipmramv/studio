@@ -12,64 +12,37 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Send, PlusCircle, Check, X, Loader2, Eye, Search, ChevronsLeft, ChevronsRight } from "lucide-react";
-import { mockAssetData } from "@/lib/mock-asset-data";
+import { Send, PlusCircle, Check, X, Loader2, Eye, Search } from "lucide-react";
 import { DEPARTMENTS } from "@/lib/constants";
 import { useToast } from "@/hooks/use-toast";
 import type { AssetManagementFormData } from "@/lib/schemas";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useAuth } from "@/hooks/useAuth";
+import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
+import { collection, query, where } from "firebase/firestore";
+import { addDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
 
 type RequestStatus = "Pending" | "Approved" | "Rejected";
 
 interface OwnershipRequestAsset {
+  assetId: string;
   assetNumber: string;
-  assetDescription: string;
   currentDepartment: string;
 }
 
 interface OwnershipRequest {
   id: string;
   assets: OwnershipRequestAsset[];
-  requestedDepartment: string;
+  toDepartment: string;
   reason: string;
   requestedBy: string;
   requestedOn: Date;
   status: RequestStatus;
 }
 
-const mockRequests: OwnershipRequest[] = [
-    { 
-      id: "REQ-001", 
-      assets: [{ 
-        assetNumber: "KONE-RD-OSC-001", 
-        assetDescription: "Tektronix Oscilloscope", 
-        currentDepartment: "R&D" 
-      }], 
-      requestedDepartment: "Maintenance", 
-      reason: "Required for new diagnostics bench.", 
-      requestedBy: "Praveen S.", 
-      requestedOn: new Date(), 
-      status: "Pending" 
-    },
-    { 
-      id: "REQ-002", 
-      assets: [{
-        assetNumber: "KONE-RD-LAP-001",
-        assetDescription: "Dell Latitude 5420 Laptop",
-        currentDepartment: "R&D"
-      }],
-      requestedDepartment: "IT", 
-      reason: "Standardizing IT-managed assets.", 
-      requestedBy: "Admin Ram", 
-      requestedOn: new Date(new Date().setDate(new Date().getDate() - 2)), 
-      status: "Approved" 
-    },
-];
-
 export default function AssetRequestPage() {
-  const [requests, setRequests] = React.useState<OwnershipRequest[]>(mockRequests);
   const [isRequestDialogOpen, setIsRequestDialogOpen] = React.useState(false);
   
   // State for new request dialog
@@ -79,14 +52,22 @@ export default function AssetRequestPage() {
   const [reason, setReason] = React.useState("");
   
   const { toast } = useToast();
+  const { user } = useAuth();
+  const firestore = useFirestore();
+
+  const assetsQuery = useMemoFirebase(() => firestore && query(collection(firestore, "assets")), [firestore]);
+  const { data: allAssets, isLoading: isLoadingAssets } = useCollection<AssetManagementFormData>(assetsQuery);
+
+  const requestsQuery = useMemoFirebase(() => firestore && query(collection(firestore, "assetRequests")), [firestore]);
+  const { data: requests, isLoading: isLoadingRequests } = useCollection<OwnershipRequest>(requestsQuery);
 
   // Filter for available assets for the selection dialog
   const availableAssets = React.useMemo(() => 
-    mockAssetData.filter(asset => 
+    (allAssets || []).filter(asset => 
       (asset.assetNumber.toLowerCase().includes(assetSearchTerm.toLowerCase()) || 
        asset.assetDescription.toLowerCase().includes(assetSearchTerm.toLowerCase()))
     ), 
-  [assetSearchTerm]);
+  [allAssets, assetSearchTerm]);
   
   const handleToggleAssetSelection = (asset: AssetManagementFormData) => {
     setSelectedAssets(prev => 
@@ -97,24 +78,26 @@ export default function AssetRequestPage() {
   };
 
   const handleRequestSubmit = () => {
-    if (selectedAssets.length === 0 || !toDept || !reason) {
+    if (selectedAssets.length === 0 || !toDept || !reason || !user || !firestore) {
         toast({ title: "Missing fields", description: "Please select at least one asset, a destination department, and provide a reason.", variant: "destructive" });
         return;
     }
-    const newRequest: OwnershipRequest = {
-        id: `REQ-${String(Date.now()).slice(-4)}`,
+    const newRequest = {
         assets: selectedAssets.map(asset => ({
+            assetId: asset.id,
             assetNumber: asset.assetNumber,
-            assetDescription: asset.assetDescription,
             currentDepartment: asset.department
         })),
-        requestedDepartment: toDept,
+        toDepartment: toDept,
         reason,
-        requestedBy: "Current User", // Mock
+        requestedBy: user.displayName || user.email,
         requestedOn: new Date(),
         status: "Pending",
     };
-    setRequests(prev => [newRequest, ...prev]);
+    
+    const requestsCollection = collection(firestore, "assetRequests");
+    addDocumentNonBlocking(requestsCollection, newRequest);
+
     toast({ title: "Request Submitted", description: `Request for ${selectedAssets.length} asset(s) has been sent for approval.` });
     
     // Reset state and close dialog
@@ -126,9 +109,9 @@ export default function AssetRequestPage() {
   };
 
   const handleRequestAction = (requestId: string, action: "Approve" | "Reject") => {
-    setRequests(prev => prev.map(req => 
-        req.id === requestId ? { ...req, status: action === "Approve" ? "Approved" : "Rejected" } : req
-    ));
+    if(!firestore) return;
+    const requestDocRef = doc(firestore, "assetRequests", requestId);
+    updateDocumentNonBlocking(requestDocRef, { status: action === "Approve" ? "Approved" : "Rejected" });
     toast({ title: `Request ${action}d` });
   };
   
@@ -167,16 +150,17 @@ export default function AssetRequestPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {requests.map((req) => (
+                {isLoadingRequests && <TableRow><TableCell colSpan={6} className="text-center">Loading requests...</TableCell></TableRow>}
+                {requests?.map((req) => (
                   <TableRow key={req.id}>
-                    <TableCell className="font-medium">{req.id}</TableCell>
+                    <TableCell className="font-medium">{req.id.substring(0,7)}...</TableCell>
                     <TableCell>
                       {req.assets.length > 1 
                         ? `${req.assets.length} assets` 
-                        : `${req.assets[0].assetNumber} - ${req.assets[0].assetDescription}`}
+                        : req.assets[0]?.assetNumber}
                     </TableCell>
                     <TableCell>{[...new Set(req.assets.map(a => a.currentDepartment))].join(', ')}</TableCell>
-                    <TableCell>{req.requestedDepartment}</TableCell>
+                    <TableCell>{req.toDepartment}</TableCell>
                     <TableCell><Badge variant={getStatusBadgeVariant(req.status)}>{req.status}</Badge></TableCell>
                     <TableCell className="text-right space-x-2">
                         {req.status === "Pending" && (
@@ -190,7 +174,7 @@ export default function AssetRequestPage() {
                   </TableRow>
                 ))}
               </TableBody>
-              <TableCaption>{requests.length} request(s) found.</TableCaption>
+              <TableCaption>{requests?.length || 0} request(s) found.</TableCaption>
             </Table>
         </CardContent>
       </Card>
@@ -233,6 +217,7 @@ export default function AssetRequestPage() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
+                        {isLoadingAssets && <TableRow><TableCell colSpan={4} className="text-center">Loading assets...</TableCell></TableRow>}
                         {availableAssets.map(asset => (
                           <TableRow key={asset.id} 
                             data-state={selectedAssets.some(a => a.id === asset.id) ? 'selected' : ''}
