@@ -15,15 +15,17 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PlusCircle, Edit, Search, ChevronsLeft, ChevronsRight, Upload, ListFilter, FileSpreadsheet, FileText, Trash2, Eye, History, Image as ImageIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogClose, DialogFooter } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+
 
 import { useToast } from "@/hooks/use-toast";
-import { DEPARTMENTS, ASSET_CLASSIFICATIONS, ASSET_STATUSES, STORE_LOCATIONS } from "@/lib/constants";
+import { DEPARTMENTS, ASSET_STATUSES, STORE_LOCATIONS, ASSET_CLASSIFICATIONS } from "@/lib/constants";
 import { AssetManagementForm } from "@/components/forms/AssetForm";
 import type { AssetManagementFormData } from "@/lib/schemas";
 import { FileUpload } from "@/components/ui/file-upload";
 import { useAuth, useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { collection, doc, query, where } from "firebase/firestore";
-import { addDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { addDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
 
 const ITEMS_PER_PAGE = 10;
@@ -39,6 +41,7 @@ export default function AssetListPage() {
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = React.useState(false);
 
   const [isUploadDialogOpen, setIsUploadDialogOpen] = React.useState(false);
+  const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = React.useState(false);
   const [selectedRows, setSelectedRows] = React.useState<Record<string, boolean>>({});
 
   // Filters State
@@ -54,15 +57,13 @@ export default function AssetListPage() {
   const assetsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
     
-    const assetCollection = collection(firestore, "assets");
+    let q = collection(firestore, "assets");
 
-    if (isUserAdmin) {
-      return query(assetCollection);
-    } else if (user?.department) {
-      return query(assetCollection, where("department", "==", user.department));
+    if (!isUserAdmin && user?.department) {
+      return query(q, where("department", "==", user.department));
     }
     
-    return null; // Don't query if user has no role or department (shouldn't happen)
+    return query(q);
   }, [firestore, user, isUserAdmin]);
 
   const { data: allAssets, isLoading: isLoadingAssets } = useCollection<AssetManagementFormData>(assetsQuery);
@@ -71,7 +72,7 @@ export default function AssetListPage() {
   const filteredAssets = React.useMemo(() => {
     let tempAssets = allAssets || [];
     
-    // UI Filters
+    // Client-side filtering
     if (filterDepartment) tempAssets = tempAssets.filter(asset => asset.department === filterDepartment);
     if (filterStatus) tempAssets = tempAssets.filter(asset => asset.currentStatus === filterStatus);
     if (filterClassification) tempAssets = tempAssets.filter(asset => asset.assetClassification === filterClassification);
@@ -90,6 +91,8 @@ export default function AssetListPage() {
 
   const totalPages = Math.ceil(filteredAssets.length / ITEMS_PER_PAGE);
   const paginatedAssets = filteredAssets.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+  const selectedCount = Object.keys(selectedRows).filter(k => selectedRows[k]).length;
+
 
   const openEditDialog = (asset: AssetManagementFormData) => {
     setEditingAsset(asset);
@@ -141,22 +144,47 @@ export default function AssetListPage() {
   };
 
   const handleSelectRow = (id: string, checked: boolean) => {
-    setSelectedRows(prev => ({ ...prev, [id]: checked }));
+    setSelectedRows(prev => {
+      const newSelected = {...prev};
+      if (checked) {
+        newSelected[id] = true;
+      } else {
+        delete newSelected[id];
+      }
+      return newSelected;
+    });
   };
 
   const handleSelectAll = (checked: boolean) => {
-    const newSelectedRows: Record<string, boolean> = {};
     if (checked) {
+      const newSelectedRows: Record<string, boolean> = {};
       paginatedAssets.forEach(item => {
         if(item.id) newSelectedRows[item.id] = true;
       });
+      setSelectedRows(newSelectedRows);
+    } else {
+      setSelectedRows({});
     }
-    setSelectedRows(newSelectedRows);
   };
 
-  const isAllSelected = paginatedAssets.length > 0 && paginatedAssets.every(item => item.id && selectedRows[item.id]);
-  const isSomeSelected = Object.values(selectedRows).some(val => val);
+  const handleBulkDelete = () => {
+    if (!firestore) return;
+    Object.keys(selectedRows).forEach(id => {
+      if (selectedRows[id]) {
+        const docRef = doc(firestore, 'assets', id);
+        deleteDocumentNonBlocking(docRef);
+      }
+    });
+    toast({
+      title: "Assets Deleted",
+      description: `${selectedCount} asset(s) have been marked for deletion.`
+    });
+    setSelectedRows({});
+    setIsDeleteConfirmationOpen(false);
+  };
 
+
+  const isAllSelected = paginatedAssets.length > 0 && paginatedAssets.every(item => item.id && selectedRows[item.id]);
 
   return (
     <div className="space-y-8">
@@ -244,6 +272,23 @@ export default function AssetListPage() {
             </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={isDeleteConfirmationOpen} onOpenChange={setIsDeleteConfirmationOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete {selectedCount} asset(s) from the database.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleBulkDelete} className="bg-destructive hover:bg-destructive/90">
+              Yes, delete asset(s)
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       
       <Card>
         <CardHeader>
@@ -275,9 +320,9 @@ export default function AssetListPage() {
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-4 mb-4 border-t pt-4">
-            <p className="text-sm text-muted-foreground">{Object.keys(selectedRows).filter(k => selectedRows[k]).length} selected</p>
-            <Button variant="outline" size="sm" onClick={() => handleExport('excel')} disabled={!isSomeSelected}><FileSpreadsheet className="w-4 h-4 mr-2"/>Export Selected</Button>
-            {isUserAdmin && <Button variant="destructive" size="sm" disabled={!isSomeSelected}><Trash2 className="w-4 h-4 mr-2"/>Bulk Delete</Button>}
+            <p className="text-sm text-muted-foreground">{selectedCount} selected</p>
+            <Button variant="outline" size="sm" onClick={() => handleExport('excel')} disabled={selectedCount === 0}><FileSpreadsheet className="w-4 h-4 mr-2"/>Export Selected</Button>
+            {isUserAdmin && <Button variant="destructive" size="sm" disabled={selectedCount === 0} onClick={() => setIsDeleteConfirmationOpen(true)}><Trash2 className="w-4 h-4 mr-2"/>Bulk Delete</Button>}
              {isUserAdmin && <Button onClick={() => setIsUploadDialogOpen(true)} variant="outline" size="sm">
                 <Upload className="w-4 h-4 mr-2" /> Upload Excel
             </Button>}
@@ -303,7 +348,7 @@ export default function AssetListPage() {
                     <TableCell colSpan={9} className="text-center">Loading assets...</TableCell>
                   </TableRow>
                 ) : paginatedAssets.map((asset) => (
-                  <TableRow key={asset.id}>
+                  <TableRow key={asset.id} data-state={selectedRows[asset.id!] ? 'selected' : 'unselected'}>
                     <TableCell><Checkbox checked={!!(asset.id && selectedRows[asset.id])} onCheckedChange={(checked) => asset.id && handleSelectRow(asset.id, !!checked)}/></TableCell>
                     <TableCell className="font-medium">{asset.assetNumber}</TableCell>
                     <TableCell className="text-muted-foreground">{asset.kmNumber}</TableCell>
