@@ -1,12 +1,11 @@
-
 // src/hooks/useAuth.ts
 "use client";
 
-import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { useUser, useFirestore } from '@/firebase';
 import { getAuth, signOut } from "firebase/auth";
 import { useRouter } from 'next/navigation';
 import { useToast } from './use-toast';
-import { doc } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 import * as React from 'react';
 import type { User as FirebaseUser } from 'firebase/auth';
 
@@ -30,36 +29,56 @@ export function useAuth() {
   const router = useRouter();
   const { toast } = useToast();
   const firestore = useFirestore();
+  
+  const [userProfile, setUserProfile] = React.useState<UserProfile | null>(null);
+  const [isProfileLoading, setIsProfileLoading] = React.useState(true);
+  const [profileError, setProfileError] = React.useState<Error | null>(null);
 
-  const userDocRef = useMemoFirebase(() => {
-    if (!firestore || !firebaseUser) return null;
-    return doc(firestore, 'users', firebaseUser.uid);
+  React.useEffect(() => {
+    if (!firestore || !firebaseUser) {
+      setIsProfileLoading(false);
+      setUserProfile(null);
+      return;
+    }
+
+    setIsProfileLoading(true);
+    const userDocRef = doc(firestore, 'users', firebaseUser.uid);
+
+    const unsubscribe = onSnapshot(userDocRef, 
+      (docSnap) => {
+        if (docSnap.exists()) {
+          setUserProfile(docSnap.data() as UserProfile);
+        } else {
+          setUserProfile(null);
+          // This could be an error state if a profile is always expected for a logged-in user
+          setProfileError(new Error("User profile not found in database."));
+        }
+        setIsProfileLoading(false);
+      }, 
+      (error) => {
+        console.error("Error fetching user profile:", error);
+        setProfileError(error);
+        setUserProfile(null);
+        setIsProfileLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
   }, [firestore, firebaseUser]);
 
-  const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userDocRef);
 
-  // The overall loading state is true if either Firebase Auth is loading or the profile is loading.
   const isLoading = isAuthLoading || isProfileLoading;
 
   const authUser = React.useMemo(() => {
-    // If we're still loading, or if there's no authenticated user, return null.
-    if (isLoading || !firebaseUser) {
+    if (isLoading || !firebaseUser || !userProfile) {
       return null;
     }
 
-    // If the user is authenticated, but we don't have a profile yet (could be a brief state),
-    // we must wait. Returning a default user object here caused the race condition.
-    // By returning null, downstream components will correctly wait until the full user object is ready.
-    if (!userProfile) {
-        return null;
-    }
-
-    // Both firebaseUser and userProfile are available. Merge them.
     return {
       ...firebaseUser,
       role: userProfile.role,
       department: userProfile.department,
-      displayName: userProfile.displayName, // Ensure displayName from Firestore is used
+      displayName: userProfile.displayName,
     } as AppUser;
 
   }, [firebaseUser, userProfile, isLoading]);
@@ -78,8 +97,8 @@ export function useAuth() {
 
   return {
     user: authUser,
-    loading: isLoading, // Return the combined loading state
-    error: userError,
+    loading: isLoading,
+    error: userError || profileError,
     logout,
   };
 }
