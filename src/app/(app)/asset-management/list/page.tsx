@@ -16,15 +16,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { PlusCircle, Edit, Search, ChevronsLeft, ChevronsRight, Upload, ListFilter, FileSpreadsheet, FileText, Trash2, Eye, History, Image as ImageIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogClose, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-
-
 import { useToast } from "@/hooks/use-toast";
 import { DEPARTMENTS, ASSET_STATUSES, STORE_LOCATIONS, ASSET_CLASSIFICATIONS } from "@/lib/constants";
 import { AssetManagementForm } from "@/components/forms/AssetForm";
 import type { AssetManagementFormData } from "@/lib/schemas";
 import { FileUpload } from "@/components/ui/file-upload";
 import { useAuth, useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, doc, query, where } from "firebase/firestore";
+import { collection, doc, query, where, Query } from "firebase/firestore";
 import { addDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
 
@@ -56,15 +54,28 @@ export default function AssetListPage() {
 
   const assetsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    
-    let q = collection(firestore, "assets");
+
+    let q: Query = collection(firestore, "assets");
 
     if (!isUserAdmin && user?.department) {
-      return query(q, where("department", "==", user.department));
+      q = query(q, where("department", "==", user.department));
+    } else if (isUserAdmin && filterDepartment) {
+      q = query(q, where("department", "==", filterDepartment));
     }
-    
-    return query(q);
-  }, [firestore, user, isUserAdmin]);
+
+    if (filterStatus) {
+      q = query(q, where("currentStatus", "==", filterStatus));
+    }
+    if (filterClassification) {
+      q = query(q, where("assetClassification", "==", filterClassification));
+    }
+    if (filterLocation) {
+      q = query(q, where("location", "==", filterLocation));
+    }
+
+    // Note: Search term filtering is still client-side as it's complex to implement efficiently on Firestore with partial text search.
+    return q;
+  }, [firestore, user, isUserAdmin, filterDepartment, filterStatus, filterClassification, filterLocation]);
 
   const { data: allAssets, isLoading: isLoadingAssets } = useCollection<AssetManagementFormData>(assetsQuery);
 
@@ -72,12 +83,6 @@ export default function AssetListPage() {
   const filteredAssets = React.useMemo(() => {
     let tempAssets = allAssets || [];
     
-    // Client-side filtering
-    if (filterDepartment) tempAssets = tempAssets.filter(asset => asset.department === filterDepartment);
-    if (filterStatus) tempAssets = tempAssets.filter(asset => asset.currentStatus === filterStatus);
-    if (filterClassification) tempAssets = tempAssets.filter(asset => asset.assetClassification === filterClassification);
-    if (filterLocation) tempAssets = tempAssets.filter(asset => asset.location === filterLocation);
-
     if (searchTerm) {
       const lowercasedTerm = searchTerm.toLowerCase();
       tempAssets = tempAssets.filter(asset =>
@@ -87,7 +92,7 @@ export default function AssetListPage() {
       );
     }
     return tempAssets;
-  }, [allAssets, searchTerm, filterDepartment, filterStatus, filterClassification, filterLocation]);
+  }, [allAssets, searchTerm]);
 
   const totalPages = Math.ceil(filteredAssets.length / ITEMS_PER_PAGE);
   const paginatedAssets = filteredAssets.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
@@ -297,7 +302,6 @@ export default function AssetListPage() {
               <Search className="absolute w-4 h-4 left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <Input placeholder="Search by Asset No, KM No, Description, Serial No..." className="pl-10" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
             </div>
-            <Button variant="outline"><ListFilter className="w-4 h-4 mr-2"/> Filters</Button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-4">
             <Select value={filterDepartment} onValueChange={(value) => setFilterDepartment(value === "all" ? "" : value)} disabled={!isUserAdmin}>

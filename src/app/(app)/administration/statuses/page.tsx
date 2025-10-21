@@ -9,15 +9,89 @@ import { PlusCircle, Edit, Trash2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from "@/components/ui/table";
 import { ASSET_STATUSES } from "@/lib/constants";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
 
 export default function StatusMasterPage() {
+  const [statuses, setStatuses] = React.useState([...ASSET_STATUSES]);
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [isAlertDialogOpen, setIsAlertDialogOpen] = React.useState(false);
+  const [currentValue, setCurrentValue] = React.useState("");
+  const [editingIndex, setEditingIndex] = React.useState<number | null>(null);
+  const [deletingIndex, setDeletingIndex] = React.useState<number | null>(null);
+  const { toast } = useToast();
+
+  const handleOpenDialog = (index: number | null = null) => {
+    if (index !== null) {
+      setEditingIndex(index);
+      setCurrentValue(statuses[index]);
+    } else {
+      setEditingIndex(null);
+      setCurrentValue("");
+    }
+    setIsDialogOpen(true);
+  };
+
+  const handleSave = () => {
+    if (!currentValue.trim()) {
+      toast({ title: "Validation Error", description: "Status name cannot be empty.", variant: "destructive" });
+      return;
+    }
+
+    if (editingIndex !== null) {
+      const updatedData = [...statuses];
+      updatedData[editingIndex] = currentValue;
+      setStatuses(updatedData);
+      toast({ title: "Success", description: "Status updated successfully." });
+    } else {
+      setStatuses([...statuses, currentValue]);
+      toast({ title: "Success", description: "New status added successfully." });
+    }
+    setIsDialogOpen(false);
+  };
+
+  const handleOpenAlertDialog = (index: number) => {
+    setDeletingIndex(index);
+    setIsAlertDialogOpen(true);
+  };
+
+  const handleDelete = () => {
+    if (deletingIndex !== null) {
+      const updatedData = statuses.filter((_, i) => i !== deletingIndex);
+      setStatuses(updatedData);
+      toast({ title: "Success", description: "Status deleted successfully." });
+    }
+    setIsAlertDialogOpen(false);
+    setDeletingIndex(null);
+  };
+
   return (
     <div className="space-y-8">
       <PageHeader
         title="Status Master"
         description="Defines asset lifecycle states (e.g., Active, Reserved, Calibration, Scrap)."
         actions={
-          <Button>
+          <Button onClick={() => handleOpenDialog()}>
             <PlusCircle className="w-4 h-4 mr-2" /> Add New Status
           </Button>
         }
@@ -38,24 +112,60 @@ export default function StatusMasterPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {ASSET_STATUSES.map((name) => (
+                {statuses.map((name, index) => (
                   <TableRow key={name}>
                     <TableCell className="font-medium"><Badge variant="outline">{name}</Badge></TableCell>
                     <TableCell className="text-right space-x-2">
-                       <Button variant="outline" size="sm">
+                       <Button variant="outline" size="sm" onClick={() => handleOpenDialog(index)}>
                         <Edit className="w-3 h-3 mr-1" /> Edit
                       </Button>
-                      <Button variant="destructive" size="sm">
+                      <Button variant="destructive" size="sm" onClick={() => handleOpenAlertDialog(index)}>
                         <Trash2 className="w-3 h-3 mr-1" /> Delete
                       </Button>
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
-              <TableCaption>{ASSET_STATUSES.length} status(es) found.</TableCaption>
+              <TableCaption>{statuses.length} status(es) found.</TableCaption>
             </Table>
         </CardContent>
       </Card>
+      
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>{editingIndex !== null ? 'Edit Status' : 'Add New Status'}</DialogTitle>
+                <DialogDescription>
+                    {editingIndex !== null ? 'Update the name of the status.' : 'Enter the name for the new status.'}
+                </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="name" className="text-right">Name</Label>
+                    <Input id="name" value={currentValue} onChange={(e) => setCurrentValue(e.target.value)} className="col-span-3" />
+                </div>
+            </div>
+            <DialogFooter>
+                <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                <Button onClick={handleSave}>Save</Button>
+            </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      <AlertDialog open={isAlertDialogOpen} onOpenChange={setIsAlertDialogOpen}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete the status.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
