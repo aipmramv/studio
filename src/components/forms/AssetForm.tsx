@@ -1,4 +1,3 @@
-
 // src/components/forms/AssetForm.tsx
 "use client";
 
@@ -73,6 +72,12 @@ export function AssetManagementForm({ initialData, onSave, onCancel, isEditing =
         comments: "",
         currentStatus: "In Store",
         statusChangedOn: undefined,
+        attachments: {
+            invoice: undefined,
+            warranty: undefined,
+            calibration: undefined,
+            photo: undefined,
+        }
     },
   });
 
@@ -134,10 +139,10 @@ export function AssetManagementForm({ initialData, onSave, onCancel, isEditing =
                         <PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={field.value ? new Date(field.value) : undefined} onSelect={field.onChange} initialFocus /></PopoverContent></Popover><FormMessage /></FormItem>
                     )}/>
                      <FormField control={form.control} name="lifecycleYears" render={({ field }) => (
-                        <FormItem><FormLabel>Asset Life (Years)</FormLabel><FormControl><Input type="number" {...field} readOnly={readOnly} onChange={e => field.onChange(parseInt(e.target.value, 10))}/></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel>Asset Life (Years)</FormLabel><FormControl><Input type="number" {...field} readOnly={readOnly} onChange={e => field.onChange(parseInt(e.target.value, 10) || 0)}/></FormControl><FormMessage /></FormItem>
                     )}/>
                     <FormField control={form.control} name="purchaseValue" render={({ field }) => (
-                        <FormItem><FormLabel>Purchase Value (INR)</FormLabel><FormControl><Input type="number" {...field} readOnly={readOnly} onChange={e => field.onChange(parseFloat(e.target.value))}/></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel>Purchase Value (INR)</FormLabel><FormControl><Input type="number" {...field} readOnly={readOnly} onChange={e => field.onChange(parseFloat(e.target.value) || 0)}/></FormControl><FormMessage /></FormItem>
                     )}/>
                 </div>
             </div>
@@ -156,7 +161,7 @@ export function AssetManagementForm({ initialData, onSave, onCancel, isEditing =
                         <FormItem><FormLabel>Product Serial No.</FormLabel><FormControl><Input {...field} readOnly={readOnly} /></FormControl><FormMessage /></FormItem>
                     )}/>
                     <FormField control={form.control} name="ledgerQty" render={({ field }) => (
-                        <FormItem><FormLabel>Ledger Quantity</FormLabel><FormControl><Input type="number" {...field} readOnly={readOnly} onChange={e => field.onChange(parseInt(e.target.value, 10))}/></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel>Ledger Quantity</FormLabel><FormControl><Input type="number" {...field} readOnly={readOnly} onChange={e => field.onChange(parseInt(e.target.value, 10) || 0)}/></FormControl><FormMessage /></FormItem>
                     )}/>
                 </div>
             </div>
@@ -193,7 +198,7 @@ export function AssetManagementForm({ initialData, onSave, onCancel, isEditing =
                         <FormItem><FormLabel>On-going Project</FormLabel><FormControl><Input {...field} readOnly={readOnly} /></FormControl><FormMessage /></FormItem>
                     )}/>
                     <FormField control={form.control} name="weeklyUsageFrequency" render={({ field }) => (
-                        <FormItem><FormLabel>Weekly Usage (Days)</FormLabel><FormControl><Input type="number" {...field} readOnly={readOnly} onChange={e => field.onChange(parseInt(e.target.value, 10))}/></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel>Weekly Usage (Days)</FormLabel><FormControl><Input type="number" {...field} readOnly={readOnly} onChange={e => field.onChange(parseInt(e.target.value, 10) || 0)}/></FormControl><FormMessage /></FormItem>
                     )}/>
                 </div>
             </div>
