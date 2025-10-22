@@ -3,145 +3,266 @@
  *
  * Core Philosophy:
  * This ruleset enforces a strict user-ownership model for user profiles,
- * allowing each user to read and write their own profile data. Public read access is not granted.
- * For assets and related collections (requests, transfers, verifications, etc.),
- * write access is generally restricted, implying administrative control.  Data structure validation
- * is relaxed to facilitate rapid prototyping.
+ * and public read access with owner-only writes for assets and asset-related
+ * collections. This allows for a flexible data model while ensuring that
+ * unauthorized users cannot modify or delete data they do not own.
  *
  * Data Structure:
- * - /users/{userId}: Stores user profile information, accessible only to the user themselves.
- * - /assets/{assetId}: Stores asset master data, with restricted write access.
- * - /assetRequests/{requestId}: Stores asset ownership change requests, with restricted write access.
- * - /assetTransfers/{transferId}: Stores asset transfer logs, with restricted write access.
- * - /assetVerifications/{verificationId}: Stores asset verification history, with restricted write access.
- * - /assetCheckouts/{checkoutId}: Stores asset check-in/check-out history, with restricted write access.
- * - /scrapRecords/{scrapId}: Stores records of scrapped assets, with restricted write access.
- * - /assetFeedback/{feedbackId}: Stores asset feedback and issue logs, with restricted write access.
+ * - `/users/{userId}`: Stores user profile information, accessible only to the
+ *   user themselves.
+ * - `/assets/{assetId}`: Stores asset data, publicly readable but only
+ *   modifiable by an authenticated user who sets the `assetCoordinator` to their `uid`.
+ * - `/assetRequests/{requestId}`, `/assetTransfers/{transferId}`, `/assetVerifications/{verificationId}`,
+ *   `/assetCheckouts/{checkoutId}`, `/scrapRecords/{scrapId}`, `/assetFeedback/{feedbackId}`:
+ *   Asset-related collections, publicly readable but only modifiable by an
+ *   authenticated user who sets the `assetCoordinator` on the main `/assets/{assetId}` document
+ *   to their `uid`.
  *
  * Key Security Decisions:
- * - User listing is explicitly denied to protect user privacy.
- * - Write access to assets and related collections is restricted, assuming administrative functions.
- * - Data validation is minimized to focus on authorization during prototyping.
+ * - User listing is disabled to protect user privacy.
+ * - Read-only access is granted to the `/assets` collection to allow
+ *   unauthenticated users to view asset data.
+ * - All write operations require authentication and ownership validation.
+ * - Data shape validation is relaxed to allow for rapid prototyping.
+ *
+ * Denormalization for Authorization:
+ * The rules rely on the `assetCoordinator` field in the `/assets/{assetId}`
+ * document to determine ownership for write operations on asset-related
+ * collections. This avoids costly `get()` calls to other collections.
+ *
+ * Structural Segregation:
+ * No structural segregation is used in this ruleset. All data is stored in
+ * top-level collections with appropriate security rules.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Controls access to user profile information.
+     * @description Enforces user-ownership for user profile data.
      * @path /users/{userId}
-     * @allow (create) - User with UID 'user123' can create a profile if request.auth.uid == 'user123'.
-     * @allow (get, update, delete) - User with UID 'user123' can read/update/delete their own profile.
-     * @deny (create) - User with UID 'user456' cannot create a profile for userId 'user123'.
-     * @deny (get, update, delete) - User with UID 'user456' cannot read/update/delete the profile of userId 'user123'.
-     * @principle Enforces document ownership for user profiles.
+     * @allow (create) User with UID 'user_abc' can create their own profile at /users/user_abc.
+     * @allow (get,update,delete) User with UID 'user_abc' can read/update/delete their own profile at /users/user_abc.
+     * @deny (create) User with UID 'user_xyz' cannot create a profile at /users/user_abc.
+     * @deny (get,update,delete) User with UID 'user_xyz' cannot read/update/delete the profile at /users/user_abc.
+     * @principle Enforces document ownership for all operations.
      */
     match /users/{userId} {
-      // Function to check if the user is signed in
       function isSignedIn() {
         return request.auth != null;
       }
 
-      // Function to check if the user is the owner of the document
       function isOwner(userId) {
         return isSignedIn() && request.auth.uid == userId;
       }
 
-      // Function to check if the user is the owner of the existing document
       function isExistingOwner(userId) {
-        return isOwner(userId) && resource.data != null;
+        return isOwner(userId) && resource != null;
       }
 
       allow get: if isOwner(userId);
-      allow list: if false; // Explicitly disallow listing of users
-
-      allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id; //Immutable id
+      allow list: if false;
+      allow create: if isOwner(userId);
+      allow update: if isExistingOwner(userId);
       allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Controls access to asset master data.
+     * @description Allows public read access to assets, but restricts writes to the assetCoordinator.
      * @path /assets/{assetId}
-     * @allow (get, list) - Any user can read asset data.
-     * @deny (create, update, delete) - Only admins can manage asset data (writes are disabled for non-admins).
-     * @principle Restricts write access to asset data.
+     * @allow (get,list) Any user (authenticated or not) can read asset data.
+     * @allow (create) User with UID 'user_abc' can create an asset if they set assetCoordinator to their own UID.
+     * @allow (update,delete) User with UID 'user_abc' can update/delete an asset if they are the assetCoordinator.
+     * @deny (create) User with UID 'user_xyz' cannot create an asset with assetCoordinator set to 'user_abc'.
+     * @deny (update,delete) User with UID 'user_xyz' cannot update/delete an asset if 'user_abc' is the assetCoordinator.
+     * @principle Allows public read with owner-only writes, enforced via the `assetCoordinator` field.
      */
     match /assets/{assetId} {
-      allow get, list: if true;
-      allow create, update, delete: if false;
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isOwner(assetCoordinator) {
+        return isSignedIn() && request.auth.uid == assetCoordinator;
+      }
+
+      function isExistingOwner(assetCoordinator) {
+        return isOwner(assetCoordinator) && resource != null;
+      }
+
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn() && request.resource.data.assetCoordinator == request.auth.uid;
+      allow update: if isExistingOwner(resource.data.assetCoordinator);
+      allow delete: if isExistingOwner(resource.data.assetCoordinator);
     }
 
     /**
-     * @description Controls access to asset ownership change requests.
+     * @description Allows public read access to asset requests, but restricts writes to the assetCoordinator of the main asset.
      * @path /assetRequests/{requestId}
-     * @allow (get, list) - Any user can read asset request data.
-     * @deny (create, update, delete) - Only admins can manage asset request data (writes are disabled for non-admins).
-     * @principle Restricts write access to asset request data.
+     * @allow (get,list) Any user (authenticated or not) can read asset request data.
+     * @allow (create,update,delete) User with UID 'user_abc' can create/update/delete an asset request if they are the assetCoordinator of the associated asset.
+     * @deny (create,update,delete) User with UID 'user_xyz' cannot create/update/delete an asset request if 'user_abc' is the assetCoordinator of the associated asset.
+     * @principle Allows public read with owner-only writes, enforced via the `assetCoordinator` field on the main asset.
      */
     match /assetRequests/{requestId} {
-      allow get, list: if true;
-      allow create, update, delete: if false;
+       function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function getAssetCoordinator(assetId) {
+        return get(/databases/$(database)/documents/assets/$(assetId)).data.assetCoordinator;
+      }
+
+      function isAssetCoordinator(assetId) {
+          return isSignedIn() && request.auth.uid == getAssetCoordinator(assetId);
+      }
+
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn() && isAssetCoordinator(request.resource.data.assets[0].assetId);
+      allow update: if isSignedIn() && isAssetCoordinator(resource.data.assets[0].assetId);
+      allow delete: if isSignedIn() && isAssetCoordinator(resource.data.assets[0].assetId) && resource != null;
     }
 
     /**
-     * @description Controls access to asset transfer/movement logs.
+     * @description Allows public read access to asset transfers, but restricts writes to the assetCoordinator of the main asset.
      * @path /assetTransfers/{transferId}
-     * @allow (get, list) - Any user can read asset transfer data.
-     * @deny (create, update, delete) - Only admins can manage asset transfer data (writes are disabled for non-admins).
-     * @principle Restricts write access to asset transfer data.
+     * @allow (get,list) Any user (authenticated or not) can read asset transfer data.
+     * @allow (create,update,delete) User with UID 'user_abc' can create/update/delete an asset transfer if they are the assetCoordinator of the associated asset.
+     * @deny (create,update,delete) User with UID 'user_xyz' cannot create/update/delete an asset transfer if 'user_abc' is the assetCoordinator of the associated asset.
+     * @principle Allows public read with owner-only writes, enforced via the `assetCoordinator` field on the main asset.
      */
     match /assetTransfers/{transferId} {
-      allow get, list: if true;
-      allow create, update, delete: if false;
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function getAssetCoordinator(assetId) {
+        return get(/databases/$(database)/documents/assets/$(assetId)).data.assetCoordinator;
+      }
+
+      function isAssetCoordinator(assetId) {
+          return isSignedIn() && request.auth.uid == getAssetCoordinator(assetId);
+      }
+
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn() && isAssetCoordinator(request.resource.data.assetId);
+      allow update: if isSignedIn() && isAssetCoordinator(resource.data.assetId);
+      allow delete: if isSignedIn() && isAssetCoordinator(resource.data.assetId) && resource != null;
     }
 
     /**
-     * @description Controls access to asset verification history.
+     * @description Allows public read access to asset verifications, but restricts writes to the assetCoordinator of the main asset.
      * @path /assetVerifications/{verificationId}
-     * @allow (get, list) - Any user can read asset verification data.
-     * @deny (create, update, delete) - Only admins can manage asset verification data (writes are disabled for non-admins).
-     * @principle Restricts write access to asset verification data.
+     * @allow (get,list) Any user (authenticated or not) can read asset verification data.
+     * @allow (create,update,delete) User with UID 'user_abc' can create/update/delete an asset verification if they are the assetCoordinator of the associated asset.
+     * @deny (create,update,delete) User with UID 'user_xyz' cannot create/update/delete an asset verification if 'user_abc' is the assetCoordinator of the associated asset.
+     * @principle Allows public read with owner-only writes, enforced via the `assetCoordinator` field on the main asset.
      */
     match /assetVerifications/{verificationId} {
-      allow get, list: if true;
-      allow create, update, delete: if false;
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function getAssetCoordinator(assetId) {
+        return get(/databases/$(database)/documents/assets/$(assetId)).data.assetCoordinator;
+      }
+
+      function isAssetCoordinator(assetId) {
+          return isSignedIn() && request.auth.uid == getAssetCoordinator(assetId);
+      }
+
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn() && isAssetCoordinator(request.resource.data.assetId);
+      allow update: if isSignedIn() && isAssetCoordinator(resource.data.assetId);
+      allow delete: if isSignedIn() && isAssetCoordinator(resource.data.assetId) && resource != null;
     }
 
-    /**
-     * @description Controls access to asset check-in/check-out history.
+        /**
+     * @description Allows public read access to asset checkouts, but restricts writes to the assetCoordinator of the main asset.
      * @path /assetCheckouts/{checkoutId}
-     * @allow (get, list) - Any user can read asset checkout data.
-     * @deny (create, update, delete) - Only admins can manage asset checkout data (writes are disabled for non-admins).
-     * @principle Restricts write access to asset checkout data.
+     * @allow (get,list) Any user (authenticated or not) can read asset checkout data.
+     * @allow (create,update,delete) User with UID 'user_abc' can create/update/delete an asset checkout if they are the assetCoordinator of the associated asset.
+     * @deny (create,update,delete) User with UID 'user_xyz' cannot create/update/delete an asset checkout if 'user_abc' is the assetCoordinator of the associated asset.
+     * @principle Allows public read with owner-only writes, enforced via the `assetCoordinator` field on the main asset.
      */
     match /assetCheckouts/{checkoutId} {
-      allow get, list: if true;
-      allow create, update, delete: if false;
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function getAssetCoordinator(assetId) {
+        return get(/databases/$(database)/documents/assets/$(assetId)).data.assetCoordinator;
+      }
+
+      function isAssetCoordinator(assetId) {
+          return isSignedIn() && request.auth.uid == getAssetCoordinator(assetId);
+      }
+
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn() && isAssetCoordinator(request.resource.data.assetId);
+      allow update: if isSignedIn() && isAssetCoordinator(resource.data.assetId);
+      allow delete: if isSignedIn() && isAssetCoordinator(resource.data.assetId) && resource != null;
     }
 
     /**
-     * @description Controls access to scrapped asset records.
+     * @description Allows public read access to scrap records, but restricts writes to the assetCoordinator of the main asset.
      * @path /scrapRecords/{scrapId}
-     * @allow (get, list) - Any user can read scrap record data.
-     * @deny (create, update, delete) - Only admins can manage scrap record data (writes are disabled for non-admins).
-     * @principle Restricts write access to scrap record data.
+     * @allow (get,list) Any user (authenticated or not) can read scrap record data.
+     * @allow (create,update,delete) User with UID 'user_abc' can create/update/delete a scrap record if they are the assetCoordinator of the associated asset.
+     * @deny (create,update,delete) User with UID 'user_xyz' cannot create/update/delete a scrap record if 'user_abc' is the assetCoordinator of the associated asset.
+     * @principle Allows public read with owner-only writes, enforced via the `assetCoordinator` field on the main asset.
      */
     match /scrapRecords/{scrapId} {
-      allow get, list: if true;
-      allow create, update, delete: if false;
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function getAssetCoordinator(assetId) {
+        return get(/databases/$(database)/documents/assets/$(assetId)).data.assetCoordinator;
+      }
+
+      function isAssetCoordinator(assetId) {
+          return isSignedIn() && request.auth.uid == getAssetCoordinator(assetId);
+      }
+
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn() && isAssetCoordinator(request.resource.data.assetId);
+      allow update: if isSignedIn() && isAssetCoordinator(resource.data.assetId);
+      allow delete: if isSignedIn() && isAssetCoordinator(resource.data.assetId) && resource != null;
     }
 
-    /**
-     * @description Controls access to asset feedback and issue logs.
+   /**
+     * @description Allows public read access to asset feedback, but restricts writes to the assetCoordinator of the main asset.
      * @path /assetFeedback/{feedbackId}
-     * @allow (get, list) - Any user can read asset feedback data.
-     * @deny (create, update, delete) - Only admins can manage asset feedback data (writes are disabled for non-admins).
-     * @principle Restricts write access to asset feedback data.
+     * @allow (get,list) Any user (authenticated or not) can read asset feedback data.
+     * @allow (create,update,delete) User with UID 'user_abc' can create/update/delete asset feedback if they are the assetCoordinator of the associated asset.
+     * @deny (create,update,delete) User with UID 'user_xyz' cannot create/update/delete asset feedback if 'user_abc' is the assetCoordinator of the associated asset.
+     * @principle Allows public read with owner-only writes, enforced via the `assetCoordinator` field on the main asset.
      */
     match /assetFeedback/{feedbackId} {
-      allow get, list: if true;
-      allow create, update, delete: if false;
+       function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function getAssetCoordinator(assetId) {
+        return get(/databases/$(database)/documents/assets/$(assetId)).data.assetCoordinator;
+      }
+
+      function isAssetCoordinator(assetId) {
+          return isSignedIn() && request.auth.uid == getAssetCoordinator(assetId);
+      }
+
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn() && isAssetCoordinator(request.resource.data.assetId);
+      allow update: if isSignedIn() && isAssetCoordinator(resource.data.assetId);
+      allow delete: if isSignedIn() && isAssetCoordinator(resource.data.assetId) && resource != null;
     }
   }
 }

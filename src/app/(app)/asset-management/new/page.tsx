@@ -1,3 +1,4 @@
+
 // src/app/(app)/asset-management/new/page.tsx
 "use client";
 
@@ -23,19 +24,17 @@ export default function NewAssetPage() {
         const dataToClean: Partial<AssetManagementFormData> = { ...data };
 
         // Firestore does not allow `undefined` values.
-        // If attachments are empty, remove the field before saving.
-        if (dataToClean.attachments && Object.values(dataToClean.attachments).every(v => v === undefined || v === null)) {
+        if (dataToClean.attachments && Object.values(dataToClean.attachments).every(v => v === undefined || v === null || v === '')) {
             delete dataToClean.attachments;
         }
         
-        // Convert dates to string format for Firestore if they are Date objects
         const dataToSave = {
             ...dataToClean,
             id: `ASSET-${Date.now()}`, // Create a unique ID
             capitalizationDate: data.capitalizationDate ? new Date(data.capitalizationDate).toISOString() : null,
             eolDate: data.eolDate ? new Date(data.eolDate).toISOString() : null,
             verifiedOn: data.verifiedOn ? new Date(data.verifiedOn).toISOString() : null,
-            statusChangedOn: new Date().toISOString(), // Set current date as status changed
+            statusChangedOn: new Date().toISOString(),
         };
         
         const assetsCollection = collection(firestore, "assets");
@@ -45,7 +44,7 @@ export default function NewAssetPage() {
             title: "Asset Added Successfully",
             description: `Asset ${dataToSave.assetNumber} has been added to the register.`,
         });
-        router.push('/asset-management/list'); // Redirect back to the list
+        router.push('/asset-management/list');
     };
 
     const handleCancel = () => {
@@ -66,3 +65,5 @@ export default function NewAssetPage() {
         </div>
     );
 }
+
+    

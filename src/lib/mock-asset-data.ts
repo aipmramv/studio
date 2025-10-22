@@ -1,3 +1,4 @@
+
 // src/lib/mock-asset-data.ts
 import { AssetManagementFormData } from "./schemas";
 
@@ -480,3 +481,5 @@ export const mockAssetData: AssetManagementFormData[] = [
         statusChangedOn: new Date("2024-08-01"),
     },
 ];
+
+    
