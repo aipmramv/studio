@@ -1,3 +1,4 @@
+
 // src/components/forms/AssetForm.tsx
 "use client";
 
@@ -43,16 +44,35 @@ export function AssetManagementForm({ initialData, onSave, onCancel, isEditing =
         })) as any
     : {
         assetNumber: "",
+        kmNumber: "",
         assetDescription: "",
-        department: "",
-        location: "",
         assetClassification: "",
         assetGrouping: "",
-        currentStatus: "",
-        ledgerQty: 1,
-        purchaseValue: 0,
         lifecycleYears: 0,
+        capitalizationDate: undefined,
+        eolDate: undefined,
+        purchaseValue: 0,
+        ledgerQty: 1,
+        brandName: "",
+        modelNo: "",
+        productSerialNo: "",
+        onGoingProject: "",
         weeklyUsageFrequency: 0,
+        personResponsible: "",
+        currentUser: "",
+        teamOrTribe: "",
+        department: "",
+        assetCoordinator: "",
+        location: "",
+        floor: "",
+        laboratory: "",
+        verificationStatus: "Pending",
+        verifiedOn: undefined,
+        usableCondition: "Yes",
+        workingConditionStatus: "Working",
+        comments: "",
+        currentStatus: "In Store",
+        statusChangedOn: undefined,
     },
   });
 
@@ -275,3 +295,5 @@ export function AssetManagementForm({ initialData, onSave, onCancel, isEditing =
     </Form>
   );
 }
+
+    
