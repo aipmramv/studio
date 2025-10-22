@@ -2,152 +2,182 @@
  * @fileoverview Firestore Security Rules for TrackFlow Asset Management System
  *
  * Core Philosophy:
- * This ruleset prioritizes a secure, owner-centric access control model.
- * Users have full control over their profiles, while asset data is broadly readable but
- * write-protected, requiring authentication for modifications.  In the initial
- * prototyping phase, complex schema validation and data-type enforcement are relaxed
- * to enable rapid development iteration.  The rules focus on identity and authorization.
+ * This ruleset prioritizes secure data access based on user roles and ownership.
+ * It aims for strong authorization while keeping data validation minimal for rapid prototyping.
  *
  * Data Structure:
- * - User profiles are stored under `/users/{userId}`, accessible only by the owning user.
- * - Assets are stored under `/assets/{assetId}`, with public read access. Write access requires authentication.
- * - Asset requests are stored under `/assetRequests/{requestId}`, write access is denied.
- * - Asset transfers are stored under `/assetTransfers/{transferId}`, write access is denied.
- * - Asset verifications are stored under `/assetVerifications/{verificationId}`, write access is denied.
- * - Asset checkouts are stored under `/assetCheckouts/{checkoutId}`, write access is denied.
- * - Scrap records are stored under `/scrapRecords/{scrapId}`, write access is denied.
- * - Asset feedback is stored under `/assetFeedback/{feedbackId}`, write access is denied.
+ * - User profiles are stored under `/users/{userId}` and are only accessible to the owning user.
+ * - Assets are stored under `/assets/{assetId}` and are publicly readable but only writable by authorized users.
+ * - Asset requests, transfers, verifications, checkouts, scrap records, and feedback are stored in their respective top-level collections and are only writable by authorized users.
  *
  * Key Security Decisions:
- * - **No User Listing**: Listing all user profiles is explicitly denied to prevent information harvesting.
- * - **Public Asset Reads**: Assets are publicly readable to facilitate easy access to asset information.
- * - **Authenticated Asset Writes**: Creating, updating, or deleting assets requires authentication.
- * - **Data Denormalization**: Currently not implemented. However, for more complex authorization scenarios,
- *   consider denormalizing authorization-relevant data (e.g., asset ownership) directly onto documents
- *   to avoid expensive `get()` calls in security rules.
- * - **Asset Requests**:  Creating, updating, or deleting asset requests requires authentication.
- * - **Asset Transfers**: Creating, updating, or deleting asset transfers requires authentication.
- * - **Asset Verifications**: Creating, updating, or deleting asset verifications requires authentication.
- * - **Asset Checkouts**: Creating, updating, or deleting asset checkouts requires authentication.
- * - **Scrap Records**: Creating, updating, or deleting scrap records requires authentication.
- * - **Asset Feedback**: Creating, updating, or deleting asset feedback requires authentication.
+ * - User listing is disabled to prevent unauthorized access to user information.
+ * - Public read access is granted to the `/assets` collection to support open data consumption,
+ *   but write access is strictly controlled.
+ * - The default security posture for potentially ambiguous relationships is strict owner-only access.
+ *
+ * Denormalization for Authorization:
+ * - Currently, this ruleset does not implement denormalization.  Future versions should denormalize role and ownership data
+ *   onto documents to avoid costly `get()` operations in the rules.
+ *
+ * Structural Segregation:
+ * - This ruleset does not implement structural segregation.
+ *   If draft vs. published content is needed, consider using separate collections (a private user subcollection and a public top-level collection).
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Controls access to user profile information.
+     * @description Manages access to user profile data.
      * @path /users/{userId}
-     * @allow (create) - User with UID 'user123' can create a profile at /users/user123.
-     * @allow (get, list) - User with UID 'user123' can read their profile at /users/user123.
-     * @allow (update, delete) - User with UID 'user123' can update/delete their profile at /users/user123.
-     * @deny (create) - User with UID 'user456' cannot create a profile at /users/user123.
-     * @deny (get, list) - User with UID 'user456' cannot read user123's profile at /users/user123.
-     * @deny (update, delete) - User with UID 'user456' cannot update/delete user123's profile at /users/user123.
-     * @principle Enforces document ownership, restricting access to the owning user.
+     * @allow (create) User with ID 'user123' can create their own profile.
+     * @allow (get) User with ID 'user123' can read their own profile.
+     * @allow (update) User with ID 'user123' can update their own profile.
+     * @allow (delete) User with ID 'user123' can delete their own profile.
+     * @deny (get) User with ID 'user456' cannot read user profile 'user123'.
+     * @deny (create) User with ID 'user456' cannot create a user profile with ID 'user123'.
+     * @principle Enforces user ownership for profile data.
      */
     match /users/{userId} {
       allow get: if isOwner(userId);
-      allow list: if false; // Explicitly disallow listing all users
-
-      allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isOwner(userId) && resource.data.id == request.resource.data.id;
+      allow list: if false; // User listing is not allowed.
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) && (request.resource.data.id == resource.data.id); // Enforce immutability of userId.
       allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Controls access to asset data.
+     * @description Manages access to asset data.
      * @path /assets/{assetId}
-     * @allow (get, list) - Any user (signed in or not) can read asset data.
-     * @allow (create, update, delete) - User must be signed in to modify asset data.
-     * @deny (create, update, delete) - Unauthenticated users cannot modify asset data.
-     * @principle Allows public read access while restricting write access to authenticated users.
+     * @allow (get) Any user can read asset data.
+     * @allow (list) Any user can list asset data.
+     * @deny (create) Anonymous user cannot create asset data.
+     * @deny (update) Anonymous user cannot update asset data.
+     * @deny (delete) Anonymous user cannot delete asset data.
+     * @principle Allows public read access but restricts write access to authorized users.
      */
     match /assets/{assetId} {
       allow get, list: if true;
-      allow create: if isSignedIn();
-      allow update: if isSignedIn() && resource != null;
-      allow delete: if isSignedIn() && resource != null;
+      allow create: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
+      allow update: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
+      allow delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
     }
 
-     /**
-      * @description Controls access to asset requests.
-      * @path /assetRequests/{requestId}
-      * @allow (create) - Any signed in user can create asset requests.
-      * @deny (get, list, update, delete) - Nobody can get, list, update, or delete asset requests.
-      */
-     match /assetRequests/{requestId} {
-       allow get, list, update, delete: if false;
-       allow create: if isSignedIn();
-     }
+    /**
+     * @description Manages access to asset requests.
+     * @path /assetRequests/{requestId}
+     * @deny (get) Anonymous user cannot read asset request data.
+     * @deny (list) Anonymous user cannot list asset request data.
+     * @deny (create) Anonymous user cannot create asset request data.
+     * @deny (update) Anonymous user cannot update asset request data.
+     * @deny (delete) Anonymous user cannot delete asset request data.
+     */
+    match /assetRequests/{requestId} {
+      allow get: if false;
+      allow list: if isSignedIn(); // Fixed: Allows listing when signed in.
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
 
     /**
-     * @description Controls access to asset transfers.
+     * @description Manages access to asset transfers.
      * @path /assetTransfers/{transferId}
-     * @allow (create) - Any signed in user can create asset transfers.
-     * @deny (get, list, update, delete) - Nobody can get, list, update, or delete asset transfers.
+     * @deny (get) Anonymous user cannot read asset transfer data.
+     * @deny (list) Anonymous user cannot list asset transfer data.
+     * @deny (create) Anonymous user cannot create asset transfer data.
+     * @deny (update) Anonymous user cannot update asset transfer data.
+     * @deny (delete) Anonymous user cannot delete asset transfer data.
      */
     match /assetTransfers/{transferId} {
-      allow get, list, update, delete: if false;
-      allow create: if isSignedIn();
+      allow get: if false;
+      allow list: if false;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
     }
 
     /**
-     * @description Controls access to asset verifications.
+     * @description Manages access to asset verifications.
      * @path /assetVerifications/{verificationId}
-     * @allow (create) - Any signed in user can create asset verifications.
-     * @deny (get, list, update, delete) - Nobody can get, list, update, or delete asset verifications.
+     * @deny (get) Anonymous user cannot read asset verification data.
+     * @deny (list) Anonymous user cannot list asset verification data.
+     * @deny (create) Anonymous user cannot create asset verification data.
+     * @deny (update) Anonymous user cannot update asset verification data.
+     * @deny (delete) Anonymous user cannot delete asset verification data.
      */
     match /assetVerifications/{verificationId} {
-      allow get, list, update, delete: if false;
-      allow create: if isSignedIn();
+      allow get: if false;
+      allow list: if false;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
     }
 
     /**
-     * @description Controls access to asset checkouts.
+     * @description Manages access to asset checkouts.
      * @path /assetCheckouts/{checkoutId}
-     * @allow (create) - Any signed in user can create asset checkouts.
-     * @deny (get, list, update, delete) - Nobody can get, list, update, or delete asset checkouts.
+     * @deny (get) Anonymous user cannot read asset checkout data.
+     * @deny (list) Anonymous user cannot list asset checkout data.
+     * @deny (create) Anonymous user cannot create asset checkout data.
+     * @deny (update) Anonymous user cannot update asset checkout data.
+     * @deny (delete) Anonymous user cannot delete asset checkout data.
      */
     match /assetCheckouts/{checkoutId} {
-      allow get, list, update, delete: if false;
-      allow create: if isSignedIn();
+      allow get: if false;
+      allow list: if false;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
     }
 
     /**
-     * @description Controls access to scrap records.
+     * @description Manages access to scrap records.
      * @path /scrapRecords/{scrapId}
-     * @allow (create) - Any signed in user can create scrap records.
-     * @deny (get, list, update, delete) - Nobody can get, list, update, or delete scrap records.
+     * @deny (get) Anonymous user cannot read scrap record data.
+     * @deny (list) Anonymous user cannot list scrap record data.
+     * @deny (create) Anonymous user cannot create scrap record data.
+     * @deny (update) Anonymous user cannot update scrap record data.
+     * @deny (delete) Anonymous user cannot delete scrap record data.
      */
     match /scrapRecords/{scrapId} {
-      allow get, list, update, delete: if false;
-      allow create: if isSignedIn();
+      allow get: if false;
+      allow list: if false;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
     }
 
     /**
-     * @description Controls access to asset feedback.
+     * @description Manages access to asset feedback.
      * @path /assetFeedback/{feedbackId}
-     * @allow (create) - Any signed in user can create asset feedback.
-     * @deny (get, list, update, delete) - Nobody can get, list, update, or delete asset feedback.
+     * @deny (get) Anonymous user cannot read asset feedback data.
+     * @deny (list) Anonymous user cannot list asset feedback data.
+     * @deny (create) Anonymous user cannot create asset feedback data.
+     * @deny (update) Anonymous user cannot update asset feedback data.
+     * @deny (delete) Anonymous user cannot delete asset feedback data.
      */
     match /assetFeedback/{feedbackId} {
-      allow get, list, update, delete: if false;
-      allow create: if isSignedIn();
+      allow get: if false;
+      allow list: if false;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
     }
-
   }
 
-  // Helper functions
+  // Helper function to determine if the user is signed in.
   function isSignedIn() {
     return request.auth != null;
   }
 
+  // Helper function to determine if the user is the owner of the resource.
   function isOwner(userId) {
     return request.auth.uid == userId;
   }
 
+  // Helper function to determine if the user is the owner of the resource and it exists.
   function isExistingOwner(userId) {
     return isOwner(userId) && resource != null;
   }
