@@ -19,6 +19,8 @@ import { cn } from "@/lib/utils";
 import { Card, CardContent, CardFooter } from "../ui/card";
 import { ScrollArea } from "../ui/scroll-area";
 import { FileUpload } from "../ui/file-upload";
+import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
+import { collection, query } from "firebase/firestore";
 
 interface AssetFormProps {
   initialData?: AssetManagementFormData | null;
@@ -27,7 +29,17 @@ interface AssetFormProps {
   isEditing?: boolean;
 }
 
+interface UserProfile {
+  id: string;
+  displayName: string;
+  email: string;
+}
+
 export function AssetManagementForm({ initialData, onSave, onCancel, isEditing = true }: AssetFormProps) {
+  const firestore = useFirestore();
+  const usersQuery = useMemoFirebase(() => firestore ? query(collection(firestore, "users")) : null, [firestore]);
+  const { data: users, isLoading: isLoadingUsers } = useCollection<UserProfile>(usersQuery);
+
   const form = useForm<AssetManagementFormData>({
     resolver: zodResolver(AssetManagementSchema),
     defaultValues: initialData ? 
@@ -71,7 +83,7 @@ export function AssetManagementForm({ initialData, onSave, onCancel, isEditing =
         workingConditionStatus: "Working",
         comments: "",
         currentStatus: "In Store",
-        statusChangedOn: undefined,
+        statusChangedOn: new Date(),
         attachments: {
             invoice: undefined,
             warranty: undefined,
@@ -95,13 +107,13 @@ export function AssetManagementForm({ initialData, onSave, onCancel, isEditing =
               <h3 className="mb-4 text-lg font-medium">Core Information</h3>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <FormField control={form.control} name="assetNumber" render={({ field }) => (
-                    <FormItem><FormLabel>Asset Number</FormLabel><FormControl><Input {...field} readOnly={readOnly} /></FormControl><FormMessage /></FormItem>
+                    <FormItem><FormLabel>Asset Number <span className="text-destructive">*</span></FormLabel><FormControl><Input {...field} readOnly={readOnly} /></FormControl><FormMessage /></FormItem>
                 )}/>
                 <FormField control={form.control} name="kmNumber" render={({ field }) => (
                     <FormItem><FormLabel>KM Number</FormLabel><FormControl><Input {...field} readOnly={readOnly} /></FormControl><FormMessage /></FormItem>
                 )}/>
                 <FormField control={form.control} name="assetDescription" render={({ field }) => (
-                    <FormItem className="md:col-span-2 lg:col-span-3"><FormLabel>Asset Description</FormLabel><FormControl><Textarea {...field} readOnly={readOnly} /></FormControl><FormMessage /></FormItem>
+                    <FormItem className="md:col-span-2 lg:col-span-3"><FormLabel>Asset Description <span className="text-destructive">*</span></FormLabel><FormControl><Textarea {...field} readOnly={readOnly} /></FormControl><FormMessage /></FormItem>
                 )}/>
               </div>
             </div>
@@ -161,7 +173,7 @@ export function AssetManagementForm({ initialData, onSave, onCancel, isEditing =
                         <FormItem><FormLabel>Product Serial No.</FormLabel><FormControl><Input {...field} readOnly={readOnly} /></FormControl><FormMessage /></FormItem>
                     )}/>
                     <FormField control={form.control} name="ledgerQty" render={({ field }) => (
-                        <FormItem><FormLabel>Ledger Quantity</FormLabel><FormControl><Input type="number" {...field} readOnly={readOnly} onChange={e => field.onChange(parseInt(e.target.value, 10) || 0)}/></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel>Ledger Quantity <span className="text-destructive">*</span></FormLabel><FormControl><Input type="number" {...field} readOnly={readOnly} onChange={e => field.onChange(parseInt(e.target.value, 10) || 0)}/></FormControl><FormMessage /></FormItem>
                     )}/>
                 </div>
             </div>
@@ -171,20 +183,32 @@ export function AssetManagementForm({ initialData, onSave, onCancel, isEditing =
                 <h3 className="mb-4 text-lg font-medium">Custody & Usage</h3>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                     <FormField control={form.control} name="personResponsible" render={({ field }) => (
-                        <FormItem><FormLabel>Person Responsible (Custodian)</FormLabel><FormControl><Input {...field} readOnly={readOnly} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel>Person Responsible (Custodian)</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={readOnly || isLoadingUsers}>
+                            <FormControl><SelectTrigger><SelectValue placeholder={isLoadingUsers ? "Loading users..." : "Select User"} /></SelectTrigger></FormControl>
+                            <SelectContent>{users?.map(user => <SelectItem key={user.id} value={user.displayName}>{user.displayName}</SelectItem>)}</SelectContent>
+                        </Select><FormMessage /></FormItem>
                     )}/>
                     <FormField control={form.control} name="currentUser" render={({ field }) => (
-                        <FormItem><FormLabel>Current User</FormLabel><FormControl><Input {...field} readOnly={readOnly} /></FormControl><FormMessage /></FormItem>
+                         <FormItem><FormLabel>Current User</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={readOnly || isLoadingUsers}>
+                            <FormControl><SelectTrigger><SelectValue placeholder={isLoadingUsers ? "Loading users..." : "Select User"} /></SelectTrigger></FormControl>
+                            <SelectContent>{users?.map(user => <SelectItem key={user.id} value={user.displayName}>{user.displayName}</SelectItem>)}</SelectContent>
+                        </Select><FormMessage /></FormItem>
+                    )}/>
+                     <FormField control={form.control} name="assetCoordinator" render={({ field }) => (
+                         <FormItem><FormLabel>Asset Co-ordinator</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={readOnly || isLoadingUsers}>
+                            <FormControl><SelectTrigger><SelectValue placeholder={isLoadingUsers ? "Loading users..." : "Select User"} /></SelectTrigger></FormControl>
+                            <SelectContent>{users?.map(user => <SelectItem key={user.id} value={user.displayName}>{user.displayName}</SelectItem>)}</SelectContent>
+                        </Select><FormMessage /></FormItem>
                     )}/>
                     <FormField control={form.control} name="department" render={({ field }) => (
-                        <FormItem><FormLabel>Department</FormLabel>
+                        <FormItem><FormLabel>Department <span className="text-destructive">*</span></FormLabel>
                         <Select onValueChange={field.onChange} value={field.value} disabled={readOnly}>
                             <FormControl><SelectTrigger><SelectValue placeholder="Select Department" /></SelectTrigger></FormControl>
                             <SelectContent>{DEPARTMENTS.map(dept => <SelectItem key={dept} value={dept}>{dept}</SelectItem>)}</SelectContent>
                         </Select><FormMessage /></FormItem>
-                    )}/>
-                    <FormField control={form.control} name="assetCoordinator" render={({ field }) => (
-                        <FormItem><FormLabel>Asset Co-ordinator</FormLabel><FormControl><Input {...field} readOnly={readOnly} /></FormControl><FormMessage /></FormItem>
                     )}/>
                     <FormField control={form.control} name="teamOrTribe" render={({ field }) => (
                         <FormItem><FormLabel>Team / Tribe</FormLabel>
@@ -208,7 +232,7 @@ export function AssetManagementForm({ initialData, onSave, onCancel, isEditing =
                 <h3 className="mb-4 text-lg font-medium">Location</h3>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                     <FormField control={form.control} name="location" render={({ field }) => (
-                        <FormItem><FormLabel>Location</FormLabel>
+                        <FormItem><FormLabel>Location <span className="text-destructive">*</span></FormLabel>
                         <Select onValueChange={field.onChange} value={field.value} disabled={readOnly}>
                             <FormControl><SelectTrigger><SelectValue placeholder="Select Location" /></SelectTrigger></FormControl>
                             <SelectContent>{STORE_LOCATIONS.map(loc => <SelectItem key={loc} value={loc}>{loc}</SelectItem>)}</SelectContent>
@@ -300,5 +324,3 @@ export function AssetManagementForm({ initialData, onSave, onCancel, isEditing =
     </Form>
   );
 }
-
-    
