@@ -19,10 +19,18 @@ export default function NewAssetPage() {
             toast({ title: "Firestore not available", variant: "destructive" });
             return;
         }
+
+        const dataToClean: Partial<AssetManagementFormData> = { ...data };
+
+        // Firestore does not allow `undefined` values.
+        // If attachments are empty, remove the field before saving.
+        if (dataToClean.attachments && Object.values(dataToClean.attachments).every(v => v === undefined || v === null)) {
+            delete dataToClean.attachments;
+        }
         
         // Convert dates to string format for Firestore if they are Date objects
         const dataToSave = {
-            ...data,
+            ...dataToClean,
             id: `ASSET-${Date.now()}`, // Create a unique ID
             capitalizationDate: data.capitalizationDate ? new Date(data.capitalizationDate).toISOString() : null,
             eolDate: data.eolDate ? new Date(data.eolDate).toISOString() : null,
