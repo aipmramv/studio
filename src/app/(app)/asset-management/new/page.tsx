@@ -30,7 +30,6 @@ export default function NewAssetPage() {
         
         const dataToSave = {
             ...dataToClean,
-            id: `ASSET-${Date.now()}`, // Create a unique ID
             capitalizationDate: data.capitalizationDate ? new Date(data.capitalizationDate).toISOString() : null,
             eolDate: data.eolDate ? new Date(data.eolDate).toISOString() : null,
             verifiedOn: data.verifiedOn ? new Date(data.verifiedOn).toISOString() : null,
