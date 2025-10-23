@@ -1,29 +1,27 @@
 /**
- * @fileoverview Firestore Security Rules for TrackFlow Asset Management System
- *
- * Core Philosophy:
- * This ruleset prioritizes strong authorization based on user identity and resource ownership.
- * It provides basic security for prototyping, focusing on preventing unauthorized access
- * while remaining flexible on data shapes to allow for rapid schema iteration.
+ * @file Firestore Security Rules
+ * @description This ruleset enforces a strict user-ownership model for user profiles
+ * and allows public read access to asset information. All write operations
+ * require authentication.
  *
  * Data Structure:
- * - `/users/{userId}`: Stores individual user profiles.
- * - `/assets/{assetId}`: Stores asset details.
- * - `/assetRequests/{requestId}`: Stores requests for asset changes.
- * - `/assetTransfers/{transferId}`: Stores asset transfer records.
- * - `/assetVerifications/{verificationId}`: Stores asset verification logs.
- * - `/assetCheckouts/{checkoutId}`: Stores asset checkout logs.
- * - `/scrapRecords/{scrapId}`: Stores records of scrapped assets.
- * - `/assetFeedback/{feedbackId}`: Stores feedback on assets.
+ * - /users/{userId}: Stores user profile information, accessible only to the
+ *   owning user.
+ * - /assets/{assetId}: Stores asset data, publicly readable but writable only with authentication.
+ * - /assetRequests/{requestId}: Stores asset requests data, writable only with authentication.
+ * - /assetTransfers/{transferId}: Stores asset transfers data, writable only with authentication.
+ * - /assetVerifications/{verificationId}: Stores asset verifications data, writable only with authentication.
+ * - /assetCheckouts/{checkoutId}: Stores asset checkouts data, writable only with authentication.
+ * - /scrapRecords/{scrapId}: Stores scrap records data, writable only with authentication.
+ * - /assetFeedback/{feedbackId}: Stores asset feedback data, writable only with authentication.
  *
  * Key Security Decisions:
- * - Users can only read/write their own user profiles.
- * - Listing of the `/users` collection is disallowed to prevent information disclosure.
- * - All other collections are publicly readable, but writes are restricted.
- * - For write operations, the rules enforce that the authenticated user's ID matches
- *   an expected `ownerId` or `creatorId` field within the document to maintain data integrity.
- * - Data validation is limited to essential authorization and relational integrity checks.
- * - Existence checks are enforced for all update and delete operations.
+ * - User profiles are strictly private; only the owning user can read or write their
+ *   profile data.
+ * - Listing of users is disallowed to prevent data leakage.
+ * - Assets are publicly readable to facilitate discovery, but modifications are
+ *   restricted to authenticated users.
+ * - Other collections are only writable with authentication.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -32,207 +30,208 @@ service cloud.firestore {
     /**
      * @description Controls access to user profile information.
      * @path /users/{userId}
-     * @allow (create) - User with UID 'user123' can create their own profile at /users/user123.
-     * @deny (create) - User with UID 'user123' cannot create a profile at /users/user456.
-     * @allow (get, update, delete) - User with UID 'user123' can read, update, and delete their own profile at /users/user123.
-     * @deny (get, update, delete) - User with UID 'user123' cannot read, update, or delete the profile of another user at /users/user456.
-     * @principle Enforces document ownership for writes; restricts access to a user's own data tree.
+     * @allow (create) User with UID 'user123' can create their own profile.
+     *   request.auth.uid == 'user123' and request.resource.data.id == 'user123'
+     * @allow (get) User with UID 'user123' can read their own profile.
+     *   request.auth.uid == 'user123'
+     * @allow (update) User with UID 'user123' can update their own profile.
+     *   request.auth.uid == 'user123' and resource.data.id == 'user123'
+     * @allow (delete) User with UID 'user123' can delete their own profile.
+     *   request.auth.uid == 'user123' and resource.data.id == 'user123'
+     * @deny (create) User with UID 'user456' cannot create a profile for 'user123'.
+     *   request.auth.uid == 'user456' and request.resource.data.id == 'user123'
+     * @deny (get) User with UID 'user456' cannot read the profile of 'user123'.
+     *   request.auth.uid == 'user456'
+     * @principle Enforces document ownership for user profiles.
      */
     match /users/{userId} {
-      // Verified Identity: All authorization decisions must rely on `request.auth` as the source of truth.
-      function isSignedIn() {
-        return request.auth != null;
-      }
-      // Ownership: Use for paths like `/users/{userId}/...`. The primary helper function here should be `isOwner(userId)`.
-      function isOwner(userId) {
-        return request.auth.uid == userId;
-      }
-        // Auditable and Maintainable Logic: Abstract all complex logic into well-named helper functions.
-        function isExistingOwner(userId) {
-            return (isOwner(userId) && exists(/databases/$(database)/documents/users/$(userId)));
-        }
-
       allow get: if isOwner(userId);
-      allow list: if false;
-
-      allow create: if isOwner(userId) && request.auth.uid == userId;
-      allow update: if isExistingOwner(userId) && request.auth.uid == userId;
+      allow list: if false; // Listing users is not permitted.
+      allow create: if isSignedIn() && isNewOwner(userId);
+      allow update: if isExistingOwner(userId);
       allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Controls access to asset master data.
+     * @description Controls access to asset information. Assets are publicly readable,
+     *   but write operations require authentication.
      * @path /assets/{assetId}
-     * @allow (get, list) - Any user can read asset information.
-     * @deny (create, update, delete) - Only the owner can modify asset information.
-     * @principle Public read access with owner-only writes, enforces document ownership for writes.
+     * @allow (get, list) Any user can read asset data.
+     * @allow (create) Authenticated user can create asset data.
+     *   request.auth.uid != null
+     * @allow (update) Authenticated user can update asset data.
+     *   request.auth.uid != null && resource != null
+     * @allow (delete) Authenticated user can delete asset data.
+     *   request.auth.uid != null && resource != null
+     * @deny (create) Unauthenticated user cannot create asset data.
+     *   request.auth.uid == null
+     * @deny (update) Unauthenticated user cannot update asset data.
+     *   request.auth.uid == null
+     * @principle Allows public read access to assets but restricts write access to authenticated users.
      */
     match /assets/{assetId} {
-       // Ownership: Use for paths like `/users/{userId}/...`. The primary helper function here should be `isOwner(userId)`.
-      function isOwner(ownerId) {
-        return request.auth.uid == ownerId;
-      }
-
-      // Auditable and Maintainable Logic: Abstract all complex logic into well-named helper functions.
-      function isExistingOwner(ownerId, assetId) {
-          return (isOwner(ownerId) && exists(/databases/$(database)/documents/assets/$(assetId)));
-      }
-
-      allow get, list: if true;
-
-      allow create: if isSignedIn();
-      allow update: if isSignedIn() && isExistingOwner(request.resource.data.personResponsible, assetId);
-      allow delete: if isSignedIn() && isExistingOwner(request.resource.data.personResponsible, assetId);
-    }
-
-     /**
-      * @description Controls access to asset request data.
-      * @path /assetRequests/{requestId}
-      * @allow (get, list) - Any user can read asset request information.
-      * @deny (create, update, delete) - Only the owner can modify asset request information.
-      * @principle Public read access with owner-only writes, enforces document ownership for writes.
-      */
-    match /assetRequests/{requestId} {
-
-      // Ownership: Use for paths like `/users/{userId}/...`. The primary helper function here should be `isOwner(ownerId)`.
-      function isOwner(ownerId) {
-        return request.auth.uid == ownerId;
-      }
-      // Auditable and Maintainable Logic: Abstract all complex logic into well-named helper functions.
-      function isExistingOwner(ownerId, requestId) {
-          return (isOwner(ownerId) && exists(/databases/$(database)/documents/assetRequests/$(requestId)));
-      }
-
       allow get, list: if true;
       allow create: if isSignedIn();
-      allow update: if isSignedIn() && isExistingOwner(request.resource.data.requestedBy, requestId);
-      allow delete: if isSignedIn() && isExistingOwner(request.resource.data.requestedBy, requestId);
-    }
-
-     /**
-      * @description Controls access to asset transfer data.
-      * @path /assetTransfers/{transferId}
-      * @allow (get, list) - Any user can read asset transfer information.
-      * @deny (create, update, delete) - Only the owner can modify asset transfer information.
-      * @principle Public read access with owner-only writes, enforces document ownership for writes.
-      */
-    match /assetTransfers/{transferId} {
-
-      // Ownership: Use for paths like `/users/{userId}/...`. The primary helper function here should be `isOwner(ownerId)`.
-      function isOwner(ownerId) {
-        return request.auth.uid == ownerId;
-      }
-
-      // Auditable and Maintainable Logic: Abstract all complex logic into well-named helper functions.
-      function isExistingOwner(ownerId, transferId) {
-          return (isOwner(ownerId) && exists(/databases/$(database)/documents/assetTransfers/$(transferId)));
-      }
-
-      allow get, list: if true;
-
-      allow create: if isSignedIn();
-      allow update: if isSignedIn() && isExistingOwner(request.resource.data.responsiblePerson, transferId);
-      allow delete: if isSignedIn() && isExistingOwner(request.resource.data.responsiblePerson, transferId);
+      allow update: if isSignedIn() && resource != null;
+      allow delete: if isSignedIn() && resource != null;
     }
 
     /**
-     * @description Controls access to asset verification data.
+     * @description Controls access to asset request information. Only authenticated users can
+     *   create, update, or delete asset requests.
+     * @path /assetRequests/{requestId}
+     * @allow (create) Authenticated user can create asset request data.
+     *   request.auth.uid != null
+     * @allow (update) Authenticated user can update asset request data.
+     *   request.auth.uid != null && resource != null
+     * @allow (delete) Authenticated user can delete asset request data.
+     *   request.auth.uid != null && resource != null
+     * @deny (create) Unauthenticated user cannot create asset request data.
+     *   request.auth.uid == null
+     * @deny (update) Unauthenticated user cannot update asset request data.
+     *   request.auth.uid == null
+     * @principle Restricts write access to asset requests to authenticated users.
+     */
+    match /assetRequests/{requestId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && resource != null;
+      allow delete: if isSignedIn() && resource != null;
+    }
+
+    /**
+     * @description Controls access to asset transfer information. Only authenticated users can
+     *   create, update, or delete asset transfers.
+     * @path /assetTransfers/{transferId}
+     * @allow (create) Authenticated user can create asset transfer data.
+     *   request.auth.uid != null
+     * @allow (update) Authenticated user can update asset transfer data.
+     *   request.auth.uid != null && resource != null
+     * @allow (delete) Authenticated user can delete asset transfer data.
+     *   request.auth.uid != null && resource != null
+     * @deny (create) Unauthenticated user cannot create asset transfer data.
+     *   request.auth.uid == null
+     * @deny (update) Unauthenticated user cannot update asset transfer data.
+     *   request.auth.uid == null
+     * @principle Restricts write access to asset transfers to authenticated users.
+     */
+    match /assetTransfers/{transferId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && resource != null;
+      allow delete: if isSignedIn() && resource != null;
+    }
+
+    /**
+     * @description Controls access to asset verification information. Only authenticated users can
+     *   create, update, or delete asset verifications.
      * @path /assetVerifications/{verificationId}
-     * @allow (get, list) - Any user can read asset verification information.
-     * @deny (create, update, delete) - Only the owner can modify asset verification information.
-     * @principle Public read access with owner-only writes, enforces document ownership for writes.
+     * @allow (create) Authenticated user can create asset verification data.
+     *   request.auth.uid != null
+     * @allow (update) Authenticated user can update asset verification data.
+     *   request.auth.uid != null && resource != null
+     * @allow (delete) Authenticated user can delete asset verification data.
+     *   request.auth.uid != null && resource != null
+     * @deny (create) Unauthenticated user cannot create asset verification data.
+     *   request.auth.uid == null
+     * @deny (update) Unauthenticated user cannot update asset verification data.
+     *   request.auth.uid == null
+     * @principle Restricts write access to asset verifications to authenticated users.
      */
     match /assetVerifications/{verificationId} {
-
-      // Ownership: Use for paths like `/users/{userId}/...`. The primary helper function here should be `isOwner(ownerId)`.
-      function isOwner(ownerId) {
-        return request.auth.uid == ownerId;
-      }
-
-      // Auditable and Maintainable Logic: Abstract all complex logic into well-named helper functions.
-      function isExistingOwner(ownerId, verificationId) {
-          return (isOwner(ownerId) && exists(/databases/$(database)/documents/assetVerifications/$(verificationId)));
-      }
-
-      allow get, list: if true;
-
+      allow get, list: if isSignedIn();
       allow create: if isSignedIn();
-      allow update: if isSignedIn() && isExistingOwner(request.resource.data.verifiedBy, verificationId);
-      allow delete: if isSignedIn() && isExistingOwner(request.resource.data.verifiedBy, verificationId);
+      allow update: if isSignedIn() && resource != null;
+      allow delete: if isSignedIn() && resource != null;
     }
 
     /**
-     * @description Controls access to asset checkout data.
+     * @description Controls access to asset checkout information. Only authenticated users can
+     *   create, update, or delete asset checkouts.
      * @path /assetCheckouts/{checkoutId}
-     * @allow (get, list) - Any user can read asset checkout information.
-     * @deny (create, update, delete) - Only the owner can modify asset checkout information.
-     * @principle Public read access with owner-only writes, enforces document ownership for writes.
+     * @allow (create) Authenticated user can create asset checkout data.
+     *   request.auth.uid != null
+     * @allow (update) Authenticated user can update asset checkout data.
+     *   request.auth.uid != null && resource != null
+     * @allow (delete) Authenticated user can delete asset checkout data.
+     *   request.auth.uid != null && resource != null
+     * @deny (create) Unauthenticated user cannot create asset checkout data.
+     *   request.auth.uid == null
+     * @deny (update) Unauthenticated user cannot update asset checkout data.
+     *   request.auth.uid == null
+     * @principle Restricts write access to asset checkouts to authenticated users.
      */
     match /assetCheckouts/{checkoutId} {
-
-      // Ownership: Use for paths like `/users/{userId}/...`. The primary helper function here should be `isOwner(ownerId)`.
-      function isOwner(ownerId) {
-        return request.auth.uid == ownerId;
-      }
-     // Auditable and Maintainable Logic: Abstract all complex logic into well-named helper functions.
-      function isExistingOwner(ownerId, checkoutId) {
-          return (isOwner(ownerId) && exists(/databases/$(database)/documents/assetCheckouts/$(checkoutId)));
-      }
-
-      allow get, list: if true;
-
+      allow get, list: if isSignedIn();
       allow create: if isSignedIn();
-      allow update: if isSignedIn() && isExistingOwner(request.resource.data.custodian, checkoutId);
-      allow delete: if isSignedIn() && isExistingOwner(request.resource.data.custodian, checkoutId);
+      allow update: if isSignedIn() && resource != null;
+      allow delete: if isSignedIn() && resource != null;
     }
 
     /**
-     * @description Controls access to scrap record data.
+     * @description Controls access to scrap record information. Only authenticated users can
+     *   create, update, or delete scrap records.
      * @path /scrapRecords/{scrapId}
-     * @allow (get, list) - Any user can read scrap record information.
-     * @deny (create, update, delete) - Only the owner can modify scrap record information.
-     * @principle Public read access with owner-only writes, enforces document ownership for writes.
+     * @allow (create) Authenticated user can create scrap record data.
+     *   request.auth.uid != null
+     * @allow (update) Authenticated user can update scrap record data.
+     *   request.auth.uid != null && resource != null
+     * @allow (delete) Authenticated user can delete scrap record data.
+     *   request.auth.uid != null && resource != null
+     * @deny (create) Unauthenticated user cannot create scrap record data.
+     *   request.auth.uid == null
+     * @deny (update) Unauthenticated user cannot update scrap record data.
+     *   request.auth.uid == null
+     * @principle Restricts write access to scrap records to authenticated users.
      */
     match /scrapRecords/{scrapId} {
-
-      // Ownership: Use for paths like `/users/{userId}/...`. The primary helper function here should be `isOwner(ownerId)`.
-      function isOwner(ownerId) {
-        return request.auth.uid == ownerId;
-      }
-
-      // Auditable and Maintainable Logic: Abstract all complex logic into well-named helper functions.
-      function isExistingOwner(ownerId, scrapId) {
-          return (isOwner(ownerId) && exists(/databases/$(database)/documents/scrapRecords/$(scrapId)));
-      }
-
-      allow get, list: if true;
-
+      allow get, list: if isSignedIn();
       allow create: if isSignedIn();
-      allow update: if false;  // TODO: Add owner validation once the schema is updated with an ownership field.
-      allow delete: if false;  // TODO: Add owner validation once the schema is updated with an ownership field.
+      allow update: if isSignedIn() && resource != null;
+      allow delete: if isSignedIn() && resource != null;
     }
 
     /**
-     * @description Controls access to asset feedback data.
+     * @description Controls access to asset feedback information. Only authenticated users can
+     *   create, update, or delete asset feedback.
      * @path /assetFeedback/{feedbackId}
-     * @allow (get, list) - Any user can read asset feedback information.
-     * @deny (create, update, delete) - Only the owner can modify asset feedback information.
-     * @principle Public read access with owner-only writes, enforces document ownership for writes.
+     * @allow (create) Authenticated user can create asset feedback data.
+     *   request.auth.uid != null
+     * @allow (update) Authenticated user can update asset feedback data.
+     *   request.auth.uid != null && resource != null
+     * @allow (delete) Authenticated user can delete asset feedback data.
+     *   request.auth.uid != null && resource != null
+     * @deny (create) Unauthenticated user cannot create asset feedback data.
+     *   request.auth.uid == null
+     * @deny (update) Unauthenticated user cannot update asset feedback data.
+     *   request.auth.uid == null
+     * @principle Restricts write access to asset feedback to authenticated users.
      */
     match /assetFeedback/{feedbackId} {
-     // Ownership: Use for paths like `/users/{userId}/...`. The primary helper function here should be `isOwner(ownerId)`.
-      function isOwner(ownerId) {
-        return request.auth.uid == ownerId;
-      }
-
-      // Auditable and Maintainable Logic: Abstract all complex logic into well-named helper functions.
-      function isExistingOwner(ownerId, feedbackId) {
-          return (isOwner(ownerId) && exists(/databases/$(database)/documents/assetFeedback/$(feedbackId)));
-      }
-      allow get, list: if true;
+      allow get, list: if isSignedIn();
       allow create: if isSignedIn();
-      allow update: if isSignedIn() && isExistingOwner(request.resource.data.submittedBy, feedbackId);
-      allow delete: if isSignedIn() && isExistingOwner(request.resource.data.submittedBy, feedbackId);
+      allow update: if isSignedIn() && resource != null;
+      allow delete: if isSignedIn() && resource != null;
+    }
+
+    // Helper function to determine if the user is signed in.
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Helper function to determine if the user is the owner of the document.
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    // Helper function to determine if the user is creating their own user document.
+    function isNewOwner(userId) {
+        return request.auth.uid == userId && request.resource.data.id == userId;
+    }
+
+    // Helper function to determine if the user is updating or deleting their own existing user document.
+    function isExistingOwner(userId) {
+        return request.auth.uid == userId && resource != null && resource.data.id == userId;
     }
   }
 }
