@@ -2,146 +2,211 @@
  * @fileoverview Firestore Security Rules for TrackFlow Asset Management System.
  *
  * Core Philosophy:
- * This ruleset enforces a flexible security model, granting all authenticated and email-verified users full read and write access to all data.
+ * This ruleset enforces a strict user-ownership model for user profiles,
+ * while generally allowing public read access to asset data. Write access to
+ * assets and related collections (requests, transfers, etc.) are restricted
+ * to authenticated users. The rules prioritize security and data integrity.
  *
  * Data Structure:
- * The Firestore database contains several top-level collections: `users`, `assets`, `assetRequests`, `assetTransfers`, `assetVerifications`, `assetCheckouts`, `scrapRecords`, and `assetFeedback`.
+ * - `/users/{userId}`: Stores individual user profiles.
+ * - `/assets/{assetId}`: Stores asset master data.
+ * - `/assetRequests/{requestId}`: Stores requests for asset ownership changes.
+ * - `/assetTransfers/{transferId}`: Stores asset transfer logs.
+ * - `/assetVerifications/{verificationId}`: Stores asset verification records.
+ * - `/assetCheckouts/{checkoutId}`: Stores asset checkout records.
+ * - `/scrapRecords/{scrapId}`: Stores records of scrapped assets.
+ * - `/assetFeedback/{feedbackId}`: Stores feedback and issue logs for assets.
  *
  * Key Security Decisions:
- * - All read and write operations are allowed for users with verified emails to facilitate prototyping.
- * - No user listing is explicitly denied.
+ * - User profiles are private and only accessible/modifiable by the owning user.
+ * - Assets are publicly readable but require authentication for creation, updates, and deletion.
+ * - Other collections (requests, transfers, etc.) require authentication for all operations.
+ * - No listing is generally allowed except for user-owned documents.
  *
+ * Denormalization for Authorization:
+ *  - None specified, but consider adding owner fields to asset-related documents if more granular
+ *    access control is needed in the future (e.g., restricting asset request creation to specific users).
+ *
+ * Structural Segregation:
+ *  - No explicit segregation between public and private data within a single collection.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Grants all email-verified users full access to user profile information.
+     * @description Manages user profile data.
      * @path /users/{userId}
-     * @allow (create, update, delete, get, list) - Any email-verified user.
-     * @deny (none) - All email-verified users are allowed.
-     * @principle Allows any email-verified user to read and write user profile information.
+     * @allow (create) User with ID 'user123' can create their own profile.
+     * @allow (get) User with ID 'user123' can read their own profile.
+     * @allow (update) User with ID 'user123' can update their own profile.
+     * @allow (delete) User with ID 'user123' can delete their own profile.
+     * @deny (create) User with ID 'user456' cannot create a profile for 'user123'.
+     * @deny (get) User with ID 'user456' cannot read profile of 'user123'.
+     * @deny (update) User with ID 'user456' cannot update profile of 'user123'.
+     * @deny (delete) User with ID 'user456' cannot delete profile of 'user123'.
+     * @principle Enforces document ownership for user profiles.
      */
     match /users/{userId} {
-      allow get: if isSignedIn() && isEmailVerified();
-      allow list: if isSignedIn() && isEmailVerified();
-      allow create: if isSignedIn() && isEmailVerified();
-      allow update: if isSignedIn() && isEmailVerified();
-      allow delete: if isSignedIn() && isEmailVerified();
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Grants all email-verified users full access to asset master data.
+     * @description Manages asset master data.
      * @path /assets/{assetId}
-     * @allow (create, update, delete, get, list) - Any email-verified user.
-     * @deny (none) - All email-verified users are allowed.
-     * @principle Allows any email-verified user to read and write asset master data.
+     * @allow (get) Any user can read asset data.
+     * @allow (create) Authenticated user can create asset data.
+     * @allow (update) Authenticated user can update asset data.
+     * @allow (delete) Authenticated user can delete asset data.
+     * @deny (create) Unauthenticated user cannot create asset data.
+     * @principle Allows public read access but requires authentication for write operations.
      */
     match /assets/{assetId} {
-      allow get: if isSignedIn() && isEmailVerified();
-      allow list: if isSignedIn() && isEmailVerified();
-      allow create: if isSignedIn() && isEmailVerified();
-      allow update: if isSignedIn() && isEmailVerified();
-      allow delete: if isSignedIn() && isEmailVerified();
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && resource != null;
+      allow delete: if isSignedIn() && resource != null;
     }
 
     /**
-     * @description Grants all email-verified users full access to asset ownership change requests.
+     * @description Manages asset ownership change requests.
      * @path /assetRequests/{requestId}
-     * @allow (create, update, delete, get, list) - Any email-verified user.
-     * @deny (none) - All email-verified users are allowed.
-     * @principle Allows any email-verified user to read and write asset ownership change requests.
+     * @allow (create) Authenticated user can create an asset request.
+     * @allow (update) Authenticated user can update an asset request.
+     * @allow (get) Authenticated user can read an asset request.
+     * @allow (delete) Authenticated user can delete an asset request.
+     * @deny (create) Unauthenticated user cannot create an asset request.
+     * @principle Requires authentication for all operations on asset requests.
      */
     match /assetRequests/{requestId} {
-      allow get: if isSignedIn() && isEmailVerified();
-      allow list: if isSignedIn() && isEmailVerified();
-      allow create: if isSignedIn() && isEmailVerified();
-      allow update: if isSignedIn() && isEmailVerified();
-      allow delete: if isSignedIn() && isEmailVerified();
+      allow get: if isSignedIn();
+      allow list: if false;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && resource != null;
+      allow delete: if isSignedIn() && resource != null;
     }
 
     /**
-     * @description Grants all email-verified users full access to asset transfer/movement logs.
+     * @description Manages asset transfer/movement logs.
      * @path /assetTransfers/{transferId}
-     * @allow (create, update, delete, get, list) - Any email-verified user.
-     * @deny (none) - All email-verified users are allowed.
-     * @principle Allows any email-verified user to read and write asset transfer/movement logs.
+     * @allow (create) Authenticated user can create an asset transfer log.
+     * @allow (update) Authenticated user can update an asset transfer log.
+     * @allow (get) Authenticated user can read an asset transfer log.
+     * @allow (delete) Authenticated user can delete an asset transfer log.
+     * @deny (create) Unauthenticated user cannot create an asset transfer log.
+     * @principle Requires authentication for all operations on asset transfer logs.
      */
     match /assetTransfers/{transferId} {
-      allow get: if isSignedIn() && isEmailVerified();
-      allow list: if isSignedIn() && isEmailVerified();
-      allow create: if isSignedIn() && isEmailVerified();
-      allow update: if isSignedIn() && isEmailVerified();
-      allow delete: if isSignedIn() && isEmailVerified();
+      allow get: if isSignedIn();
+      allow list: if false;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && resource != null;
+      allow delete: if isSignedIn() && resource != null;
     }
 
     /**
-     * @description Grants all email-verified users full access to asset verification history.
+     * @description Manages asset verification history.
      * @path /assetVerifications/{verificationId}
-     * @allow (create, update, delete, get, list) - Any email-verified user.
-     * @deny (none) - All email-verified users are allowed.
-     * @principle Allows any email-verified user to read and write asset verification history.
+     * @allow (create) Authenticated user can create an asset verification record.
+     * @allow (update) Authenticated user can update an asset verification record.
+     * @allow (get) Authenticated user can read an asset verification record.
+     * @allow (delete) Authenticated user can delete an asset verification record.
+     * @deny (create) Unauthenticated user cannot create an asset verification record.
+     * @principle Requires authentication for all operations on asset verification records.
      */
     match /assetVerifications/{verificationId} {
-      allow get: if isSignedIn() && isEmailVerified();
-      allow list: if isSignedIn() && isEmailVerified();
-      allow create: if isSignedIn() && isEmailVerified();
-      allow update: if isSignedIn() && isEmailVerified();
-      allow delete: if isSignedIn() && isEmailVerified();
+      allow get: if isSignedIn();
+      allow list: if false;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && resource != null;
+      allow delete: if isSignedIn() && resource != null;
     }
 
     /**
-     * @description Grants all email-verified users full access to asset check-in/check-out history.
+     * @description Manages asset check-in/check-out history.
      * @path /assetCheckouts/{checkoutId}
-     * @allow (create, update, delete, get, list) - Any email-verified user.
-     * @deny (none) - All email-verified users are allowed.
-     * @principle Allows any email-verified user to read and write asset check-in/check-out history.
+     * @allow (create) Authenticated user can create an asset checkout record.
+     * @allow (update) Authenticated user can update an asset checkout record.
+     * @allow (get) Authenticated user can read an asset checkout record.
+     * @allow (delete) Authenticated user can delete an asset checkout record.
+     * @deny (create) Unauthenticated user cannot create an asset checkout record.
+     * @principle Requires authentication for all operations on asset checkout records.
      */
     match /assetCheckouts/{checkoutId} {
-      allow get: if isSignedIn() && isEmailVerified();
-      allow list: if isSignedIn() && isEmailVerified();
-      allow create: if isSignedIn() && isEmailVerified();
-      allow update: if isSignedIn() && isEmailVerified();
-      allow delete: if isSignedIn() && isEmailVerified();
+      allow get: if isSignedIn();
+      allow list: if false;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && resource != null;
+      allow delete: if isSignedIn() && resource != null;
     }
 
     /**
-     * @description Grants all email-verified users full access to records of scrapped assets.
+     * @description Manages records of scrapped assets.
      * @path /scrapRecords/{scrapId}
-     * @allow (create, update, delete, get, list) - Any email-verified user.
-     * @deny (none) - All email-verified users are allowed.
-     * @principle Allows any email-verified user to read and write records of scrapped assets.
+     * @allow (create) Authenticated user can create a scrap record.
+     * @allow (update) Authenticated user can update a scrap record.
+     * @allow (get) Authenticated user can read a scrap record.
+     * @allow (delete) Authenticated user can delete a scrap record.
+     * @deny (create) Unauthenticated user cannot create a scrap record.
+     * @principle Requires authentication for all operations on scrap records.
      */
     match /scrapRecords/{scrapId} {
-      allow get: if isSignedIn() && isEmailVerified();
-      allow list: if isSignedIn() && isEmailVerified();
-      allow create: if isSignedIn() && isEmailVerified();
-      allow update: if isSignedIn() && isEmailVerified();
-      allow delete: if isSignedIn() && isEmailVerified();
+      allow get: if isSignedIn();
+      allow list: if false;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && resource != null;
+      allow delete: if isSignedIn() && resource != null;
     }
 
     /**
-     * @description Grants all email-verified users full access to feedback and issue logs for assets.
+     * @description Manages feedback and issue logs for assets.
      * @path /assetFeedback/{feedbackId}
-     * @allow (create, update, delete, get, list) - Any email-verified user.
-     * @deny (none) - All email-verified users are allowed.
-     * @principle Allows any email-verified user to read and write feedback and issue logs for assets.
+     * @allow (create) Authenticated user can create asset feedback.
+     * @allow (update) Authenticated user can update asset feedback.
+     * @allow (get) Authenticated user can read asset feedback.
+     * @allow (delete) Authenticated user can delete asset feedback.
+     * @deny (create) Unauthenticated user cannot create asset feedback.
+     * @principle Requires authentication for all operations on asset feedback.
      */
     match /assetFeedback/{feedbackId} {
-      allow get: if isSignedIn() && isEmailVerified();
-      allow list: if isSignedIn() && isEmailVerified();
-      allow create: if isSignedIn() && isEmailVerified();
-      allow update: if isSignedIn() && isEmailVerified();
-      allow delete: if isSignedIn() && isEmailVerified();
+      allow get: if isSignedIn();
+      allow list: if false;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && resource != null;
+      allow delete: if isSignedIn() && resource != null;
     }
 
+    // --- Helper Functions ---
+
+    /**
+     * @description Checks if the user is signed in.
+     * @return {bool} True if the user is signed in, false otherwise.
+     */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    function isEmailVerified() {
-      return request.auth.token.email_verified == true;
+    /**
+     * @description Checks if the authenticated user is the owner of the resource.
+     * @param {string} userId The user ID to compare against the authenticated user's ID.
+     * @return {bool} True if the user is the owner, false otherwise.
+     */
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    /**
+     * @description Checks if the authenticated user is the owner of the resource, and if the resource exists.
+     * @param {string} userId The user ID to compare against the authenticated user's ID.
+     * @return {bool} True if the user is the owner and the resource exists, false otherwise.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
     }
   }
 }
