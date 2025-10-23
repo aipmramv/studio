@@ -5,11 +5,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AtSign, Lock, LogIn, Briefcase, Loader2 } from "lucide-react";
+import { AtSign, Lock, LogIn, Loader2 } from "lucide-react";
 import * as React from "react";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, type AuthError, type User } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
-
+import { getAuth, signInWithEmailAndPassword, type AuthError } from "firebase/auth";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -25,13 +23,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { LoginSchema, type LoginFormData } from "@/lib/schemas";
 import { useToast } from "@/hooks/use-toast";
 import { KoneLogo } from "@/components/shared/KoneLogo";
-import { useFirestore } from "@/firebase";
 
 export function LoginForm() {
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = React.useState(false);
-  const firestore = useFirestore();
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(LoginSchema),
@@ -41,34 +37,12 @@ export function LoginForm() {
     },
   });
 
-  const ensureAdminUserDocument = async (user: User) => {
-    if (!firestore) return;
-    const userDocRef = doc(firestore, "users", user.uid);
-    // Overwrite the user document to ensure the role is admin.
-    await setDoc(userDocRef, {
-        id: user.uid,
-        email: user.email,
-        role: 'admin',
-        displayName: user.email === 'aipm.ramv@gmail.com' ? 'Ram Kumar V' : (user.email === 'admin@example.com' ? 'Default Admin' : user.displayName),
-        department: 'IT'
-    }, { merge: true });
-  };
-
   async function onSubmit(data: LoginFormData) {
     setLoading(true);
     const auth = getAuth();
-    const isAdminEmail = data.email === 'admin@example.com' || data.email === 'aipm.ramv@gmail.com';
-    const isAdminPassword = data.password === 'admin123';
     
     try {
-      // First, attempt to sign in the user.
-      const userCredential = await signInWithEmailAndPassword(auth, data.email, data.password);
-      
-      // If sign-in is successful AND it's an admin email, ensure the role is set correctly.
-      if (isAdminEmail) {
-        await ensureAdminUserDocument(userCredential.user);
-      }
-      
+      await signInWithEmailAndPassword(auth, data.email, data.password);
       toast({
         title: "Login Successful",
         description: "Welcome back!",
@@ -77,38 +51,13 @@ export function LoginForm() {
 
     } catch (error) {
       const authError = error as AuthError;
-      
-      // If the user does not exist AND it's the default admin credentials, create the account.
-      if (
-        authError.code === 'auth/user-not-found' &&
-        isAdminEmail &&
-        isAdminPassword
-      ) {
-        try {
-          const newUserCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-          await ensureAdminUserDocument(newUserCredential.user);
-          toast({
-            title: "Admin Account Created",
-            description: `Default administrator account for ${data.email} has been set up. Welcome!`,
-          });
-          router.push("/dashboard");
-
-        } catch (creationError) {
-          const creationAuthError = creationError as AuthError;
-          toast({
-            title: "Admin Creation Failed",
-            description: creationAuthError.message || "Could not create the default admin account.",
-            variant: "destructive",
-          });
-        }
-      } else {
-         // For any other login error (wrong password, etc.)
-         toast({
-          title: "Login Failed",
-          description: authError.message || "An unexpected error occurred.",
-          variant: "destructive",
-        });
-      }
+      toast({
+        title: "Login Failed",
+        description: authError.code === 'auth/invalid-credential' 
+            ? "Invalid email or password." 
+            : authError.message || "An unexpected error occurred.",
+        variant: "destructive",
+      });
     } finally {
         setLoading(false);
     }

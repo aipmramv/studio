@@ -49,17 +49,23 @@ export function SignupForm() {
     setLoading(true);
     const auth = getAuth();
 
+    if (!firestore) {
+      toast({
+        title: "Signup Failed",
+        description: "Database service is not available. Please try again later.",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
       const user = userCredential.user;
 
-      // Update user's profile with display name
+      // Update user's profile with display name in Firebase Auth
       await updateProfile(user, { displayName: data.displayName });
       
-      if (!firestore) {
-          throw new Error("Firestore is not initialized.");
-      }
-
       // Create a user profile document in Firestore
       const userDocRef = doc(firestore, "users", user.uid);
       await setDoc(userDocRef, {
@@ -78,7 +84,9 @@ export function SignupForm() {
     } catch (error: any) {
       toast({
         title: "Signup Failed",
-        description: error.message || "An unexpected error occurred.",
+        description: error.code === 'auth/email-already-in-use' 
+            ? "This email address is already registered."
+            : error.message || "An unexpected error occurred.",
         variant: "destructive",
       });
     } finally {
