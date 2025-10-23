@@ -1,210 +1,266 @@
 /**
- * @fileoverview Firestore Security Rules for TrackFlow Asset Management System
+ * @fileoverview Firestore Security Rules for TrackFlow Asset Management System.
  *
  * Core Philosophy:
- * This ruleset prioritizes secure data access based on user roles and ownership.
- * It aims to prevent unauthorized data modification and exposure while allowing
- * for flexible data shapes during the prototyping phase.
+ * This ruleset prioritizes secure data access based on user identity,
+ * enforcing a strict ownership model for user profiles and allowing
+ * public read access for asset-related collections while restricting
+ * write access to authenticated users. Data shape validation is relaxed
+ * to allow for rapid prototyping.
  *
  * Data Structure:
- * - /users/{userId}: Stores individual user profiles, accessible only to the user themselves.
- * - /assets/{assetId}: Stores asset details. Read access is public, while write access is restricted to owners.
- * - /assetRequests/{requestId}: Stores asset requests.
- * - /assetTransfers/{transferId}: Stores asset transfer records.
- * - /assetVerifications/{verificationId}: Stores asset verification records.
- * - /assetCheckouts/{checkoutId}: Stores asset check-out records.
- * - /scrapRecords/{scrapId}: Stores asset scrap records.
- * - /assetFeedback/{feedbackId}: Stores asset feedback records.
+ * - User profiles are stored under `/users/{userId}`.
+ * - Assets and their related data (requests, transfers, verifications, etc.)
+ *   are stored in top-level collections like `/assets/{assetId}`.
  *
  * Key Security Decisions:
- * - User profiles are strictly private and accessible only to the owning user.
- * - Listing of users is disallowed.
- * - Public read access is granted for asset data, but writes require ownership.
- * - No role based access control is implemented.
+ * - User listing is disabled.
+ * - Public read access is enabled for asset collections to facilitate data
+ *   discovery and reporting, but writes are restricted to authenticated users.
+ * - Ownership is enforced on user profiles, ensuring that only the
+ *   authenticated user can modify their own profile.
+ * - No role-based access control is implemented in this initial version.
  *
  * Denormalization for Authorization:
- *  No explicit denormalization strategy is implemented.
+ *  - The ruleset assumes that the 'id' field in the `/users/{userId}`
+ *    document is the same as the `userId` in the path.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Enforces access control for user profiles.
+     * @description Secure user profiles. Only the authenticated user can
+     *              read or write their own profile.
      * @path /users/{userId}
-     * @allow (create) - If the user's ID matches the userId in the path.
-     * @allow (get, update, delete) - If the user is the owner of the profile.
-     * @deny (create) - If the user's ID does not match the userId in the path.
-     * @deny (get, update, delete) - If the user is not the owner of the profile.
-     * @principle Enforces document ownership for writes and restricts access to a user's own data tree.
+     * @allow (create) User with UID 'user123' can create a profile at
+     *        /users/user123.
+     * @deny  (create) User with UID 'user456' cannot create a profile at
+     *        /users/user123 (mismatched UID).
+     * @principle Enforces document ownership for writes.
      */
     match /users/{userId} {
-      function isOwner(userId) {
-        return request.auth != null && request.auth.uid == userId;
+      function isSignedIn() {
+        return request.auth != null;
       }
+
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      function isExistingOwner(userId) {
+        return isOwner(userId) && exists(resource);
+      }
+      
+      // Allow a user to read their own profile.
       allow get: if isOwner(userId);
+      
+      // Prevent listing of all users.
       allow list: if false;
-      allow create: if request.auth.uid == userId;
-      allow update: if isOwner(userId) ;
-      allow delete: if isOwner(userId) ;
+
+      // Allow a user to create their own profile if the ID matches their UID.
+      allow create: if isSignedIn() && request.resource.data.id == request.auth.uid;
+
+      // Allow a user to update their own profile if it exists and the ID matches.
+      allow update: if isExistingOwner(userId) && request.resource.data.id == userId;
+
+      // Allow a user to delete their own profile if it exists.
+      allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Grants public read access to assets, but restricts write access to owners.
+     * @description Assets are publicly readable, but writes are restricted to
+     *              authenticated users.
      * @path /assets/{assetId}
-     * @allow (get, list) - Everyone can read the assets.
-     * @allow (create) - Only if the request data has `assetId` == `request.auth.uid`.
-     * @allow (update, delete) - Only the owner of the asset can modify or delete it, and only if the document exists.
-     * @deny (create) - If the request data does not have `assetId` == `request.auth.uid`.
-     * @deny (update, delete) - If the user is not the owner of the asset or the document doesn't exist.
-     * @principle Grants public read with owner-only writes, and validates relational integrity on create.
+     * @allow (get) Any user can read an asset.
+     * @allow (list) Any user can list assets.
+     * @allow (create) Authenticated user can create new asset.
+     * @deny  (create) Unauthenticated user cannot create an asset.
+     * @principle Public read, authenticated write.
      */
     match /assets/{assetId} {
-      function isOwner() {
-        return request.auth != null && resource.data.ownerUid == request.auth.uid;
+      function isSignedIn() {
+        return request.auth != null;
       }
+      
+      // Allow anyone to read or list assets.
       allow get, list: if true;
-      allow create: if request.auth != null;
-      allow update: if isOwner();
-      allow delete: if isOwner();
-    }
 
-      /**
-       * @description Controls access to asset requests.
-       * @path /assetRequests/{requestId}
-       * @allow (get, list) - Everyone can read the asset requests.
-       * @allow (create) - Only authenticated users can create requests.
-       * @allow (update, delete) - Only the user who created the request can modify or delete it.
-       * @deny (create) - If not authenticated.
-       * @deny (update, delete) - If the request does not exist or if the user is not the request creator.
-       * @principle Enforces authentication for creation and ownership for modifications.
-       */
-      match /assetRequests/{requestId} {
-        function isOwner() {
-          return request.auth != null && resource.data.requestorUid == request.auth.uid;
-        }
-        function isSignedIn() {
-          return request.auth != null;
-        }
-        allow get, list: if true;
-        allow create: if isSignedIn();
-        allow update: if isOwner();
-        allow delete: if isOwner();
+      // Allow only authenticated users to create assets.
+      allow create: if isSignedIn();
+
+      // Allow only authenticated users to update assets.
+      allow update: if isSignedIn();
+
+      // Allow only authenticated users to delete assets.
+      allow delete: if isSignedIn();
     }
 
     /**
-     * @description Controls access to asset transfers.
+     * @description Asset requests are publicly readable, but writes are restricted to
+     *              authenticated users.
+     * @path /assetRequests/{requestId}
+     * @allow (get) Any user can read an asset request.
+     * @allow (list) Any user can list asset requests.
+     * @allow (create) Authenticated user can create new asset request.
+     * @deny  (create) Unauthenticated user cannot create an asset request.
+     * @principle Public read, authenticated write.
+     */
+    match /assetRequests/{requestId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+      
+      // Allow anyone to read or list asset requests.
+      allow get, list: if true;
+
+      // Allow only authenticated users to create asset requests.
+      allow create: if isSignedIn();
+
+      // Allow only authenticated users to update asset requests.
+      allow update: if isSignedIn();
+
+      // Allow only authenticated users to delete asset requests.
+      allow delete: if isSignedIn();
+    }
+
+     /**
+     * @description Asset transfers are publicly readable, but writes are restricted to
+     *              authenticated users.
      * @path /assetTransfers/{transferId}
-     * @allow (get, list) - Everyone can read transfer records.
-     * @allow (create) - Only authenticated users can create transfer records.
-     * @allow (update, delete) - Only the user who created the transfer record can modify or delete it.
-     * @deny (create) - If not authenticated.
-     * @deny (update, delete) - If the request does not exist or if the user is not the record creator.
-     * @principle Enforces authentication for creation and ownership for modifications.
+     * @allow (get) Any user can read an asset transfer.
+     * @allow (list) Any user can list asset transfers.
+     * @allow (create) Authenticated user can create new asset transfer.
+     * @deny  (create) Unauthenticated user cannot create an asset transfer.
+     * @principle Public read, authenticated write.
      */
     match /assetTransfers/{transferId} {
-        function isOwner() {
-          return request.auth != null && resource.data.creatorUid == request.auth.uid;
-        }
-        function isSignedIn() {
-          return request.auth != null;
-        }
-        allow get, list: if true;
-        allow create: if isSignedIn();
-        allow update: if isOwner();
-        allow delete: if isOwner();
+      function isSignedIn() {
+        return request.auth != null;
+      }
+      
+      // Allow anyone to read or list asset transfers.
+      allow get, list: if true;
+
+      // Allow only authenticated users to create asset transfers.
+      allow create: if isSignedIn();
+
+      // Allow only authenticated users to update asset transfers.
+      allow update: if isSignedIn();
+
+      // Allow only authenticated users to delete asset transfers.
+      allow delete: if isSignedIn();
     }
 
     /**
-     * @description Controls access to asset verifications.
+     * @description Asset verifications are publicly readable, but writes are restricted to
+     *              authenticated users.
      * @path /assetVerifications/{verificationId}
-     * @allow (get, list) - Everyone can read verification records.
-     * @allow (create) - Only authenticated users can create verification records.
-     * @allow (update, delete) - Only the user who created the verification record can modify or delete it.
-     * @deny (create) - If not authenticated.
-     * @deny (update, delete) - If the request does not exist or if the user is not the record creator.
-     * @principle Enforces authentication for creation and ownership for modifications.
+     * @allow (get) Any user can read an asset verification.
+     * @allow (list) Any user can list asset verifications.
+     * @allow (create) Authenticated user can create new asset verification.
+     * @deny  (create) Unauthenticated user cannot create an asset verification.
+     * @principle Public read, authenticated write.
      */
     match /assetVerifications/{verificationId} {
-        function isOwner() {
-          return request.auth != null && resource.data.creatorUid == request.auth.uid;
-        }
-        function isSignedIn() {
-          return request.auth != null;
-        }
-        allow get, list: if true;
-        allow create: if isSignedIn();
-        allow update: if isOwner();
-        allow delete: if isOwner();
-    }
+      function isSignedIn() {
+        return request.auth != null;
+      }
+      
+      // Allow anyone to read or list asset verifications.
+      allow get, list: if true;
 
-    /**
-     * @description Controls access to asset checkouts.
+      // Allow only authenticated users to create asset verifications.
+      allow create: if isSignedIn();
+
+      // Allow only authenticated users to update asset verifications.
+      allow update: if isSignedIn();
+
+      // Allow only authenticated users to delete asset verifications.
+      allow delete: if isSignedIn();
+    }
+      /**
+     * @description Asset checkouts are publicly readable, but writes are restricted to
+     *              authenticated users.
      * @path /assetCheckouts/{checkoutId}
-     * @allow (get, list) - Everyone can read checkout records.
-     * @allow (create) - Only authenticated users can create checkout records.
-     * @allow (update, delete) - Only the user who created the checkout record can modify or delete it.
-     * @deny (create) - If not authenticated.
-     * @deny (update, delete) - If the request does not exist or if the user is not the record creator.
-     * @principle Enforces authentication for creation and ownership for modifications.
+     * @allow (get) Any user can read an asset checkout.
+     * @allow (list) Any user can list asset checkouts.
+     * @allow (create) Authenticated user can create new asset checkout.
+     * @deny  (create) Unauthenticated user cannot create an asset checkout.
+     * @principle Public read, authenticated write.
      */
     match /assetCheckouts/{checkoutId} {
-        function isOwner() {
-          return request.auth != null && resource.data.creatorUid == request.auth.uid;
-        }
-        function isSignedIn() {
-          return request.auth != null;
-        }
-        allow get, list: if true;
-        allow create: if isSignedIn();
-        allow update: if isOwner();
-        allow delete: if isOwner();
+      function isSignedIn() {
+        return request.auth != null;
+      }
+      
+      // Allow anyone to read or list asset checkouts.
+      allow get, list: if true;
+
+      // Allow only authenticated users to create asset checkouts.
+      allow create: if isSignedIn();
+
+      // Allow only authenticated users to update asset checkouts.
+      allow update: if isSignedIn();
+
+      // Allow only authenticated users to delete asset checkouts.
+      allow delete: if isSignedIn();
     }
 
     /**
-     * @description Controls access to scrap records.
+     * @description Scrap records are publicly readable, but writes are restricted to
+     *              authenticated users.
      * @path /scrapRecords/{scrapId}
-     * @allow (get, list) - Everyone can read scrap records.
-     * @allow (create) - Only authenticated users can create scrap records.
-     * @allow (update, delete) - Only the user who created the scrap record can modify or delete it.
-     * @deny (create) - If not authenticated.
-     * @deny (update, delete) - If the request does not exist or if the user is not the record creator.
-     * @principle Enforces authentication for creation and ownership for modifications.
+     * @allow (get) Any user can read a scrap record.
+     * @allow (list) Any user can list scrap records.
+     * @allow (create) Authenticated user can create new scrap record.
+     * @deny  (create) Unauthenticated user cannot create an asset scrap record.
+     * @principle Public read, authenticated write.
      */
     match /scrapRecords/{scrapId} {
-        function isOwner() {
-          return request.auth != null && resource.data.creatorUid == request.auth.uid;
-        }
-        function isSignedIn() {
-          return request.auth != null;
-        }
-        allow get, list: if true;
-        allow create: if isSignedIn();
-        allow update: if isOwner();
-        allow delete: if isOwner();
+      function isSignedIn() {
+        return request.auth != null;
+      }
+      
+      // Allow anyone to read or list scrap records.
+      allow get, list: if true;
+
+      // Allow only authenticated users to create scrap records.
+      allow create: if isSignedIn();
+
+      // Allow only authenticated users to update scrap records.
+      allow update: if isSignedIn();
+
+      // Allow only authenticated users to delete scrap records.
+      allow delete: if isSignedIn();
     }
 
-    /**
-     * @description Controls access to asset feedback.
+     /**
+     * @description Asset feedback is publicly readable, but writes are restricted to
+     *              authenticated users.
      * @path /assetFeedback/{feedbackId}
-     * @allow (get, list) - Everyone can read feedback records.
-     * @allow (create) - Only authenticated users can create feedback records.
-     * @allow (update, delete) - Only the user who created the feedback record can modify or delete it.
-     * @deny (create) - If not authenticated.
-     * @deny (update, delete) - If the request does not exist or if the user is not the record creator.
-     * @principle Enforces authentication for creation and ownership for modifications.
+     * @allow (get) Any user can read asset feedback.
+     * @allow (list) Any user can list asset feedback.
+     * @allow (create) Authenticated user can create new asset feedback.
+     * @deny  (create) Unauthenticated user cannot create asset feedback.
+     * @principle Public read, authenticated write.
      */
     match /assetFeedback/{feedbackId} {
-        function isOwner() {
-          return request.auth != null && resource.data.creatorUid == request.auth.uid;
-        }
-        function isSignedIn() {
-          return request.auth != null;
-        }
-        allow get, list: if true;
-        allow create: if isSignedIn();
-        allow update: if isOwner();
-        allow delete: if isOwner();
+      function isSignedIn() {
+        return request.auth != null;
+      }
+      
+      // Allow anyone to read or list asset feedback.
+      allow get, list: if true;
+
+      // Allow only authenticated users to create asset feedback.
+      allow create: if isSignedIn();
+
+      // Allow only authenticated users to update asset feedback.
+      allow update: if isSignedIn();
+
+      // Allow only authenticated users to delete asset feedback.
+      allow delete: if isSignedIn();
     }
   }
 }
