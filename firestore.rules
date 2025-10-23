@@ -47,7 +47,7 @@ service cloud.firestore {
     match /users/{userId} {
       allow get: if isOwner(userId);
       allow list: if false; // Listing users is not permitted.
-      allow create: if isSignedIn() && isNewOwner(userId);
+      allow create: if isNewOwner(userId);
       allow update: if isExistingOwner(userId);
       allow delete: if isExistingOwner(userId);
     }
