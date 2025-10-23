@@ -2,14 +2,15 @@
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Firestore } from 'firebase/firestore';
+// We keep Firestore loosely typed to allow Cosmos shim to be provided
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
 
 interface FirebaseProviderProps {
   children: ReactNode;
   firebaseApp: FirebaseApp;
-  firestore: Firestore;
+  // Allow any DB client (firestore or cosmos shim)
+  firestore: any;
   auth: Auth;
 }
 
@@ -24,7 +25,7 @@ interface UserAuthState {
 export interface FirebaseContextState {
   areServicesAvailable: boolean; // True if core services (app, firestore, auth instance) are provided
   firebaseApp: FirebaseApp | null;
-  firestore: Firestore | null;
+  firestore: any | null;
   auth: Auth | null; // The Auth service instance
   // User authentication state
   user: User | null;
@@ -35,7 +36,7 @@ export interface FirebaseContextState {
 // Return type for useFirebase()
 export interface FirebaseServicesAndUser {
   firebaseApp: FirebaseApp;
-  firestore: Firestore;
+  firestore: any;
   auth: Auth;
   user: User | null;
   isUserLoading: boolean;
@@ -142,8 +143,8 @@ export const useAuth = (): Auth => {
   return auth;
 };
 
-/** Hook to access Firestore instance. */
-export const useFirestore = (): Firestore => {
+/** Hook to access Firestore or Cosmos instance. */
+export const useFirestore = (): any => {
   const { firestore } = useFirebase();
   return firestore;
 };

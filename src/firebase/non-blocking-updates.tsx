@@ -1,14 +1,12 @@
-'use client';
-    
+"use client";
+
 import {
   setDoc,
   addDoc,
   updateDoc,
   deleteDoc,
-  CollectionReference,
-  DocumentReference,
-  SetOptions,
-} from 'firebase/firestore';
+} from '@/mongo/mongo';
+import type { CollectionReference, DocumentReference } from '@/mongo/mongo';
 import { errorEmitter } from '@/firebase/error-emitter';
 import {FirestorePermissionError} from '@/firebase/errors';
 
@@ -16,12 +14,12 @@ import {FirestorePermissionError} from '@/firebase/errors';
  * Initiates a setDoc operation for a document reference.
  * Does NOT await the write operation internally.
  */
-export function setDocumentNonBlocking(docRef: DocumentReference, data: any, options: SetOptions) {
+export function setDocumentNonBlocking(docRef: DocumentReference, data: any, options?: any) {
   setDoc(docRef, data, options).catch(error => {
     errorEmitter.emit(
       'permission-error',
       new FirestorePermissionError({
-        path: docRef.path,
+        path: `${docRef.collection}/${docRef.id}`,
         operation: 'write', // or 'create'/'update' based on options
         requestResourceData: data,
       })
@@ -42,7 +40,7 @@ export function addDocumentNonBlocking(colRef: CollectionReference, data: any) {
       errorEmitter.emit(
         'permission-error',
         new FirestorePermissionError({
-          path: colRef.path,
+          path: colRef.name,
           operation: 'create',
           requestResourceData: data,
         })
@@ -62,7 +60,7 @@ export function updateDocumentNonBlocking(docRef: DocumentReference, data: any) 
       errorEmitter.emit(
         'permission-error',
         new FirestorePermissionError({
-          path: docRef.path,
+          path: `${docRef.collection}/${docRef.id}`,
           operation: 'update',
           requestResourceData: data,
         })
@@ -81,7 +79,7 @@ export function deleteDocumentNonBlocking(docRef: DocumentReference) {
       errorEmitter.emit(
         'permission-error',
         new FirestorePermissionError({
-          path: docRef.path,
+          path: `${docRef.collection}/${docRef.id}`,
           operation: 'delete',
         })
       )

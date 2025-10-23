@@ -1,16 +1,20 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import {
-  Query,
-  onSnapshot,
-  DocumentData,
-  FirestoreError,
-  QuerySnapshot,
-  CollectionReference,
-} from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { onSnapshot as mongoOnSnapshot, CollectionReference as MongoCollectionReference } from '@/mongo/mongo';
+
+// Minimal compatibility types
+type DocumentData = Record<string, any>;
+type CollectionReference = MongoCollectionReference;
+
+// Minimal Firestore-like error type
+class FirestoreError extends Error { }
+
+interface QuerySnapshot<T = DocumentData> {
+  docs: Array<{ id: string; data?: T } | null>;
+}
 
 /** Utility type to add an 'id' field to a given type T. */
 export type WithId<T> = T & { id: string };
@@ -28,14 +32,7 @@ export interface UseCollectionResult<T> {
 /* Internal implementation of Query:
   https://github.com/firebase/firebase-js-sdk/blob/c5f08a9bc5da0d2b0207802c972d53724ccef055/packages/firestore/src/lite-api/reference.ts#L143
 */
-export interface InternalQuery extends Query<DocumentData> {
-  _query: {
-    path: {
-      canonicalString(): string;
-      toString(): string;
-    }
-  }
-}
+// No InternalQuery type in shim
 
 /**
  * React hook to subscribe to a Firestore collection or query in real-time.
@@ -52,7 +49,7 @@ export interface InternalQuery extends Query<DocumentData> {
  * @returns {UseCollectionResult<T>} Object with data, isLoading, error.
  */
 export function useCollection<T = any>(
-    memoizedTargetRefOrQuery: ((CollectionReference<DocumentData> | Query<DocumentData>) & {__memo?: boolean})  | null | undefined,
+  memoizedTargetRefOrQuery: (CollectionReference & {__memo?: boolean})  | null | undefined,
 ): UseCollectionResult<T> {
   type ResultItemType = WithId<T>;
   type StateDataType = ResultItemType[] | null;
@@ -72,33 +69,27 @@ export function useCollection<T = any>(
     setIsLoading(true);
     setError(null);
 
-    // Directly use memoizedTargetRefOrQuery as it's assumed to be the final query
-    const unsubscribe = onSnapshot(
-      memoizedTargetRefOrQuery,
-      (snapshot: QuerySnapshot<DocumentData>) => {
+    // Use the mongo shim's onSnapshot polling
+    const unsubscribe = mongoOnSnapshot(
+      memoizedTargetRefOrQuery as CollectionReference,
+      (snapshot: any) => {
         const results: ResultItemType[] = [];
         for (const doc of snapshot.docs) {
-          results.push({ ...(doc.data() as T), id: doc.id });
+          if (doc) results.push({ ...(doc as any), id: doc.id });
         }
         setData(results);
         setError(null);
         setIsLoading(false);
       },
-      (error: FirestoreError) => {
-        // This logic extracts the path from either a ref or a query
-        const path: string =
-          memoizedTargetRefOrQuery.type === 'collection'
-            ? (memoizedTargetRefOrQuery as CollectionReference).path
-            : (memoizedTargetRefOrQuery as unknown as InternalQuery)._query.path.canonicalString()
-
+      (error: any) => {
         const contextualError = new FirestorePermissionError({
           operation: 'list',
-          path,
-        })
+          path: (memoizedTargetRefOrQuery as any)?.name || 'unknown',
+        });
 
-        setError(contextualError)
-        setData(null)
-        setIsLoading(false)
+        setError(contextualError);
+        setData(null);
+        setIsLoading(false);
 
         // trigger global error propagation
         errorEmitter.emit('permission-error', contextualError);
