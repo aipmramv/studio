@@ -1,0 +1,375 @@
+
+> kti-assets@0.1.0 dev
+> next dev --turbopack
+
+   ▲ Next.js 15.3.3 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://10.0.1.58:3000
+
+ ✓ Starting...
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+ ○ Compiling middleware ...
+ ✓ Compiled middleware in 1284ms
+ ✓ Ready in 5.3s
+ ⚠ Webpack is configured while Turbopack is not, which may cause problems.
+ ⚠ See instructions if you need to configure Turbopack:
+  https://nextjs.org/docs/app/api-reference/next-config-js/turbo
+
+ ○ Compiling / ...
+ ✓ Compiled / in 9.6s
+ ⨯ ./node_modules/mongodb/lib/cmap/auth/gssapi.js:4:13
+Module not found: Can't resolve 'dns'
+[0m [90m 2 |[39m [33mObject[39m[33m.[39mdefineProperty(exports[33m,[39m [32m"__esModule"[39m[33m,[39m { value[33m:[39m [36mtrue[39m })[33m;[39m[0m
+[0m [90m 3 |[39m exports[33m.[39mresolveCname [33m=[39m exports[33m.[39mperformGSSAPICanonicalizeHostName [33m=[39m exports[33m.[39m[33mGSSAPI[39m [33m=[39m exports[33m.[39m[33mGSSAPICanonicalizationValue[39m [33m=[39m [36mvoid[39m [35m0[39m[33m;[39m[0m
+[0m[31m[1m>[22m[39m[90m 4 |[39m [36mconst[39m dns [33m=[39m require([32m"dns"[39m)[33m;[39m[0m
+[0m [90m   |[39m             [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[0m
+[0m [90m 5 |[39m [36mconst[39m deps_1 [33m=[39m require([32m"../../deps"[39m)[33m;[39m[0m
+[0m [90m 6 |[39m [36mconst[39m error_1 [33m=[39m require([32m"../../error"[39m)[33m;[39m[0m
+[0m [90m 7 |[39m [36mconst[39m utils_1 [33m=[39m require([32m"../../utils"[39m)[33m;[39m[0m
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+
+./node_modules/mongodb/lib/connection_string.js:4:13
+Module not found: Can't resolve 'dns'
+[0m [90m 2 |[39m [33mObject[39m[33m.[39mdefineProperty(exports[33m,[39m [32m"__esModule"[39m[33m,[39m { value[33m:[39m [36mtrue[39m })[33m;[39m[0m
+[0m [90m 3 |[39m exports[33m.[39m[33mFEATURE_FLAGS[39m [33m=[39m exports[33m.[39m[33mDEFAULT_OPTIONS[39m [33m=[39m exports[33m.[39m[33mOPTIONS[39m [33m=[39m exports[33m.[39mparseOptions [33m=[39m exports[33m.[39mresolveSRVRecord [33m=[39m [36mvoid[39m [35m0[39m[33m;[39m[0m
+[0m[31m[1m>[22m[39m[90m 4 |[39m [36mconst[39m dns [33m=[39m require([32m"dns"[39m)[33m;[39m[0m
+[0m [90m   |[39m             [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[0m
+[0m [90m 5 |[39m [36mconst[39m fs [33m=[39m require([32m"fs"[39m)[33m;[39m[0m
+[0m [90m 6 |[39m [36mconst[39m mongodb_connection_string_url_1 [33m=[39m require([32m"mongodb-connection-string-url"[39m)[33m;[39m[0m
+[0m [90m 7 |[39m [36mconst[39m url_1 [33m=[39m require([32m"url"[39m)[33m;[39m[0m
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+
+./node_modules/mongodb/lib/sdam/srv_polling.js:4:13
+Module not found: Can't resolve 'dns'
+[0m [90m 2 |[39m [33mObject[39m[33m.[39mdefineProperty(exports[33m,[39m [32m"__esModule"[39m[33m,[39m { value[33m:[39m [36mtrue[39m })[33m;[39m[0m
+[0m [90m 3 |[39m exports[33m.[39m[33mSrvPoller[39m [33m=[39m exports[33m.[39m[33mSrvPollingEvent[39m [33m=[39m [36mvoid[39m [35m0[39m[33m;[39m[0m
+[0m[31m[1m>[22m[39m[90m 4 |[39m [36mconst[39m dns [33m=[39m require([32m"dns"[39m)[33m;[39m[0m
+[0m [90m   |[39m             [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[0m
+[0m [90m 5 |[39m [36mconst[39m timers_1 [33m=[39m require([32m"timers"[39m)[33m;[39m[0m
+[0m [90m 6 |[39m [36mconst[39m error_1 [33m=[39m require([32m"../error"[39m)[33m;[39m[0m
+[0m [90m 7 |[39m [36mconst[39m mongo_types_1 [33m=[39m require([32m"../mongo_types"[39m)[33m;[39m[0m
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+
+./node_modules/mongodb/lib/cmap/auth/mongodb_oidc/aws_service_workflow.js:4:12
+Module not found: Can't resolve 'fs'
+[0m [90m 2 |[39m [33mObject[39m[33m.[39mdefineProperty(exports[33m,[39m [32m"__esModule"[39m[33m,[39m { value[33m:[39m [36mtrue[39m })[33m;[39m[0m
+[0m [90m 3 |[39m exports[33m.[39m[33mAwsServiceWorkflow[39m [33m=[39m [36mvoid[39m [35m0[39m[33m;[39m[0m
+[0m[31m[1m>[22m[39m[90m 4 |[39m [36mconst[39m fs [33m=[39m require([32m"fs"[39m)[33m;[39m[0m
+[0m [90m   |[39m            [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[0m
+[0m [90m 5 |[39m [36mconst[39m error_1 [33m=[39m require([32m"../../../error"[39m)[33m;[39m[0m
+[0m [90m 6 |[39m [36mconst[39m service_workflow_1 [33m=[39m require([32m"./service_workflow"[39m)[33m;[39m[0m
+[0m [90m 7 |[39m [90m/** Error for when the token is missing in the environment. */[39m[0m
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+
+./node_modules/mongodb/lib/connection_string.js:5:12
+Module not found: Can't resolve 'fs'
+[0m [90m 3 |[39m exports[33m.[39m[33mFEATURE_FLAGS[39m [33m=[39m exports[33m.[39m[33mDEFAULT_OPTIONS[39m [33m=[39m exports[33m.[39m[33mOPTIONS[39m [33m=[39m exports[33m.[39mparseOptions [33m=[39m exports[33m.[39mresolveSRVRecord [33m=[39m [36mvoid[39m [35m0[39m[33m;[39m[0m
+[0m [90m 4 |[39m [36mconst[39m dns [33m=[39m require([32m"dns"[39m)[33m;[39m[0m
+[0m[31m[1m>[22m[39m[90m 5 |[39m [36mconst[39m fs [33m=[39m require([32m"fs"[39m)[33m;[39m[0m
+[0m [90m   |[39m            [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[0m
+[0m [90m 6 |[39m [36mconst[39m mongodb_connection_string_url_1 [33m=[39m require([32m"mongodb-connection-string-url"[39m)[33m;[39m[0m
+[0m [90m 7 |[39m [36mconst[39m url_1 [33m=[39m require([32m"url"[39m)[33m;[39m[0m
+[0m [90m 8 |[39m [36mconst[39m mongo_credentials_1 [33m=[39m require([32m"./cmap/auth/mongo_credentials"[39m)[33m;[39m[0m
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+
+./node_modules/saslprep/lib/memory-code-points.js:3:12
+Module not found: Can't resolve 'fs'
+[0m [90m 1 |[39m [32m'use strict'[39m[33m;[39m[0m
+[0m [90m 2 |[39m[0m
+[0m[31m[1m>[22m[39m[90m 3 |[39m [36mconst[39m fs [33m=[39m require([32m'fs'[39m)[33m;[39m[0m
+[0m [90m   |[39m            [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[0m
+[0m [90m 4 |[39m [36mconst[39m path [33m=[39m require([32m'path'[39m)[33m;[39m[0m
+[0m [90m 5 |[39m [36mconst[39m bitfield [33m=[39m require([32m'sparse-bitfield'[39m)[33m;[39m[0m
+[0m [90m 6 |[39m[0m
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+
+./node_modules/mongodb/lib/cmap/connect.js:4:13
+Module not found: Can't resolve 'net'
+[0m [90m 2 |[39m [33mObject[39m[33m.[39mdefineProperty(exports[33m,[39m [32m"__esModule"[39m[33m,[39m { value[33m:[39m [36mtrue[39m })[33m;[39m[0m
+[0m [90m 3 |[39m exports[33m.[39m[33mLEGAL_TCP_SOCKET_OPTIONS[39m [33m=[39m exports[33m.[39m[33mLEGAL_TLS_SOCKET_OPTIONS[39m [33m=[39m exports[33m.[39mprepareHandshakeDocument [33m=[39m exports[33m.[39mconnect [33m=[39m exports[33m.[39m[33mAUTH_PROVIDERS[39m [33m=[39m [36mvoid[39m [35m0[39m[33m;[39m[0m
+[0m[31m[1m>[22m[39m[90m 4 |[39m [36mconst[39m net [33m=[39m require([32m"net"[39m)[33m;[39m[0m
+[0m [90m   |[39m             [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[0m
+[0m [90m 5 |[39m [36mconst[39m socks_1 [33m=[39m require([32m"socks"[39m)[33m;[39m[0m
+[0m [90m 6 |[39m [36mconst[39m tls [33m=[39m require([32m"tls"[39m)[33m;[39m[0m
+[0m [90m 7 |[39m [36mconst[39m constants_1 [33m=[39m require([32m"../constants"[39m)[33m;[39m[0m
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+
+./node_modules/socks/build/client/socksclient.js:14:13
+Module not found: Can't resolve 'net'
+[0m [90m 12 |[39m exports[33m.[39m[33mSocksClientError[39m [33m=[39m exports[33m.[39m[33mSocksClient[39m [33m=[39m [36mvoid[39m [35m0[39m[33m;[39m[0m
+[0m [90m 13 |[39m [36mconst[39m events_1 [33m=[39m require([32m"events"[39m)[33m;[39m[0m
+[0m[31m[1m>[22m[39m[90m 14 |[39m [36mconst[39m net [33m=[39m require([32m"net"[39m)[33m;[39m[0m
+[0m [90m    |[39m             [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[0m
+[0m [90m 15 |[39m [36mconst[39m smart_buffer_1 [33m=[39m require([32m"smart-buffer"[39m)[33m;[39m[0m
+[0m [90m 16 |[39m [36mconst[39m constants_1 [33m=[39m require([32m"../common/constants"[39m)[33m;[39m[0m
+[0m [90m 17 |[39m [36mconst[39m helpers_1 [33m=[39m require([32m"../common/helpers"[39m)[33m;[39m[0m
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+
+./node_modules/socks/build/common/helpers.js:8:13
+Module not found: Can't resolve 'net'
+[0m [90m  6 |[39m [36mconst[39m stream [33m=[39m require([32m"stream"[39m)[33m;[39m[0m
+[0m [90m  7 |[39m [36mconst[39m ip_address_1 [33m=[39m require([32m"ip-address"[39m)[33m;[39m[0m
+[0m[31m[1m>[22m[39m[90m  8 |[39m [36mconst[39m net [33m=[39m require([32m"net"[39m)[33m;[39m[0m
+[0m [90m    |[39m             [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[0m
+[0m [90m  9 |[39m [90m/**[39m[0m
+[0m [90m 10 |[39m [90m * Validates the provided SocksClientOptions[39m[0m
+[0m [90m 11 |[39m [90m * @param options { SocksClientOptions }[39m[0m
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+
+./node_modules/mongodb/lib/cmap/connect.js:6:13
+Module not found: Can't resolve 'tls'
+[0m [90m 4 |[39m [36mconst[39m net [33m=[39m require([32m"net"[39m)[33m;[39m[0m
+[0m [90m 5 |[39m [36mconst[39m socks_1 [33m=[39m require([32m"socks"[39m)[33m;[39m[0m
+[0m[31m[1m>[22m[39m[90m 6 |[39m [36mconst[39m tls [33m=[39m require([32m"tls"[39m)[33m;[39m[0m
+[0m [90m   |[39m             [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[0m
+[0m [90m 7 |[39m [36mconst[39m constants_1 [33m=[39m require([32m"../constants"[39m)[33m;[39m[0m
+[0m [90m 8 |[39m [36mconst[39m error_1 [33m=[39m require([32m"../error"[39m)[33m;[39m[0m
+[0m [90m 9 |[39m [36mconst[39m utils_1 [33m=[39m require([32m"../utils"[39m)[33m;[39m[0m
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 2.4s
+ GET / 500 in 12390ms
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 1610ms
+ GET /favicon.ico 500 in 1669ms
+ ⨯ ./node_modules/mongodb/lib/cmap/auth/gssapi.js:4:13
+Module not found: Can't resolve 'dns'
+[0m [90m 2 |[39m [33mObject[39m[33m.[39mdefineProperty(exports[33m,[39m [32m"__esModule"[39m[33m,[39m { value[33m:[39m [36mtrue[39m })[33m;[39m[0m
+[0m [90m 3 |[39m exports[33m.[39mresolveCname [33m=[39m exports[33m.[39mperformGSSAPICanonicalizeHostName [33m=[39m exports[33m.[39m[33mGSSAPI[39m [33m=[39m exports[33m.[39m[33mGSSAPICanonicalizationValue[39m [33m=[39m [36mvoid[39m [35m0[39m[33m;[39m[0m
+[0m[31m[1m>[22m[39m[90m 4 |[39m [36mconst[39m dns [33m=[39m require([32m"dns"[39m)[33m;[39m[0m
+[0m [90m   |[39m             [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[0m
+[0m [90m 5 |[39m [36mconst[39m deps_1 [33m=[39m require([32m"../../deps"[39m)[33m;[39m[0m
+[0m [90m 6 |[39m [36mconst[39m error_1 [33m=[39m require([32m"../../error"[39m)[33m;[39m[0m
+[0m [90m 7 |[39m [36mconst[39m utils_1 [33m=[39m require([32m"../../utils"[39m)[33m;[39m[0m
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+
+./node_modules/mongodb/lib/connection_string.js:4:13
+Module not found: Can't resolve 'dns'
+[0m [90m 2 |[39m [33mObject[39m[33m.[39mdefineProperty(exports[33m,[39m [32m"__esModule"[39m[33m,[39m { value[33m:[39m [36mtrue[39m })[33m;[39m[0m
+[0m [90m 3 |[39m exports[33m.[39m[33mFEATURE_FLAGS[39m [33m=[39m exports[33m.[39m[33mDEFAULT_OPTIONS[39m [33m=[39m exports[33m.[39m[33mOPTIONS[39m [33m=[39m exports[33m.[39mparseOptions [33m=[39m exports[33m.[39mresolveSRVRecord [33m=[39m [36mvoid[39m [35m0[39m[33m;[39m[0m
+[0m[31m[1m>[22m[39m[90m 4 |[39m [36mconst[39m dns [33m=[39m require([32m"dns"[39m)[33m;[39m[0m
+[0m [90m   |[39m             [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[0m
+[0m [90m 5 |[39m [36mconst[39m fs [33m=[39m require([32m"fs"[39m)[33m;[39m[0m
+[0m [90m 6 |[39m [36mconst[39m mongodb_connection_string_url_1 [33m=[39m require([32m"mongodb-connection-string-url"[39m)[33m;[39m[0m
+[0m [90m 7 |[39m [36mconst[39m url_1 [33m=[39m require([32m"url"[39m)[33m;[39m[0m
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+
+./node_modules/mongodb/lib/sdam/srv_polling.js:4:13
+Module not found: Can't resolve 'dns'
+[0m [90m 2 |[39m [33mObject[39m[33m.[39mdefineProperty(exports[33m,[39m [32m"__esModule"[39m[33m,[39m { value[33m:[39m [36mtrue[39m })[33m;[39m[0m
+[0m [90m 3 |[39m exports[33m.[39m[33mSrvPoller[39m [33m=[39m exports[33m.[39m[33mSrvPollingEvent[39m [33m=[39m [36mvoid[39m [35m0[39m[33m;[39m[0m
+[0m[31m[1m>[22m[39m[90m 4 |[39m [36mconst[39m dns [33m=[39m require([32m"dns"[39m)[33m;[39m[0m
+[0m [90m   |[39m             [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[0m
+[0m [90m 5 |[39m [36mconst[39m timers_1 [33m=[39m require([32m"timers"[39m)[33m;[39m[0m
+[0m [90m 6 |[39m [36mconst[39m error_1 [33m=[39m require([32m"../error"[39m)[33m;[39m[0m
+[0m [90m 7 |[39m [36mconst[39m mongo_types_1 [33m=[39m require([32m"../mongo_types"[39m)[33m;[39m[0m
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+
+./node_modules/mongodb/lib/cmap/auth/mongodb_oidc/aws_service_workflow.js:4:12
+Module not found: Can't resolve 'fs'
+[0m [90m 2 |[39m [33mObject[39m[33m.[39mdefineProperty(exports[33m,[39m [32m"__esModule"[39m[33m,[39m { value[33m:[39m [36mtrue[39m })[33m;[39m[0m
+[0m [90m 3 |[39m exports[33m.[39m[33mAwsServiceWorkflow[39m [33m=[39m [36mvoid[39m [35m0[39m[33m;[39m[0m
+[0m[31m[1m>[22m[39m[90m 4 |[39m [36mconst[39m fs [33m=[39m require([32m"fs"[39m)[33m;[39m[0m
+[0m [90m   |[39m            [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[0m
+[0m [90m 5 |[39m [36mconst[39m error_1 [33m=[39m require([32m"../../../error"[39m)[33m;[39m[0m
+[0m [90m 6 |[39m [36mconst[39m service_workflow_1 [33m=[39m require([32m"./service_workflow"[39m)[33m;[39m[0m
+[0m [90m 7 |[39m [90m/** Error for when the token is missing in the environment. */[39m[0m
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+
+./node_modules/mongodb/lib/connection_string.js:5:12
+Module not found: Can't resolve 'fs'
+[0m [90m 3 |[39m exports[33m.[39m[33mFEATURE_FLAGS[39m [33m=[39m exports[33m.[39m[33mDEFAULT_OPTIONS[39m [33m=[39m exports[33m.[39m[33mOPTIONS[39m [33m=[39m exports[33m.[39mparseOptions [33m=[39m exports[33m.[39mresolveSRVRecord [33m=[39m [36mvoid[39m [35m0[39m[33m;[39m[0m
+[0m [90m 4 |[39m [36mconst[39m dns [33m=[39m require([32m"dns"[39m)[33m;[39m[0m
+[0m[31m[1m>[22m[39m[90m 5 |[39m [36mconst[39m fs [33m=[39m require([32m"fs"[39m)[33m;[39m[0m
+[0m [90m   |[39m            [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[0m
+[0m [90m 6 |[39m [36mconst[39m mongodb_connection_string_url_1 [33m=[39m require([32m"mongodb-connection-string-url"[39m)[33m;[39m[0m
+[0m [90m 7 |[39m [36mconst[39m url_1 [33m=[39m require([32m"url"[39m)[33m;[39m[0m
+[0m [90m 8 |[39m [36mconst[39m mongo_credentials_1 [33m=[39m require([32m"./cmap/auth/mongo_credentials"[39m)[33m;[39m[0m
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+
+./node_modules/saslprep/lib/memory-code-points.js:3:12
+Module not found: Can't resolve 'fs'
+[0m [90m 1 |[39m [32m'use strict'[39m[33m;[39m[0m
+[0m [90m 2 |[39m[0m
+[0m[31m[1m>[22m[39m[90m 3 |[39m [36mconst[39m fs [33m=[39m require([32m'fs'[39m)[33m;[39m[0m
+[0m [90m   |[39m            [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[0m
+[0m [90m 4 |[39m [36mconst[39m path [33m=[39m require([32m'path'[39m)[33m;[39m[0m
+[0m [90m 5 |[39m [36mconst[39m bitfield [33m=[39m require([32m'sparse-bitfield'[39m)[33m;[39m[0m
+[0m [90m 6 |[39m[0m
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+
+./node_modules/mongodb/lib/cmap/connect.js:4:13
+Module not found: Can't resolve 'net'
+[0m [90m 2 |[39m [33mObject[39m[33m.[39mdefineProperty(exports[33m,[39m [32m"__esModule"[39m[33m,[39m { value[33m:[39m [36mtrue[39m })[33m;[39m[0m
+[0m [90m 3 |[39m exports[33m.[39m[33mLEGAL_TCP_SOCKET_OPTIONS[39m [33m=[39m exports[33m.[39m[33mLEGAL_TLS_SOCKET_OPTIONS[39m [33m=[39m exports[33m.[39mprepareHandshakeDocument [33m=[39m exports[33m.[39mconnect [33m=[39m exports[33m.[39m[33mAUTH_PROVIDERS[39m [33m=[39m [36mvoid[39m [35m0[39m[33m;[39m[0m
+[0m[31m[1m>[22m[39m[90m 4 |[39m [36mconst[39m net [33m=[39m require([32m"net"[39m)[33m;[39m[0m
+[0m [90m   |[39m             [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[0m
+[0m [90m 5 |[39m [36mconst[39m socks_1 [33m=[39m require([32m"socks"[39m)[33m;[39m[0m
+[0m [90m 6 |[39m [36mconst[39m tls [33m=[39m require([32m"tls"[39m)[33m;[39m[0m
+[0m [90m 7 |[39m [36mconst[39m constants_1 [33m=[39m require([32m"../constants"[39m)[33m;[39m[0m
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+
+./node_modules/socks/build/client/socksclient.js:14:13
+Module not found: Can't resolve 'net'
+[0m [90m 12 |[39m exports[33m.[39m[33mSocksClientError[39m [33m=[39m exports[33m.[39m[33mSocksClient[39m [33m=[39m [36mvoid[39m [35m0[39m[33m;[39m[0m
+[0m [90m 13 |[39m [36mconst[39m events_1 [33m=[39m require([32m"events"[39m)[33m;[39m[0m
+[0m[31m[1m>[22m[39m[90m 14 |[39m [36mconst[39m net [33m=[39m require([32m"net"[39m)[33m;[39m[0m
+[0m [90m    |[39m             [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[0m
+[0m [90m 15 |[39m [36mconst[39m smart_buffer_1 [33m=[39m require([32m"smart-buffer"[39m)[33m;[39m[0m
+[0m [90m 16 |[39m [36mconst[39m constants_1 [33m=[39m require([32m"../common/constants"[39m)[33m;[39m[0m
+[0m [90m 17 |[39m [36mconst[39m helpers_1 [33m=[39m require([32m"../common/helpers"[39m)[33m;[39m[0m
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+
+./node_modules/socks/build/common/helpers.js:8:13
+Module not found: Can't resolve 'net'
+[0m [90m  6 |[39m [36mconst[39m stream [33m=[39m require([32m"stream"[39m)[33m;[39m[0m
+[0m [90m  7 |[39m [36mconst[39m ip_address_1 [33m=[39m require([32m"ip-address"[39m)[33m;[39m[0m
+[0m[31m[1m>[22m[39m[90m  8 |[39m [36mconst[39m net [33m=[39m require([32m"net"[39m)[33m;[39m[0m
+[0m [90m    |[39m             [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[0m
+[0m [90m  9 |[39m [90m/**[39m[0m
+[0m [90m 10 |[39m [90m * Validates the provided SocksClientOptions[39m[0m
+[0m [90m 11 |[39m [90m * @param options { SocksClientOptions }[39m[0m
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+
+./node_modules/mongodb/lib/cmap/connect.js:6:13
+Module not found: Can't resolve 'tls'
+[0m [90m 4 |[39m [36mconst[39m net [33m=[39m require([32m"net"[39m)[33m;[39m[0m
+[0m [90m 5 |[39m [36mconst[39m socks_1 [33m=[39m require([32m"socks"[39m)[33m;[39m[0m
+[0m[31m[1m>[22m[39m[90m 6 |[39m [36mconst[39m tls [33m=[39m require([32m"tls"[39m)[33m;[39m[0m
+[0m [90m   |[39m             [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[0m
+[0m [90m 7 |[39m [36mconst[39m constants_1 [33m=[39m require([32m"../constants"[39m)[33m;[39m[0m
+[0m [90m 8 |[39m [36mconst[39m error_1 [33m=[39m require([32m"../error"[39m)[33m;[39m[0m
+[0m [90m 9 |[39m [36mconst[39m utils_1 [33m=[39m require([32m"../utils"[39m)[33m;[39m[0m
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ GET / 500 in 140ms
+ GET /favicon.ico 500 in 168ms
+ ⚠ Found a change in next.config.ts. Restarting the server to apply the changes...
+   ▲ Next.js 15.3.3 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://10.0.1.58:3000
+
+ ✓ Starting...
+ ○ Compiling middleware ...
+ ✓ Compiled middleware in 674ms
+ ✓ Ready in 3s
+ ⚠ Webpack is configured while Turbopack is not, which may cause problems.
+ ⚠ See instructions if you need to configure Turbopack:
+  https://nextjs.org/docs/app/api-reference/next-config-js/turbo
+
+ ⚠ Found a change in next.config.ts. Restarting the server to apply the changes...
+   ▲ Next.js 15.3.3 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://10.0.1.58:3000
+
+ ✓ Starting...
+ ○ Compiling middleware ...
+ ✓ Compiled middleware in 555ms
+ ✓ Ready in 1846ms
+ ⚠ Webpack is configured while Turbopack is not, which may cause problems.
+ ⚠ See instructions if you need to configure Turbopack:
+  https://nextjs.org/docs/app/api-reference/next-config-js/turbo
+

@@ -1,10 +1,12 @@
-'use client';
+"use client";
 
 import { firebaseConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-// Note: We're replacing Firestore with an Azure Cosmos shim when AZURE_COSMOS_* env vars are provided.
-import { initializeMongo } from '@/mongo/mongo';
+// NOTE: The Mongo shim is server-only and must not be imported into client bundles.
+// If you need server-side Mongo initialization, call `initializeMongo` from a
+// server-only module (API route or server component) so the `mongodb` driver
+// is never included in client bundles.
 
 // IMPORTANT: DO NOT MODIFY THIS FUNCTION (we keep firebase init for auth/app compat)
 export function initializeFirebase() {
@@ -19,12 +21,9 @@ export function initializeFirebase() {
       firebaseApp = initializeApp(firebaseConfig);
     }
 
-    // Initialize Mongo if environment variables are provided
-    if (process.env.NEXT_PUBLIC_MONGO_URI && process.env.NEXT_PUBLIC_MONGO_DB) {
-      initializeMongo(process.env.NEXT_PUBLIC_MONGO_URI, process.env.NEXT_PUBLIC_MONGO_DB).catch((err) => {
-        console.warn('Failed to initialize Mongo shim:', err);
-      });
-    }
+    // Client should not initialize server-side Mongo. If a runtime requires
+    // connecting directly from the server, initialize Mongo from server-only
+    // code (see `src/lib/server-only-mongodb.ts`).
 
     return getSdks(firebaseApp);
   }

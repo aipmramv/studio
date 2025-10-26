@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+  "dev": "next dev",
     "genkit:dev": "genkit start -- tsx src/ai/dev.ts",
     "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
     "build": "next build",
@@ -85,5 +85,26 @@
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=8.0.0"
+  }
+  ,
+  "browser": {
+    "dns": false,
+    "fs": false,
+    "net": false,
+    "tls": false,
+    "child_process": false,
+    "crypto": false,
+    "stream": false,
+    "url": false,
+    "zlib": false,
+    "http": false,
+    "https": false,
+    "assert": false,
+    "os": false,
+    "path": false,
+    "util": false,
+    "buffer": false,
+    "events": false,
+    "querystring": false
   }
 }

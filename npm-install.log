@@ -1,0 +1,55 @@
+npm WARN deprecated path-match@1.2.4: This package is archived and no longer maintained. For support, visit https://github.com/expressjs/express/discussions
+npm WARN deprecated npmlog@5.0.1: This package is no longer supported.
+npm WARN deprecated rimraf@2.7.1: Rimraf versions prior to v4 are no longer supported
+npm WARN deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+npm WARN deprecated are-we-there-yet@2.0.0: This package is no longer supported.
+npm WARN deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+npm WARN deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+npm WARN deprecated debug@4.1.1: Debug versions >=3.2.0 <3.2.7 || >=4 <4.3.1 have a low-severity ReDos regression when used in a Node.js environment. It is recommended you upgrade to 3.2.7 or 4.3.1. (https://github.com/visionmedia/debug/issues/797)
+npm WARN deprecated gauge@3.0.2: This package is no longer supported.
+npm WARN deprecated uuid@3.3.2: Please upgrade  to version 7 or higher.  Older versions may use Math.random() in certain circumstances, which is known to be problematic.  See https://v8.dev/blog/math-random for details.
+npm WARN cleanup Failed to remove some directories [
+npm WARN cleanup   [
+npm WARN cleanup     '/workspaces/studio/node_modules/date-fns',
+npm WARN cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/workspaces/studio/node_modules/date-fns/locale/be/_lib'] {
+npm WARN cleanup       errno: -39,
+npm WARN cleanup       code: 'ENOTEMPTY',
+npm WARN cleanup       syscall: 'rmdir',
+npm WARN cleanup       path: '/workspaces/studio/node_modules/date-fns/locale/be/_lib'
+npm WARN cleanup     }
+npm WARN cleanup   ],
+npm WARN cleanup   [
+npm WARN cleanup     '/workspaces/studio/node_modules/date-fns',
+npm WARN cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/workspaces/studio/node_modules/date-fns/locale/be/_lib'] {
+npm WARN cleanup       errno: -39,
+npm WARN cleanup       code: 'ENOTEMPTY',
+npm WARN cleanup       syscall: 'rmdir',
+npm WARN cleanup       path: '/workspaces/studio/node_modules/date-fns/locale/be/_lib'
+npm WARN cleanup     }
+npm WARN cleanup   ],
+npm WARN cleanup   [
+npm WARN cleanup     '/workspaces/studio/node_modules/next',
+npm WARN cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/workspaces/studio/node_modules/next/dist/compiled'] {
+npm WARN cleanup       errno: -39,
+npm WARN cleanup       code: 'ENOTEMPTY',
+npm WARN cleanup       syscall: 'rmdir',
+npm WARN cleanup       path: '/workspaces/studio/node_modules/next/dist/compiled'
+npm WARN cleanup     }
+npm WARN cleanup   ],
+npm WARN cleanup   [
+npm WARN cleanup     '/workspaces/studio/node_modules/next',
+npm WARN cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/workspaces/studio/node_modules/next/dist/compiled'] {
+npm WARN cleanup       errno: -39,
+npm WARN cleanup       code: 'ENOTEMPTY',
+npm WARN cleanup       syscall: 'rmdir',
+npm WARN cleanup       path: '/workspaces/studio/node_modules/next/dist/compiled'
+npm WARN cleanup     }
+npm WARN cleanup   ]
+npm WARN cleanup ]
+npm ERR! code ENOTEMPTY
+npm ERR! syscall rmdir
+npm ERR! path /workspaces/studio/node_modules/next/dist/esm
+npm ERR! errno -39
+npm ERR! ENOTEMPTY: directory not empty, rmdir '/workspaces/studio/node_modules/next/dist/esm'
+
+npm ERR! A complete log of this run can be found in: /home/codespace/.npm/_logs/2025-10-26T21_12_59_912Z-debug-0.log

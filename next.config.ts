@@ -45,14 +45,21 @@ const nextConfig: NextConfig = {
         querystring: false,
       };
       
-      // Exclude server-only packages from client bundle
+      // Exclude / alias server-only packages from client bundle
       config.externals = config.externals || [];
-      config.externals.push(
-        'mongodb',
-        'bson',
-        'bcryptjs',
-        'server-only'
-      );
+      config.externals.push('server-only');
+
+      // Alias server-only modules to a small empty shim so the client bundle
+      // doesn't try to resolve Node built-ins. The shim exports an empty object.
+      const path = require('path')
+      const shim = path.resolve(__dirname, 'src/shims/empty.js')
+      config.resolve.alias = config.resolve.alias || {}
+      ;[
+        'mongodb', 'bson', 'bcryptjs', 'dns', 'fs', 'net', 'tls', 'child_process',
+        'socks', 'saslprep'
+      ].forEach((m) => {
+        config.resolve.alias[m] = shim
+      })
     }
     
     return config;
