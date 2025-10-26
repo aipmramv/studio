@@ -56,59 +56,71 @@ export function LoginForm() {
 
   async function onSubmit(data: LoginFormData) {
     setLoading(true);
-    const auth = getAuth();
-    const isAdminEmail = data.email === 'admin@example.com' || data.email === 'aipm.ramv@gmail.com';
-    const isAdminPassword = data.password === 'admin123';
     
     try {
-      // First, attempt to sign in the user.
-      const userCredential = await signInWithEmailAndPassword(auth, data.email, data.password);
-      
-      // If sign-in is successful AND it's an admin email, ensure the role is set correctly.
-      if (isAdminEmail) {
-        await ensureAdminUserDocument(userCredential.user);
-      }
-      
-      toast({
-        title: "Login Successful",
-        description: "Welcome back!",
+      // Try simple authentication first (for admin users)
+      const simpleAuthResponse = await fetch('/api/auth/simple-login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: data.email,
+          password: data.password,
+        }),
       });
-      router.push("/dashboard");
-
-    } catch (error) {
-      const authError = error as AuthError;
       
-      // If the user does not exist AND it's the default admin credentials, create the account.
-      if (
-        authError.code === 'auth/user-not-found' &&
-        isAdminEmail &&
-        isAdminPassword
-      ) {
-        try {
-          const newUserCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-          await ensureAdminUserDocument(newUserCredential.user);
+      if (simpleAuthResponse.ok) {
+        const authResult = await simpleAuthResponse.json();
+        if (authResult.success) {
+          // Store session info (in production, use proper session management)
+          localStorage.setItem('user', JSON.stringify(authResult.user));
+          localStorage.setItem('token', authResult.token);
+          
           toast({
-            title: "Admin Account Created",
-            description: `Default administrator account for ${data.email} has been set up. Welcome!`,
+            title: "Login Successful",
+            description: `Welcome back, ${authResult.user.displayName}!`,
           });
           router.push("/dashboard");
-
-        } catch (creationError) {
-          const creationAuthError = creationError as AuthError;
-          toast({
-            title: "Admin Creation Failed",
-            description: creationAuthError.message || "Could not create the default admin account.",
-            variant: "destructive",
-          });
+          return;
         }
-      } else {
-         // For any other login error (wrong password, etc.)
-         toast({
-          title: "Login Failed",
-          description: authError.message || "An unexpected error occurred.",
-          variant: "destructive",
-        });
       }
+      
+      // If simple auth fails, try Firebase authentication
+      try {
+        const auth = getAuth();
+        const userCredential = await signInWithEmailAndPassword(auth, data.email, data.password);
+        
+        // If sign-in is successful, ensure the user document exists
+        const isAdminEmail = data.email === 'admin@example.com' || data.email === 'aipm.ramv@gmail.com';
+        if (isAdminEmail) {
+          await ensureAdminUserDocument(userCredential.user);
+        }
+        
+        toast({
+          title: "Login Successful",
+          description: "Welcome back!",
+        });
+        router.push("/dashboard");
+        return;
+      } catch (firebaseError) {
+        console.warn('Firebase authentication failed:', firebaseError);
+      }
+      
+      // If both methods fail
+      toast({
+        title: "Login Failed",
+        description: "Invalid email or password. Please try again.",
+        variant: "destructive",
+      });
+
+    } catch (error) {
+      console.error('Login error:', error);
+      toast({
+        title: "Login Failed",
+        description: "An error occurred during login. Please try again.",
+        variant: "destructive",
+      });
     } finally {
         setLoading(false);
     }

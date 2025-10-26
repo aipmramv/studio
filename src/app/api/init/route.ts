@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { initializeMongo } from '@/mongo/mongo';
 
 export async function GET(request: NextRequest) {
   try {
-    // Initialize MongoDB connection
+    // This is a public endpoint for initialization
+    // No authentication required for basic initialization check
+    
     const mongoUri = process.env.MONGODB_URI || process.env.NEXT_PUBLIC_MONGO_URI;
     const mongoDb = process.env.MONGODB_DATABASE || process.env.NEXT_PUBLIC_MONGO_DB || 'kti_assets';
     
@@ -14,20 +15,20 @@ export async function GET(request: NextRequest) {
       }, { status: 500 });
     }
 
-    // Initialize MongoDB
-    await initializeMongo(mongoUri, mongoDb);
-    
+    // For client-side initialization, we just return success
+    // The actual MongoDB connection happens server-side
     return NextResponse.json({
       status: 'success',
-      message: 'MongoDB initialized successfully',
-      database: mongoDb
+      message: 'Configuration validated',
+      database: mongoDb,
+      configured: true
     });
   } catch (error: any) {
-    console.error('MongoDB initialization failed:', error);
+    console.error('Initialization check failed:', error);
     
     return NextResponse.json({
       status: 'error',
-      message: 'MongoDB initialization failed',
+      message: 'Initialization check failed',
       error: error?.message || 'Unknown error'
     }, { status: 500 });
   }

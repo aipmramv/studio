@@ -23,12 +23,19 @@ export function FirebaseClientProvider({ children }: FirebaseClientProviderProps
         if (typeof window !== 'undefined') {
           try {
             // Initialize MongoDB first
-            await fetch('/api/init');
+            const initResponse = await fetch('/api/init');
+            if (!initResponse.ok) {
+              console.warn('MongoDB init failed:', initResponse.status);
+            }
+            
             // Then check database status
-            await fetch('/api/database/status');
+            const statusResponse = await fetch('/api/database/status');
+            if (!statusResponse.ok) {
+              console.warn('Database status check failed:', statusResponse.status);
+            }
           } catch (error) {
-            console.warn('MongoDB connection check failed:', error);
-            // Continue anyway - the app can still work with Firebase auth
+            console.warn('Database initialization failed:', error);
+            // Continue anyway - the app can still work
           }
         }
         
