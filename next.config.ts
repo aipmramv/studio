@@ -9,6 +9,54 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  serverExternalPackages: ['mongodb', 'bson', 'bcryptjs'],
+  // Production optimizations
+  compress: true,
+  poweredByHeader: false,
+  generateEtags: true,
+  // Disable static optimization for all pages to avoid build errors
+  trailingSlash: false,
+  // Enable experimental features for better performance
+  experimental: {
+    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
+  },
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      // Prevent client-side bundling of Node.js modules
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        dns: false,
+        net: false,
+        tls: false,
+        fs: false,
+        child_process: false,
+        crypto: false,
+        stream: false,
+        url: false,
+        zlib: false,
+        http: false,
+        https: false,
+        assert: false,
+        os: false,
+        path: false,
+        util: false,
+        buffer: false,
+        events: false,
+        querystring: false,
+      };
+      
+      // Exclude server-only packages from client bundle
+      config.externals = config.externals || [];
+      config.externals.push(
+        'mongodb',
+        'bson',
+        'bcryptjs',
+        'server-only'
+      );
+    }
+    
+    return config;
+  },
   images: {
     remotePatterns: [
       {

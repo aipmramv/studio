@@ -1,55 +1,31 @@
 import { NextRequest } from 'next/server'
-import { getCollection, handleApiError, ApiError } from '@/lib/api-utils'
-import { User } from '@/types/database'
-import { hash } from 'bcryptjs'
+import { handleApiError, createSuccessResponse, withErrorHandling } from '@/lib/api-utils'
+import { authService, CookieManager } from '@/lib/auth-service'
 
-export async function POST(request: NextRequest) {
-  try {
-    const { email, password, name } = await request.json()
+async function signupHandler(request: NextRequest) {
+  const { email, name, password, confirmPassword, department } = await request.json()
 
-    if (!email || !password || !name) {
-      throw new ApiError(400, 'Email, password, and name are required')
-    }
-
-    const collection = await getCollection<User>('users')
-    
-    // Check if user already exists
-    const existingUser = await collection.findOne({ email })
-    if (existingUser) {
-      throw new ApiError(409, 'User already exists')
-    }
-
-    // Hash the password
-    const hashedPassword = await hash(password, 12)
-
-    // Create new user
-    const user: Omit<User, '_id'> = {
-      email,
-      password: hashedPassword,
-      name,
-      role: 'user', // Default role
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-
-    const result = await collection.insertOne(user)
-
-    if (!result.acknowledged) {
-      throw new ApiError(500, 'Failed to create user')
-    }
-
-    // Return success without sensitive data
-    return Response.json({
-      message: 'User created successfully',
-      user: {
-        id: result.insertedId,
-        email: user.email,
-        name: user.name,
-        role: user.role
-      }
-    }, { status: 201 })
-
-  } catch (error) {
-    return handleApiError(error)
+  // Validate password confirmation
+  if (password !== confirmPassword) {
+    throw new Error('Passwords do not match')
   }
+
+  // Register user (default role is 'user')
+  const { user, token } = await authService.register({
+    email,
+    name,
+    password,
+    role: 'user',
+    department,
+  })
+
+  // Set authentication cookie
+  CookieManager.setAuthCookie(token)
+
+  return createSuccessResponse(
+    { user, token },
+    'Account created successfully'
+  )
 }
+
+export const POST = withErrorHandling(signupHandler)

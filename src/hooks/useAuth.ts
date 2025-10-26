@@ -1,104 +1,329 @@
 // src/hooks/useAuth.ts
 "use client";
 
-import { useUser, useFirestore } from '@/firebase';
-import { getAuth, signOut } from "firebase/auth";
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from './use-toast';
-import { doc, onSnapshot } from 'firebase/firestore';
-import * as React from 'react';
-import type { User as FirebaseUser } from 'firebase/auth';
 
-// Define the shape of our user profile data in Firestore
-interface UserProfile {
-  role: 'admin' | 'spoc' | 'user';
-  department: string;
-  displayName: string;
-  email: string;
+interface User {
   id: string;
+  email: string;
+  name: string;
+  role: 'admin' | 'spoc' | 'user';
+  department?: string;
+  isActive: boolean;
 }
 
-// Define the shape of the user object we'll use throughout the app
-export interface AppUser extends FirebaseUser {
-  role: 'admin' | 'spoc' | 'user';
+interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+interface SignupData {
+  email: string;
+  name: string;
+  password: string;
+  confirmPassword: string;
   department: string;
 }
 
 export function useAuth() {
-  const { user: firebaseUser, isUserLoading: isAuthLoading, userError } = useUser();
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const { toast } = useToast();
-  const firestore = useFirestore();
-  
-  const [userProfile, setUserProfile] = React.useState<UserProfile | null>(null);
-  const [isProfileLoading, setIsProfileLoading] = React.useState(true);
-  const [profileError, setProfileError] = React.useState<Error | null>(null);
 
-  React.useEffect(() => {
-    if (!firestore || !firebaseUser) {
-      setIsProfileLoading(false);
-      setUserProfile(null);
-      return;
-    }
+  // Check if user is authenticated on mount
+  useEffect(() => {
+    checkAuth();
+  }, []);
 
-    setIsProfileLoading(true);
-    const userDocRef = doc(firestore, 'users', firebaseUser.uid);
-
-    const unsubscribe = onSnapshot(userDocRef, 
-      (docSnap) => {
-        if (docSnap.exists()) {
-          setUserProfile(docSnap.data() as UserProfile);
-        } else {
-          setUserProfile(null);
-          // This could be an error state if a profile is always expected for a logged-in user
-          setProfileError(new Error("User profile not found in database."));
-        }
-        setIsProfileLoading(false);
-      }, 
-      (error) => {
-        console.error("Error fetching user profile:", error);
-        setProfileError(error);
-        setUserProfile(null);
-        setIsProfileLoading(false);
-      }
-    );
-
-    return () => unsubscribe();
-  }, [firestore, firebaseUser]);
-
-
-  const isLoading = isAuthLoading || isProfileLoading;
-
-  const authUser = React.useMemo(() => {
-    if (isLoading || !firebaseUser || !userProfile) {
-      return null;
-    }
-
-    return {
-      ...firebaseUser,
-      role: userProfile.role,
-      department: userProfile.department,
-      displayName: userProfile.displayName,
-    } as AppUser;
-
-  }, [firebaseUser, userProfile, isLoading]);
-
-  const logout = async () => {
-    const auth = getAuth();
+  const checkAuth = async () => {
     try {
-      await signOut(auth);
-      toast({ title: "Logged Out", description: "You have been successfully signed out." });
-      router.push('/');
+      setLoading(true);
+      setError(null);
+      
+      const response = await fetch('/api/auth/me', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUser(data.data);
+      } else {
+        setUser(null);
+      }
     } catch (error) {
-      console.error("Logout Error: ", error);
-      toast({ title: "Logout Failed", description: "Could not log you out. Please try again.", variant: "destructive" });
+      console.error('Auth check failed:', error);
+      setUser(null);
+    } finally {
+      setLoading(false);
     }
   };
 
+  const login = async (credentials: LoginCredentials): Promise<boolean> => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(credentials),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setUser(data.data.user);
+        toast({
+          title: "Login Successful",
+          description: "Welcome back!",
+        });
+        return true;
+      } else {
+        const errorMessage = data.error?.message || 'Login failed';
+        setError(errorMessage);
+        toast({
+          title: "Login Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        return false;
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      const errorMessage = 'Network error. Please try again.';
+      setError(errorMessage);
+      toast({
+        title: "Login Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signup = async (signupData: SignupData): Promise<boolean> => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(signupData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setUser(data.data.user);
+        toast({
+          title: "Account Created",
+          description: "Your account has been created successfully!",
+        });
+        return true;
+      } else {
+        const errorMessage = data.error?.message || 'Signup failed';
+        setError(errorMessage);
+        toast({
+          title: "Signup Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        return false;
+      }
+    } catch (error) {
+      console.error('Signup error:', error);
+      const errorMessage = 'Network error. Please try again.';
+      setError(errorMessage);
+      toast({
+        title: "Signup Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const logout = async (): Promise<void> => {
+    try {
+      setLoading(true);
+      
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      setUser(null);
+      
+      toast({
+        title: "Logged Out",
+        description: "You have been successfully signed out.",
+      });
+      
+      // Redirect to login page
+      router.push('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Force logout on client side even if API call fails
+      setUser(null);
+      toast({
+        title: "Logout Error",
+        description: "There was an error logging out, but you have been signed out locally.",
+        variant: "destructive",
+      });
+      router.push('/');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const changePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
+    try {
+      setError(null);
+
+      const response = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: "Password Changed",
+          description: "Your password has been updated successfully.",
+        });
+        return true;
+      } else {
+        const errorMessage = data.error?.message || 'Password change failed';
+        setError(errorMessage);
+        toast({
+          title: "Password Change Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        return false;
+      }
+    } catch (error) {
+      console.error('Password change error:', error);
+      const errorMessage = 'Network error. Please try again.';
+      setError(errorMessage);
+      toast({
+        title: "Password Change Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
+  const updateProfile = async (updates: { name?: string; email?: string; department?: string }): Promise<boolean> => {
+    try {
+      setError(null);
+
+      const response = await fetch('/api/auth/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(updates),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setUser(data.data);
+        toast({
+          title: "Profile Updated",
+          description: "Your profile has been updated successfully.",
+        });
+        return true;
+      } else {
+        const errorMessage = data.error?.message || 'Profile update failed';
+        setError(errorMessage);
+        toast({
+          title: "Profile Update Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        return false;
+      }
+    } catch (error) {
+      console.error('Profile update error:', error);
+      const errorMessage = 'Network error. Please try again.';
+      setError(errorMessage);
+      toast({
+        title: "Profile Update Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
+  // Permission helpers
+  const hasRole = useCallback((requiredRoles: string[]): boolean => {
+    return user ? requiredRoles.includes(user.role) : false;
+  }, [user]);
+
+  const canAccessDepartment = useCallback((department: string): boolean => {
+    if (!user) return false;
+    if (user.role === 'admin') return true;
+    return user.department === department;
+  }, [user]);
+
+  const isAdmin = useCallback((): boolean => {
+    return user?.role === 'admin' || false;
+  }, [user]);
+
+  const isSpoc = useCallback((): boolean => {
+    return user?.role === 'spoc' || false;
+  }, [user]);
+
+  const isUser = useCallback((): boolean => {
+    return user?.role === 'user' || false;
+  }, [user]);
+
   return {
-    user: authUser,
-    loading: isLoading,
-    error: userError || profileError,
+    user,
+    loading,
+    error,
+    login,
+    signup,
     logout,
+    changePassword,
+    updateProfile,
+    checkAuth,
+    clearError,
+    // Permission helpers
+    hasRole,
+    canAccessDepartment,
+    isAdmin,
+    isSpoc,
+    isUser,
   };
 }

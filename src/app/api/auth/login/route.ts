@@ -1,67 +1,69 @@
-import { NextRequest } from 'next/server'
-import { getCollection, handleApiError, ApiError } from '@/lib/api-utils'
-import { User } from '@/types/database'
-import { compare } from 'bcryptjs'
-import { SignJWT } from 'jose'
-import { cookies } from 'next/headers'
-
-const SECRET_KEY = new TextEncoder().encode(
-  process.env.JWT_SECRET_KEY || 'your-secret-key-min-32-chars-long!!'
-)
+import { NextRequest, NextResponse } from 'next/server'
+import { userManagementService } from '@/lib/user-management-service'
+import { createSuccessResponse } from '@/lib/api-utils'
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password } = await request.json()
+    const body = await request.json()
+    const { email, password } = body
 
     if (!email || !password) {
-      throw new ApiError(400, 'Email and password are required')
+      return NextResponse.json(
+        { error: 'Email and password are required' },
+        { status: 400 }
+      )
     }
 
-    const collection = await getCollection<User>('users')
-    const user = await collection.findOne({ email })
+    // Get client information
+    const ipAddress = request.headers.get('x-forwarded-for') || 
+                     request.headers.get('x-real-ip') || 
+                     'unknown'
+    const userAgent = request.headers.get('user-agent') || 'unknown'
 
-    if (!user) {
-      throw new ApiError(401, 'Invalid credentials')
-    }
-
-    const isValidPassword = await compare(password, user.password)
-    if (!isValidPassword) {
-      throw new ApiError(401, 'Invalid credentials')
-    }
-
-    // Create JWT token
-    const token = await new SignJWT({
-      id: user._id?.toString(),
-      email: user.email,
-      role: user.role
-    })
-      .setProtectedHeader({ alg: 'HS256' })
-      .setIssuedAt()
-      .setExpirationTime('24h')
-      .sign(SECRET_KEY)
-
-    // Update last login
-    await collection.updateOne(
-      { _id: user._id },
-      { $set: { lastLogin: new Date() } }
+    const result = await userManagementService.authenticateUser(
+      email,
+      password,
+      ipAddress,
+      userAgent
     )
 
-    // Set cookie
-    cookies().set('auth-token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 // 24 hours
-    })
-
-    // Return user data (excluding sensitive fields)
-    const { password: _, ...userData } = user
-    return Response.json({
-      user: userData,
+    // Set HTTP-only cookie for the token
+    const response = createSuccessResponse({
+      user: result.user,
       message: 'Login successful'
     })
 
+    // Set cookies
+    response.cookies.set('auth-token', result.token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 24 * 60 * 60 // 24 hours
+    })
+
+    response.cookies.set('refresh-token', result.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 // 7 days
+    })
+
+    return response
   } catch (error) {
-    return handleApiError(error)
+    console.error('Login error:', error)
+    
+    if (error.message.includes('Invalid email or password') || 
+        error.message.includes('Account is disabled') ||
+        error.message.includes('Account is temporarily locked')) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: 401 }
+      )
+    }
+    
+    return NextResponse.json(
+      { error: 'Login failed' },
+      { status: 500 }
+    )
   }
 }

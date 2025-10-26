@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server'
 import { getCollection, handleApiError, ApiError } from '@/lib/api-utils'
 import { WorkPermit } from '@/types/database'
-import { ObjectId } from 'mongodb'
+import { ObjectId, isValidObjectId } from '@/types/server-types'
 
 type Params = {
   params: {
