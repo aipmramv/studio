@@ -1,0 +1,8 @@
+[info] title: 
+[console:error] Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+[console:info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[pageerror] Error: Firebase core services not available. Check FirebaseProvider props.
+    at useFirebase (http://localhost:3000/_next/static/chunks/src_44100679._.js:511:15)
+    at useFirestore (http://localhost:3000/_next/static/chunks/src_44100679._.js:535:27)
+    at LoginForm (http://localhost:3000/_next/static/chunks/src_bcf8b562._.js:1593:171)
+    at LoginPage (rsc://React/Server/file:///workspaces/studio/.next/server/chunks/ssr/_0b576159._.js?5:73:270)

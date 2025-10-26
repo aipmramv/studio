@@ -373,3 +373,17 @@ https://nextjs.org/docs/messages/module-not-found
  ⚠ See instructions if you need to configure Turbopack:
   https://nextjs.org/docs/app/api-reference/next-config-js/turbo
 
+ ○ Compiling / ...
+ ✓ Compiled / in 10.3s
+ ⨯ TypeError: Cannot read properties of undefined (reading 'map')
+    at Toaster (src/components/ui/toaster.tsx:18:14)
+  16 |   return (
+  17 |     <ToastProvider>
+> 18 |       {toasts.map(function ({ id, title, description, action, ...props }) {
+     |              ^
+  19 |         return (
+  20 |           <Toast key={id} {...props}>
+  21 |             <div className="grid gap-1"> {
+  digest: '295711686'
+}
+ GET / 500 in 10962ms
