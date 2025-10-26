@@ -32,12 +32,24 @@ export function initializeFirebase() {
 }
 
 export function getSdks(firebaseApp: FirebaseApp) {
+  // Import the MongoDB shim to provide firestore compatibility
+  const firestoreShim = require('@/firebase/firestore');
+  
+  // Create a MongoDB shim object that acts as the firestore instance
+  const mongoShim = {
+    // This object serves as a placeholder for the firestore instance
+    // The actual MongoDB operations are handled by the shim functions
+    _isMongoShim: true,
+    app: firebaseApp,
+    // Include the shim functions
+    ...firestoreShim,
+  };
+
   const sdk = {
     firebaseApp,
     auth: getAuth(firebaseApp),
-    // Firestore is intentionally omitted when using Cosmos shim; consumer code should use the
-    // compatibility shims exported elsewhere.
-    firestore: null as any,
+    // Provide the MongoDB shim as the firestore instance for compatibility
+    firestore: mongoShim,
   };
   return sdk;
 }
