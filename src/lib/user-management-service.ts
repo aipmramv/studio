@@ -1,3 +1,4 @@
+
 import { query } from './db';
 import { createObjectId } from '@/types/server-types';
 import bcrypt from 'bcryptjs';
@@ -9,7 +10,7 @@ export interface CreateUserRequest {
   name: string;
   email: string;
   password: string;
-  role: 'admin' | 'user';
+  role: string;
   department?: string;
   phone?: string;
   employeeId?: string;
@@ -19,7 +20,7 @@ export interface CreateUserRequest {
 export interface UpdateUserRequest {
   name?: string;
   email?: string;
-  role?: 'admin' | 'user';
+  role?: string;
   department?: string;
   phone?: string;
   employeeId?: string;
@@ -35,7 +36,7 @@ export interface UserProfile {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'user';
+  role: string;
   department?: string;
   phone?: string;
   employeeId?: string;
@@ -85,12 +86,27 @@ export class UserManagementService {
   }> {
     this.validateUserData(userData);
 
-    const { rows: existingUsers } = await query('SELECT * FROM users WHERE email = $1', [userData.email.toLowerCase()]);
+    const { rows: existingUsers } = await query('SELECT * FROM users WHERE email = ', [userData.email.toLowerCase()]);
     if (existingUsers.length > 0) {
       throw new Error('User with this email already exists');
     }
 
-    if (userData.role !== 'admin' && !userData.department) {
+    const { rows: roleRows } = await query('SELECT id FROM roles WHERE name = ', [userData.role]);
+    if (roleRows.length === 0) {
+      throw new Error(`Role '${userData.role}' not found`);
+    }
+    const roleId = roleRows[0].id;
+
+    let departmentId = null;
+    if (userData.department) {
+      const { rows: departmentRows } = await query('SELECT id FROM departments WHERE name = ', [userData.department]);
+      if (departmentRows.length === 0) {
+        throw new Error(`Department '${userData.department}' not found`);
+      }
+      departmentId = departmentRows[0].id;
+    }
+
+    if (userData.role !== 'admin' && !departmentId) {
       throw new Error('Department is required for SPOC and User roles');
     }
 
@@ -98,8 +114,8 @@ export class UserManagementService {
     const userId = createObjectId();
 
     const sql = `
-      INSERT INTO users (id, name, email, password, role, department, phone, employee_id, is_active, created_at, updated_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+      INSERT INTO users (id, name, email, password, role_id, department_id, phone, employee_id, is_active, created_at, updated_at)
+      VALUES (, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
       RETURNING id;
     `;
     const params = [
@@ -107,8 +123,8 @@ export class UserManagementService {
       userData.name,
       userData.email.toLowerCase(),
       hashedPassword,
-      userData.role,
-      userData.department,
+      roleId,
+      departmentId,
       userData.phone,
       userData.employeeId,
       userData.isActive !== false
@@ -144,7 +160,13 @@ export class UserManagementService {
     const normalizedEmail = email.toLowerCase();
     await this.checkAccountLockout(normalizedEmail);
 
-    const { rows: users } = await query('SELECT * FROM users WHERE email = $1', [normalizedEmail]);
+    const sql = `
+      SELECT u.*, r.name as role_name
+      FROM users u
+      LEFT JOIN roles r ON u.role_id = r.id
+      WHERE u.email = ;
+    `;
+    const { rows: users } = await query(sql, [normalizedEmail]);
     const user = users[0];
 
     if (!user) {
@@ -166,7 +188,7 @@ export class UserManagementService {
     }
 
     await this.resetFailedAttempts(normalizedEmail);
-    await query('UPDATE users SET last_login = NOW() WHERE id = $1', [user.id]);
+    await query('UPDATE users SET last_login = NOW() WHERE id = ', [user.id]);
 
     const userProfile = await this.getUserProfile(user.id);
     const token = this.generateAccessToken(userProfile);
@@ -186,26 +208,35 @@ export class UserManagementService {
   }
 
   async getUserProfile(userId: string): Promise<UserProfile> {
-    const { rows } = await query('SELECT * FROM users WHERE id = $1', [userId]);
+    const sql = `
+      SELECT u.*, r.name as role_name, d.name as department_name
+      FROM users u
+      LEFT JOIN roles r ON u.role_id = r.id
+      LEFT JOIN departments d ON u.department_id = d.id
+      WHERE u.id = ;
+    `;
+    const { rows } = await query(sql, [userId]);
     const user = rows[0];
 
     if (!user) {
       throw new Error('User not found');
     }
 
+    const permissions = await this.getUserPermissions(user.role_id);
+
     return {
       id: user.id,
       name: user.name,
       email: user.email,
-      role: user.role,
-      department: user.department,
+      role: user.role_name,
+      department: user.department_name,
       phone: user.phone,
       employeeId: user.employee_id,
       isActive: user.is_active,
       lastLogin: user.last_login,
       createdAt: user.created_at,
       updatedAt: user.updated_at,
-      permissions: this.getUserPermissions(user.role)
+      permissions: permissions
     };
   }
 
@@ -215,22 +246,42 @@ export class UserManagementService {
     updatedBy: string
   ): Promise<UserProfile> {
     if (updates.email) {
-      const { rows: existingUsers } = await query('SELECT * FROM users WHERE email = $1 AND id != $2', [updates.email.toLowerCase(), userId]);
+      const { rows: existingUsers } = await query('SELECT * FROM users WHERE email =  AND id != $2', [updates.email.toLowerCase(), userId]);
       if (existingUsers.length > 0) {
         throw new Error('Email is already in use by another user');
       }
     }
 
-    if (updates.role && updates.role !== 'admin' && !updates.department) {
-      const currentUser = await this.getUserProfile(userId);
-      if (!currentUser?.department) {
-        throw new Error('Department is required for SPOC and User roles');
+    const updateFields: { [key: string]: any } = {};
+    if (updates.name) updateFields.name = updates.name;
+    if (updates.email) updateFields.email = updates.email.toLowerCase();
+    if (updates.phone) updateFields.phone = updates.phone;
+    if (updates.employeeId) updateFields.employee_id = updates.employeeId;
+    if (updates.isActive !== undefined) updateFields.is_active = updates.isActive;
+
+    if (updates.role) {
+      const { rows: roleRows } = await query('SELECT id FROM roles WHERE name = ', [updates.role]);
+      if (roleRows.length === 0) {
+        throw new Error(`Role '${updates.role}' not found`);
       }
+      updateFields.role_id = roleRows[0].id;
     }
 
-    const setClauses = Object.keys(updates).map((key, i) => `${key} = $${i + 2}`).join(', ');
-    const sql = `UPDATE users SET ${setClauses}, updated_at = NOW() WHERE id = $1`;
-    const params = [userId, ...Object.values(updates)];
+    if (updates.department) {
+      const { rows: departmentRows } = await query('SELECT id FROM departments WHERE name = ', [updates.department]);
+      if (departmentRows.length === 0) {
+        throw new Error(`Department '${updates.department}' not found`);
+      }
+      updateFields.department_id = departmentRows[0].id;
+    }
+
+    if (Object.keys(updateFields).length === 0) {
+      return this.getUserProfile(userId);
+    }
+
+    const setClauses = Object.keys(updateFields).map((key, i) => `${key} = ${i + 2}`).join(', ');
+    const sql = `UPDATE users SET ${setClauses}, updated_at = NOW() WHERE id = `;
+    const params = [userId, ...Object.values(updateFields)];
     const { rowCount } = await query(sql, params);
 
     if (rowCount === 0) {
@@ -248,7 +299,7 @@ export class UserManagementService {
     userId: string, 
     passwordData: ChangePasswordRequest
   ): Promise<{ message: string }> {
-    const { rows: users } = await query('SELECT * FROM users WHERE id = $1', [userId]);
+    const { rows: users } = await query('SELECT * FROM users WHERE id = ', [userId]);
     const user = users[0];
 
     if (!user) {
@@ -264,7 +315,7 @@ export class UserManagementService {
     this.validatePassword(passwordData.newPassword);
     const hashedPassword = await bcrypt.hash(passwordData.newPassword, 12);
 
-    const { rowCount } = await query('UPDATE users SET password = $1, updated_at = NOW() WHERE id = $2', [hashedPassword, userId]);
+    const { rowCount } = await query('UPDATE users SET password = , updated_at = NOW() WHERE id = $2', [hashedPassword, userId]);
 
     if (rowCount === 0) {
       throw new Error('Failed to update password');
@@ -280,7 +331,7 @@ export class UserManagementService {
     newPassword: string, 
     resetBy: string
   ): Promise<{ message: string; temporaryPassword?: string }> {
-    const { rows: users } = await query('SELECT * FROM users WHERE id = $1', [userId]);
+    const { rows: users } = await query('SELECT * FROM users WHERE id = ', [userId]);
     const user = users[0];
 
     if (!user) {
@@ -298,7 +349,7 @@ export class UserManagementService {
     this.validatePassword(passwordToSet);
     const hashedPassword = await bcrypt.hash(passwordToSet, 12);
 
-    const sql = `UPDATE users SET password = $1, require_password_change = $2, updated_at = NOW() WHERE id = $3`;
+    const sql = `UPDATE users SET password = , require_password_change = $2, updated_at = NOW() WHERE id = $3`;
     const params = [hashedPassword, isTemporary, userId];
     const { rowCount } = await query(sql, params);
 
@@ -334,31 +385,48 @@ export class UserManagementService {
     const { role, department, isActive, search, page = 1, limit = 20 } = filters;
     const offset = (page - 1) * limit;
 
-    let whereClause = '';
+    let whereClauses = [];
     const params = [];
 
     if (role) {
-      whereClause += `WHERE role = $${params.length + 1}`;
+      whereClauses.push(`r.name = ${params.length + 1}`);
       params.push(role);
     }
 
-    // ... other filters
+    if (department) {
+      whereClauses.push(`d.name = ${params.length + 1}`);
+      params.push(department);
+    }
 
-    const totalSql = `SELECT COUNT(*) FROM users ${whereClause}`;
+    if (isActive !== undefined) {
+      whereClauses.push(`u.is_active = ${params.length + 1}`);
+      params.push(isActive);
+    }
+
+    if (search) {
+      whereClauses.push(`(u.name ILIKE ${params.length + 1} OR u.email ILIKE ${params.length + 1})`);
+      params.push(`%${search}%`);
+    }
+
+    const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+
+    const totalSql = `SELECT COUNT(*) FROM users u LEFT JOIN roles r ON u.role_id = r.id LEFT JOIN departments d ON u.department_id = d.id ${whereClause}`;
     const totalResult = await query(totalSql, params);
     const total = parseInt(totalResult.rows[0].count, 10);
 
     const sql = `
-      SELECT id, name, email, role, department, phone, employee_id, is_active, last_login, created_at, updated_at
-      FROM users
+      SELECT u.id, u.name, u.email, r.name as role, d.name as department, u.phone, u.employee_id, u.is_active, u.last_login, u.created_at, u.updated_at
+      FROM users u
+      LEFT JOIN roles r ON u.role_id = r.id
+      LEFT JOIN departments d ON u.department_id = d.id
       ${whereClause}
-      ORDER BY name ASC
-      LIMIT $${params.length + 1} OFFSET $${params.length + 2};
+      ORDER BY u.name ASC
+      LIMIT ${params.length + 1} OFFSET ${params.length + 2};
     `;
 
     const result = await query(sql, [...params, limit, offset]);
 
-    const userProfiles = result.rows.map(user => ({
+    const userProfiles = await Promise.all(result.rows.map(async user => ({
       id: user.id,
       name: user.name,
       email: user.email,
@@ -370,8 +438,8 @@ export class UserManagementService {
       lastLogin: user.last_login,
       createdAt: user.created_at,
       updatedAt: user.updated_at,
-      permissions: this.getUserPermissions(user.role)
-    }));
+      permissions: await this.getUserPermissions(user.id)
+    })));
 
     return {
       users: userProfiles,
@@ -383,21 +451,21 @@ export class UserManagementService {
   }
 
   async deleteUser(userId: string, deletedBy: string): Promise<{ message: string }> {
-    const { rows: users } = await query('SELECT * FROM users WHERE id = $1', [userId]);
+    const { rows: users } = await query('SELECT u.*, r.name as role_name FROM users u LEFT JOIN roles r ON u.role_id = r.id WHERE u.id = ', [userId]);
     const user = users[0];
 
     if (!user) {
       throw new Error('User not found');
     }
 
-    if (user.role === 'admin') {
-      const { rows: [{ count }] } = await query('SELECT COUNT(*) FROM users WHERE role = \'admin\' AND is_active = true');
+    if (user.role_name === 'admin') {
+      const { rows: [{ count }] } = await query('SELECT COUNT(*) FROM users u JOIN roles r ON u.role_id = r.id WHERE r.name = \'admin\' AND u.is_active = true');
       if (parseInt(count, 10) <= 1) {
         throw new Error('Cannot delete the last active admin user');
       }
     }
 
-    const { rowCount } = await query('UPDATE users SET is_active = false, updated_at = NOW() WHERE id = $1', [userId]);
+    const { rowCount } = await query('UPDATE users SET is_active = false, updated_at = NOW() WHERE id = ', [userId]);
 
     if (rowCount === 0) {
       throw new Error('Failed to delete user');
@@ -428,15 +496,30 @@ export class UserManagementService {
     const { action, startDate, endDate, page = 1, limit = 50 } = filters;
     const offset = (page - 1) * limit;
 
-    let whereClause = '';
+    let whereClauses = [];
     const params = [];
 
     if (userId) {
-      whereClause += `WHERE user_id = $${params.length + 1}`;
+      whereClauses.push(`user_id = ${params.length + 1}`);
       params.push(userId);
     }
+    
+    if (action) {
+        whereClauses.push(`action = ${params.length + 1}`);
+        params.push(action);
+    }
 
-    // ... other filters
+    if (startDate) {
+        whereClauses.push(`timestamp >= ${params.length + 1}`);
+        params.push(startDate);
+    }
+
+    if (endDate) {
+        whereClauses.push(`timestamp <= ${params.length + 1}`);
+        params.push(endDate);
+    }
+
+    const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
 
     const totalSql = `SELECT COUNT(*) FROM user_activities ${whereClause}`;
     const totalResult = await query(totalSql, params);
@@ -447,7 +530,7 @@ export class UserManagementService {
       FROM user_activities
       ${whereClause}
       ORDER BY timestamp DESC
-      LIMIT $${params.length + 1} OFFSET $${params.length + 2};
+      LIMIT ${params.length + 1} OFFSET ${params.length + 2};
     `;
 
     const result = await query(sql, [...params, limit, offset]);
@@ -483,7 +566,7 @@ export class UserManagementService {
   ): Promise<void> {
     const sql = `
       INSERT INTO user_activities (user_id, action, resource, resource_id, details, ip_address, user_agent, timestamp)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, NOW());
+      VALUES (, $2, $3, $4, $5, $6, $7, NOW());
     `;
     const params = [userId, action, resource, resourceId, JSON.stringify(details), ipAddress, userAgent];
     await query(sql, params);
@@ -498,7 +581,7 @@ export class UserManagementService {
   ): Promise<void> {
     const sql = `
       INSERT INTO login_attempts (email, success, ip_address, user_agent, failure_reason, timestamp)
-      VALUES ($1, $2, $3, $4, $5, NOW());
+      VALUES (, $2, $3, $4, $5, NOW());
     `;
     const params = [email, success, ipAddress, userAgent, failureReason];
     await query(sql, params);
@@ -507,7 +590,7 @@ export class UserManagementService {
   private async checkAccountLockout(email: string): Promise<void> {
     const sql = `
       SELECT COUNT(*) FROM login_attempts
-      WHERE email = $1 AND success = false AND timestamp > NOW() - INTERVAL '${this.LOCKOUT_DURATION}ms';
+      WHERE email =  AND success = false AND timestamp > NOW() - INTERVAL '${this.LOCKOUT_DURATION}ms';
     `;
     const { rows } = await query(sql, [email]);
     const failedAttempts = parseInt(rows[0].count, 10);
@@ -540,8 +623,8 @@ export class UserManagementService {
 
     this.validatePassword(userData.password);
 
-    if (!['admin', 'spoc', 'user'].includes(userData.role)) {
-      throw new Error('Invalid role specified');
+    if (!userData.role) {
+      throw new Error('Role is required');
     }
   }
 
@@ -550,24 +633,25 @@ export class UserManagementService {
       throw new Error('Password must be at least 8 characters long');
     }
 
-    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*Vd)/.test(password)) {
+    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
       throw new Error('Password must contain at least one uppercase letter, one lowercase letter, and one number');
     }
   }
 
   private isValidEmail(email: string): boolean {
-    const emailRegex = /^[^S@]+@[^S@]+\.[^S@]+$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   }
 
-  private getUserPermissions(role: string): string[] {
-    const permissions = {
-      admin: ['all'],
-      spoc: ['assets:read', 'assets:update', 'workflows:create', 'workflows:approve', 'reports:read'],
-      user: ['assets:read', 'workflows:read', 'reports:read']
-    };
-    
-    return (permissions as any)[role] || [];
+  private async getUserPermissions(roleId: number): Promise<string[]> {
+    const sql = `
+      SELECT p.name
+      FROM permissions p
+      JOIN role_permissions rp ON p.id = rp.permission_id
+      WHERE rp.role_id = ;
+    `;
+    const { rows } = await query(sql, [roleId]);
+    return rows.map(row => row.name);
   }
 
   private generateAccessToken(user: UserProfile): string {
@@ -609,3 +693,4 @@ export class UserManagementService {
 
 // Export service instance
 export const userManagementService = new UserManagementService();
+

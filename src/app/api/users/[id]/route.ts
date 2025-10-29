@@ -1,19 +1,21 @@
+
 import { NextRequest, NextResponse } from 'next/server'
 import { withUserManagement } from '@/lib/auth-middleware'
 import { userManagementService } from '@/lib/user-management-service'
-import { createSuccessResponse, validateObjectId } from '@/lib/api-utils'
+import { createSuccessResponse, validateId } from '@/lib/api-utils'
 import { JWTPayload } from '@/types/auth'
+import { query } from '@/lib/db'
 
 // GET /api/users/[id] - Get user profile
 async function getUserHandler(
   request: NextRequest,
-  user: JWTPayload,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
+  user: JWTPayload
 ) {
   try {
     const userId = params.id
 
-    if (!validateObjectId(userId)) {
+    if (!validateId(userId)) {
       return NextResponse.json(
         { error: 'Invalid user ID' },
         { status: 400 }
@@ -55,13 +57,13 @@ async function getUserHandler(
 // PUT /api/users/[id] - Update user
 async function updateUserHandler(
   request: NextRequest,
-  user: JWTPayload,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
+  user: JWTPayload
 ) {
   try {
     const userId = params.id
 
-    if (!validateObjectId(userId)) {
+    if (!validateId(userId)) {
       return NextResponse.json(
         { error: 'Invalid user ID' },
         { status: 400 }
@@ -86,13 +88,19 @@ async function updateUserHandler(
     if (name !== undefined) updateData.name = name
     if (email !== undefined) updateData.email = email
     if (phone !== undefined) updateData.phone = phone
-    if (employeeId !== undefined) updateData.employeeId = employeeId
+    if (employeeId !== undefined) updateData.employee_id = employeeId
 
     // Only admins can change role, department, and active status
     if (user.role === 'admin') {
-      if (role !== undefined) updateData.role = role
-      if (department !== undefined) updateData.department = department
-      if (isActive !== undefined) updateData.isActive = isActive
+      if (role) {
+        const { rows } = await query('SELECT id FROM roles WHERE name = ', [role]);
+        if (rows.length > 0) updateData.role_id = rows[0].id;
+      }
+      if (department) {
+        const { rows } = await query('SELECT id FROM departments WHERE name = ', [department]);
+        if (rows.length > 0) updateData.department_id = rows[0].id;
+      }
+      if (isActive !== undefined) updateData.is_active = isActive
     }
 
     const updatedUser = await userManagementService.updateUserProfile(
@@ -132,13 +140,13 @@ async function updateUserHandler(
 // DELETE /api/users/[id] - Delete user (admin only)
 async function deleteUserHandler(
   request: NextRequest,
-  user: JWTPayload,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
+  user: JWTPayload
 ) {
   try {
     const userId = params.id
 
-    if (!validateObjectId(userId)) {
+    if (!validateId(userId)) {
       return NextResponse.json(
         { error: 'Invalid user ID' },
         { status: 400 }

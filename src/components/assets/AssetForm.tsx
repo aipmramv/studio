@@ -11,361 +11,411 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Loader2, Upload, X } from 'lucide-react'
+import { Loader2, Upload, X, CalendarIcon, Tag, Hash, Users, Building, Package, AlignLeft, List, CheckCircle, Save, Ban } from 'lucide-react'
 import { AssetData } from '@/types/asset'
-
-const assetSchema = z.object({
-  assetDescription: z.string().min(1, 'Asset description is required'),
-  department: z.string().min(1, 'Department is required'),
-  location: z.string().min(1, 'Location is required'),
-  currentStatus: z.string().min(1, 'Status is required'),
-  assetClassification: z.string().min(1, 'Classification is required'),
-  assetGrouping: z.string().optional(),
-  brandName: z.string().optional(),
-  modelNo: z.string().optional(),
-  productSerialNo: z.string().optional(),
-  purchaseValue: z.number().min(0).optional(),
-  ledgerQty: z.number().min(1, 'Quantity must be at least 1'),
-  capitalizationDate: z.string().optional(),
-  lifecycleYears: z.number().min(1).max(50).optional(),
-  warrantyExpiryDate: z.string().optional(),
-})
-
-type AssetFormData = z.infer<typeof assetSchema>
+import { AssetManagementSchema, AssetManagementFormData } from '@/lib/schemas'
+import { format } from "date-fns";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 
 interface AssetFormProps {
-  asset?: AssetData
-  onSubmit: (data: AssetFormData) => Promise<void>
-  onCancel: () => void
-  isLoading?: boolean
+  initialData?: AssetManagementFormData;
+  isEditing?: boolean;
+  onSave: (data: AssetManagementFormData) => Promise<void>;
+  onCancel: () => void;
+  isLoading?: boolean;
 }
 
-export function AssetForm({ asset, onSubmit, onCancel, isLoading = false }: AssetFormProps) {
-  const [masterData, setMasterData] = useState<{
-    departments: string[]
-    locations: string[]
-    statuses: string[]
-    classifications: string[]
-    groupings: string[]
-  }>({
-    departments: [],
-    locations: [],
-    statuses: [],
-    classifications: [],
-    groupings: []
-  })
-  const [loadingMasterData, setLoadingMasterData] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+export function AssetForm({ initialData, isEditing, onSave, onCancel, isLoading = false }: AssetFormProps) {
+  const form = useForm<AssetManagementFormData>({
+    resolver: zodResolver(AssetManagementSchema),
+    defaultValues: initialData ? 
+      { ...initialData, 
+        capitalization_date: initialData.capitalization_date ? new Date(initialData.capitalization_date) : undefined,
+        eol_date: initialData.eol_date ? new Date(initialData.eol_date) : undefined,
+        verified_on: initialData.verified_on ? new Date(initialData.verified_on) : undefined,
+        status_changed_on: initialData.status_changed_on ? new Date(initialData.status_changed_on) : undefined,
+      } 
+      : {
+        asset_number: "",
+        asset_description: "",
+        asset_classification_id: 0,
+        ledger_qty: 1,
+        department_id: 0,
+        location_id: 0,
+        current_status_id: 0,
+      },
+  });
 
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    watch,
-    formState: { errors, isSubmitting }
-  } = useForm<AssetFormData>({
-    resolver: zodResolver(assetSchema),
-    defaultValues: asset ? {
-      assetDescription: asset.assetDescription,
-      department: asset.department,
-      location: asset.location,
-      currentStatus: asset.currentStatus,
-      assetClassification: asset.assetClassification,
-      assetGrouping: asset.assetGrouping,
-      brandName: asset.brandName,
-      modelNo: asset.modelNo,
-      productSerialNo: asset.productSerialNo,
-      purchaseValue: asset.purchaseValue,
-      ledgerQty: asset.ledgerQty || 1,
-      capitalizationDate: asset.capitalizationDate ? new Date(asset.capitalizationDate).toISOString().split('T')[0] : '',
-      lifecycleYears: asset.lifecycleYears,
-      warrantyExpiryDate: asset.warrantyExpiryDate ? new Date(asset.warrantyExpiryDate).toISOString().split('T')[0] : '',
-    } : {
-      ledgerQty: 1
-    }
-  })
+  // Dummy data for select fields - replace with actual API calls or constants
+  const departments = [
+    { id: 1, name: "Engineering" },
+    { id: 2, name: "Operations" },
+    { id: 3, name: "Finance" },
+  ];
+  const locations = [
+    { id: 1, name: "Building A" },
+    { id: 2, name: "Building B" },
+  ];
+  const assetClassifications = [
+    { id: 1, name: "Electronics" },
+    { id: 2, name: "Furniture" },
+    { id: 3, name: "Vehicles" },
+  ];
+  const assetStatuses = [
+    { id: 1, name: "Active" },
+    { id: 2, name: "In Maintenance" },
+    { id: 3, name: "Retired" },
+  ];
 
-  // Load master data
-  useEffect(() => {
-    const loadMasterData = async () => {
-      try {
-        const [deptRes, locRes, statusRes, classRes, groupRes] = await Promise.all([
-          fetch('/api/masters/departments'),
-          fetch('/api/masters/locations'),
-          fetch('/api/masters/asset-statuses'),
-          fetch('/api/masters/asset-classifications'),
-          fetch('/api/masters/asset-groupings')
-        ])
-
-        const [departments, locations, statuses, classifications, groupings] = await Promise.all([
-          deptRes.json(),
-          locRes.json(),
-          statusRes.json(),
-          classRes.json(),
-          groupRes.json()
-        ])
-
-        setMasterData({
-          departments: departments.data?.entries || [],
-          locations: locations.data?.entries || [],
-          statuses: statuses.data?.entries || [],
-          classifications: classifications.data?.entries || [],
-          groupings: groupings.data?.entries || []
-        })
-      } catch (error) {
-        console.error('Failed to load master data:', error)
-        setError('Failed to load form data. Please refresh the page.')
-      } finally {
-        setLoadingMasterData(false)
-      }
-    }
-
-    loadMasterData()
-  }, [])
-
-  const onFormSubmit = async (data: AssetFormData) => {
+  const onFormSubmit = async (data: AssetManagementFormData) => {
     try {
-      setError(null)
-      await onSubmit(data)
+      await onSave(data)
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'An error occurred while saving the asset')
+      console.error("Error submitting form:", error)
     }
   }
 
-  if (loadingMasterData) {
-    return (
-      <Card>
-        <CardContent className="flex items-center justify-center p-8">
-          <Loader2 className="h-8 w-8 animate-spin" />
-          <span className="ml-2">Loading form data...</span>
-        </CardContent>
-      </Card>
-    )
-  }
+  React.useEffect(() => {
+    if (initialData) {
+      form.reset({
+        ...initialData,
+        capitalization_date: initialData.capitalization_date ? new Date(initialData.capitalization_date) : undefined,
+        eol_date: initialData.eol_date ? new Date(initialData.eol_date) : undefined,
+        verified_on: initialData.verified_on ? new Date(initialData.verified_on) : undefined,
+        status_changed_on: initialData.status_changed_on ? new Date(initialData.status_changed_on) : undefined,
+      });
+    }
+  }, [initialData, form]);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{asset ? 'Edit Asset' : 'Create New Asset'}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {error && (
-          <Alert className="mb-6" variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-
-        <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-6">
-          {/* Basic Information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="assetDescription">Asset Description *</Label>
-              <Input
-                id="assetDescription"
-                {...register('assetDescription')}
-                placeholder="Enter asset description"
+    <Card className="w-full shadow-xl">
+      {!isEditing && (
+        <CardHeader>
+          <CardTitle className="flex items-center text-2xl font-headline">
+            <Package className="w-6 h-6 mr-2 text-primary" /> Create New Asset
+          </CardTitle>
+          <CardDescription>
+            Fill in the details below to create a new asset record.
+          </CardDescription>
+        </CardHeader>
+      )}
+      <CardContent className={cn(isEditing && "pt-6")}>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onFormSubmit)} className="space-y-8">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="asset_number"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center"><Hash className="w-4 h-4 mr-1" />Asset Number</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., AST-001" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-              {errors.assetDescription && (
-                <p className="text-sm text-red-600">{errors.assetDescription.message}</p>
+              <FormField
+                control={form.control}
+                name="asset_description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center"><AlignLeft className="w-4 h-4 mr-1" />Asset Description</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., Laptop for software development" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="asset_classification_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center"><List className="w-4 h-4 mr-1" />Asset Classification</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value ? String(field.value) : ""}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select classification" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {assetClassifications.map((classification) => (
+                          <SelectItem key={classification.id} value={String(classification.id)}>
+                            {classification.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="department_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center"><Users className="w-4 h-4 mr-1" />Department</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value ? String(field.value) : ""}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select department" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {departments.map((department) => (
+                          <SelectItem key={department.id} value={String(department.id)}>
+                            {department.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="location_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center"><Building className="w-4 h-4 mr-1" />Location</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value ? String(field.value) : ""}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select location" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {locations.map((location) => (
+                          <SelectItem key={location.id} value={String(location.id)}>
+                            {location.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="current_status_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center"><CheckCircle className="w-4 h-4 mr-1" />Current Status</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value ? String(field.value) : ""}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {assetStatuses.map((status) => (
+                          <SelectItem key={status.id} value={String(status.id)}>
+                            {status.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="ledger_qty"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center"><Tag className="w-4 h-4 mr-1" />Ledger Quantity</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="1" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10) || 0)} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="capitalization_date"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Capitalization Date</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-full pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value ? (
+                              format(new Date(field.value), "PPP")
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                            <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value ? new Date(field.value) : undefined}
+                          onSelect={field.onChange}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="eol_date"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>EOL Date</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-full pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value ? (
+                              format(new Date(field.value), "PPP")
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                            <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value ? new Date(field.value) : undefined}
+                          onSelect={field.onChange}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="verified_on"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Verified On</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-full pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value ? (
+                              format(new Date(field.value), "PPP")
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                            <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value ? new Date(field.value) : undefined}
+                          onSelect={field.onChange}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="status_changed_on"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Status Changed On</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-full pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value ? (
+                              format(new Date(field.value), "PPP")
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                            <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value ? new Date(field.value) : undefined}
+                          onSelect={field.onChange}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <CardFooter className="px-0 pt-8 border-t flex justify-end gap-2">
+               {onCancel && (
+                <Button type="button" variant="outline" onClick={onCancel} disabled={form.formState.isSubmitting || isLoading}>
+                  <Ban className="w-4 h-4 mr-2" /> Cancel
+                </Button>
               )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="department">Department *</Label>
-              <Select onValueChange={(value) => setValue('department', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select department" />
-                </SelectTrigger>
-                <SelectContent>
-                  {masterData.departments.map((dept) => (
-                    <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.department && (
-                <p className="text-sm text-red-600">{errors.department.message}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="location">Location *</Label>
-              <Select onValueChange={(value) => setValue('location', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select location" />
-                </SelectTrigger>
-                <SelectContent>
-                  {masterData.locations.map((loc) => (
-                    <SelectItem key={loc} value={loc}>{loc}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.location && (
-                <p className="text-sm text-red-600">{errors.location.message}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="currentStatus">Status *</Label>
-              <Select onValueChange={(value) => setValue('currentStatus', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  {masterData.statuses.map((status) => (
-                    <SelectItem key={status} value={status}>{status}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.currentStatus && (
-                <p className="text-sm text-red-600">{errors.currentStatus.message}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="assetClassification">Classification *</Label>
-              <Select onValueChange={(value) => setValue('assetClassification', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select classification" />
-                </SelectTrigger>
-                <SelectContent>
-                  {masterData.classifications.map((classification) => (
-                    <SelectItem key={classification} value={classification}>{classification}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.assetClassification && (
-                <p className="text-sm text-red-600">{errors.assetClassification.message}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="assetGrouping">Grouping</Label>
-              <Select onValueChange={(value) => setValue('assetGrouping', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select grouping (optional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  {masterData.groupings.map((grouping) => (
-                    <SelectItem key={grouping} value={grouping}>{grouping}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Technical Details */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="brandName">Brand Name</Label>
-              <Input
-                id="brandName"
-                {...register('brandName')}
-                placeholder="Enter brand name"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="modelNo">Model Number</Label>
-              <Input
-                id="modelNo"
-                {...register('modelNo')}
-                placeholder="Enter model number"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="productSerialNo">Serial Number</Label>
-              <Input
-                id="productSerialNo"
-                {...register('productSerialNo')}
-                placeholder="Enter serial number"
-              />
-            </div>
-          </div>
-
-          {/* Financial Information */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="purchaseValue">Purchase Value</Label>
-              <Input
-                id="purchaseValue"
-                type="number"
-                step="0.01"
-                {...register('purchaseValue', { valueAsNumber: true })}
-                placeholder="Enter purchase value"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="ledgerQty">Quantity *</Label>
-              <Input
-                id="ledgerQty"
-                type="number"
-                min="1"
-                {...register('ledgerQty', { valueAsNumber: true })}
-                placeholder="Enter quantity"
-              />
-              {errors.ledgerQty && (
-                <p className="text-sm text-red-600">{errors.ledgerQty.message}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="lifecycleYears">Lifecycle (Years)</Label>
-              <Input
-                id="lifecycleYears"
-                type="number"
-                min="1"
-                max="50"
-                {...register('lifecycleYears', { valueAsNumber: true })}
-                placeholder="Enter lifecycle years"
-              />
-            </div>
-          </div>
-
-          {/* Dates */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="capitalizationDate">Capitalization Date</Label>
-              <Input
-                id="capitalizationDate"
-                type="date"
-                {...register('capitalizationDate')}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="warrantyExpiryDate">Warranty Expiry Date</Label>
-              <Input
-                id="warrantyExpiryDate"
-                type="date"
-                {...register('warrantyExpiryDate')}
-              />
-            </div>
-          </div>
-
-          {/* Form Actions */}
-          <div className="flex justify-end space-x-4 pt-6">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onCancel}
-              disabled={isSubmitting || isLoading}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting || isLoading}
-            >
-              {(isSubmitting || isLoading) && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              {asset ? 'Update Asset' : 'Create Asset'}
-            </Button>
-          </div>
-        </form>
+              <Button type="submit" className="w-full md:w-auto" disabled={form.formState.isSubmitting || isLoading}>
+                {(form.formState.isSubmitting || isLoading) ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Submitting...</> : (isEditing ? <><Save className="w-4 h-4 mr-2" /> Save Changes</> : <><Package className="w-4 h-4 mr-2" /> Create Asset</>)}
+              </Button>
+            </CardFooter>
+          </form>
+        </Form>
       </CardContent>
     </Card>
-  )
+  );
 }

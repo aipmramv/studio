@@ -1,8 +1,10 @@
+
 import { NextRequest, NextResponse } from 'next/server'
 import { withUserManagement } from '@/lib/auth-middleware'
 import { userManagementService } from '@/lib/user-management-service'
 import { createSuccessResponse, parseFilterParams, parsePaginationParams } from '@/lib/api-utils'
 import { JWTPayload } from '@/types/auth'
+import { query } from '@/lib/db'
 
 // GET /api/users - Get users list with filtering and pagination
 async function getUsersHandler(request: NextRequest, user: JWTPayload) {
@@ -17,14 +19,20 @@ async function getUsersHandler(request: NextRequest, user: JWTPayload) {
       limit
     }
 
-    if (filters.role) userFilters.role = filters.role
-    if (filters.department) userFilters.department = filters.department
+    if (filters.role) {
+        const { rows } = await query('SELECT id FROM roles WHERE name = ', [filters.role]);
+        if (rows.length > 0) userFilters.role = rows[0].id;
+    }
+    if (filters.department) {
+        const { rows } = await query('SELECT id FROM departments WHERE name = ', [filters.department]);
+        if (rows.length > 0) userFilters.department = rows[0].id;
+    }
     if (filters.search) userFilters.search = filters.search
     if (filters.isActive !== undefined) userFilters.isActive = filters.isActive === 'true'
 
     // Non-admin users can only see users from their department
-    if (user.role !== 'admin' && user.department) {
-      userFilters.department = user.department
+    if (user.role !== 'admin' && user.department_id) {
+      userFilters.department = user.department_id;
     }
 
     const result = await userManagementService.getUsers(userFilters)

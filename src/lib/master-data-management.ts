@@ -1,66 +1,94 @@
+
 import { query } from './db';
 import { createObjectId } from '@/types/server-types';
-import { JWTPayload } from '@/types/auth';
 
-// Master data types and interfaces
-// ... (interfaces remain the same)
-
-export class MasterDataManagementEngine {
-  private masterDataTypesTable = 'master_data_types';
-  private masterDataTable = 'master_data';
-  private changeHistoryTable = 'master_data_changes';
-
-  constructor() {}
-
-  async registerMasterDataType(
-    typeData: Omit<MasterDataType, 'id' | 'createdAt' | 'updatedAt'>,
-    createdBy: string
-  ): Promise<MasterDataType> {
-    this.validateMasterDataSchema(typeData.schema);
-
-    await this.createMasterDataTable(typeData.collection, typeData.schema);
-
-    const typeId = createObjectId();
-    const typeDocument: Omit<MasterDataType, 'id'> = {
-      ...typeData,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      createdBy,
-      lastModifiedBy: createdBy
-    };
-
-    const sql = `
-      INSERT INTO ${this.masterDataTypesTable} (id, name, description, category, collection, schema, validation, permissions, versioning, is_active, created_at, updated_at, created_by, last_modified_by)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
-      RETURNING id;
-    `;
-    const params = [
-      typeId,
-      typeDocument.name,
-      typeDocument.description,
-      typeDocument.category,
-      typeDocument.collection,
-      JSON.stringify(typeDocument.schema),
-      JSON.stringify(typeDocument.validation),
-      JSON.stringify(typeDocument.permissions),
-      JSON.stringify(typeDocument.versioning),
-      typeDocument.isActive,
-      typeDocument.createdAt,
-      typeDocument.updatedAt,
-      typeDocument.createdBy,
-      typeDocument.lastModifiedBy
-    ];
-
-    await query(sql, params);
-
-    return {
-      id: typeId,
-      ...typeDocument
-    };
-  }
-
-  // ... other methods (rewritten for PostgreSQL)
+interface MasterDataEntry {
+  id: number;
+  name: string;
+  description?: string;
+  is_active?: boolean;
+  created_at?: Date;
+  updated_at?: Date;
 }
 
-// Export service instance
+export class MasterDataManagementEngine {
+  constructor() {}
+
+  async getMasterDataEntries(tableName: string, filters: Record<string, any> = {}): Promise<MasterDataEntry[]> {
+    let whereClauses: string[] = [];
+    let params: any[] = [];
+    let paramIndex = 1;
+
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined) {
+        whereClauses.push(`${key} = ${paramIndex++}`);
+        params.push(value);
+      }
+    });
+
+    const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+    const sql = `SELECT * FROM ${tableName} ${whereClause} ORDER BY name ASC`;
+    const { rows } = await query(sql, params);
+    return rows;
+  }
+
+  async getMasterDataEntryById(tableName: string, id: number): Promise<MasterDataEntry | null> {
+    const sql = `SELECT * FROM ${tableName} WHERE id = `;
+    const { rows } = await query(sql, [id]);
+    return rows[0] || null;
+  }
+
+  async createMasterDataEntry(tableName: string, data: Record<string, any>): Promise<MasterDataEntry> {
+    const keys = Object.keys(data);
+    const values = Object.values(data);
+    const placeholders = keys.map((_, i) => `${i + 1}`).join(', ');
+    const sql = `INSERT INTO ${tableName} (${keys.join(', ')}, created_at, updated_at) VALUES (${placeholders}, NOW(), NOW()) RETURNING *`;
+    const { rows } = await query(sql, values);
+    return rows[0];
+  }
+
+  async updateMasterDataEntry(tableName: string, id: number, data: Record<string, any>): Promise<boolean> {
+    const keys = Object.keys(data);
+    const values = Object.values(data);
+    const setClauses = keys.map((key, i) => `${key} = ${i + 2}`).join(', ');
+    const sql = `UPDATE ${tableName} SET ${setClauses}, updated_at = NOW() WHERE id = `;
+    const { rowCount } = await query(sql, [id, ...values]);
+    return rowCount > 0;
+  }
+
+  async deleteMasterDataEntry(tableName: string, id: number): Promise<boolean> {
+    const sql = `DELETE FROM ${tableName} WHERE id = `;
+    const { rowCount } = await query(sql, [id]);
+    return rowCount > 0;
+  }
+
+  // Helper to get table name from master data type name
+  static getTableName(masterDataType: string): string {
+    switch (masterDataType) {
+      case 'departments': return 'departments';
+      case 'locations': return 'locations';
+      case 'asset-classifications': return 'asset_classifications';
+      case 'asset-groupings': return 'asset_groupings';
+      case 'asset-statuses': return 'asset_statuses';
+      case 'teams-and-tribes': return 'teams_and_tribes';
+      case 'uom': return 'uom';
+      case 'hsn-sac-codes': return 'hsn_sac_codes';
+      case 'store-locations': return 'store_locations';
+      case 'cost-centers': return 'cost_centers';
+      case 'material-types': return 'material_types';
+      case 'scrap-types': return 'scrap_types';
+      case 'activity-types': return 'activity_types';
+      case 'customers': return 'customers';
+      case 'vendors': return 'vendors';
+      case 'roles': return 'roles';
+      case 'permissions': return 'permissions';
+      case 'lifecycle-stages': return 'lifecycle_stages';
+      case 'request-types': return 'request_types';
+      case 'request-statuses': return 'request_statuses';
+      case 'material-categories': return 'material_categories';
+      default: throw new Error(`Unknown master data type: ${masterDataType}`);
+    }
+  }
+}
+
 export const masterDataManagementEngine = new MasterDataManagementEngine();

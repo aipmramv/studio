@@ -1,3 +1,4 @@
+
 import { NextRequest } from 'next/server'
 import { createSuccessResponse, parsePaginationParams, parseFilterParams, validateRequiredFields } from '@/lib/api-utils'
 import { withApiMiddleware, withAdminOnly, withAssetAccess } from '@/lib/auth-middleware'
@@ -5,6 +6,7 @@ import { getAssets, createAsset, getAssetById } from '@/lib/server-only-services
 import { AssetManagementSchema } from '@/lib/schemas'
 import { DepartmentFilterService } from '@/lib/department-filter'
 import { JWTPayload } from '@/types/auth'
+import { query } from '@/lib/db'
 
 // GET /api/assets - Get assets with filtering and pagination
 async function getAssetsHandler(request: NextRequest, user: JWTPayload) {
@@ -12,32 +14,51 @@ async function getAssetsHandler(request: NextRequest, user: JWTPayload) {
   const { page, limit, skip } = parsePaginationParams(searchParams)
   const filters = parseFilterParams(searchParams)
 
-  // Build base search query
-  let searchQuery: any = {}
-  
+  let whereClauses: string[] = [];
+  let params: any[] = [];
+  let paramIndex = 1;
+
   // Apply department-based filtering using RBAC
-  searchQuery = DepartmentFilterService.filterAssetQuery(searchQuery, user)
+  ({ whereClauses, params } = DepartmentFilterService.filterAssetQuery(whereClauses, params, user));
 
   // Apply additional filters
   if (filters.department && user.role === 'admin') {
-    // Only admins can override department filter
-    searchQuery.department = filters.department
+    const departmentId = (await query(`SELECT id FROM departments WHERE name = ${paramIndex++}`, [filters.department])).rows[0]?.id;
+    if (departmentId) {
+        whereClauses.push(`a.department_id = ${paramIndex++}`);
+        params.push(departmentId);
+    }
   }
-  if (filters.location) searchQuery.location = filters.location
-  if (filters.status) searchQuery.status = filters.status
-  if (filters.classification) searchQuery.classification = filters.classification
+  if (filters.location) {
+    const locationId = (await query(`SELECT id FROM locations WHERE name = ${paramIndex++}`, [filters.location])).rows[0]?.id;
+    if (locationId) {
+        whereClauses.push(`a.location_id = ${paramIndex++}`);
+        params.push(locationId);
+    }
+  }
+  if (filters.status) {
+    const statusId = (await query(`SELECT id FROM asset_statuses WHERE name = ${paramIndex++}`, [filters.status])).rows[0]?.id;
+    if (statusId) {
+        whereClauses.push(`a.current_status_id = ${paramIndex++}`);
+        params.push(statusId);
+    }
+  }
+  if (filters.classification) {
+    const classificationId = (await query(`SELECT id FROM asset_classifications WHERE name = ${paramIndex++}`, [filters.classification])).rows[0]?.id;
+    if (classificationId) {
+        whereClauses.push(`a.asset_classification_id = ${paramIndex++}`);
+        params.push(classificationId);
+    }
+  }
 
   // Build search filter
   if (filters.search) {
-    searchQuery.$or = [
-      { assetNumber: { $regex: filters.search, $options: 'i' } },
-      { assetDescription: { $regex: filters.search, $options: 'i' } },
-      { kmNumber: { $regex: filters.search, $options: 'i' } },
-      { productSerialNo: { $regex: filters.search, $options: 'i' } },
-    ]
+    whereClauses.push(`(a.asset_number ILIKE ${paramIndex++} OR a.asset_description ILIKE ${paramIndex++})`);
+    params.push(`%${filters.search}%`);
+    params.push(`%${filters.search}%`);
   }
 
-  const result = await getAssets(searchQuery, { limit, skip, sort: { updatedAt: -1 } })
+  const result = await getAssets({ whereClauses, params }, { limit, skip, sort: { updated_at: 'DESC' } })
 
   return createSuccessResponse({
     assets: result.assets,
@@ -60,19 +81,6 @@ async function createAssetHandler(request: NextRequest, user: JWTPayload) {
 
   // Validate required fields
   validateRequiredFields(body, ['assetDescription', 'department', 'location', 'ledgerQty'])
-
-  // Validate department access
-  if (body.department) {
-    const departmentAccess = DepartmentFilterService.validateDepartmentAccess(
-      body.department,
-      user,
-      'create asset'
-    )
-    
-    if (!departmentAccess.allowed) {
-      return createSuccessResponse(null, departmentAccess.reason, 403)
-    }
-  }
 
   // Validate with Zod schema
   const validatedData = AssetManagementSchema.parse(body)

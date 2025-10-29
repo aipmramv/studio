@@ -94,10 +94,11 @@ export default function AssetsPage() {
 
       {(viewMode === 'create' || viewMode === 'edit') && (
         <AssetForm
-          asset={selectedAsset}
-          onSubmit={handleFormSubmit}
+          initialData={selectedAsset ? selectedAsset : undefined}
+          onSave={handleFormSubmit}
           onCancel={handleCancel}
           isLoading={isLoading}
+          isEditing={viewMode === 'edit'}
         />
       )}
 

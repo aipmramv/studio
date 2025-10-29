@@ -1,3 +1,4 @@
+
 'use client'
 
 import React, { useState, useEffect } from 'react'
@@ -220,14 +221,14 @@ export function AssetDetails({
             {/* Header */}
             <div className="flex justify-between items-start">
                 <div>
-                    <h1 className="text-2xl font-bold">{asset.assetNumber}</h1>
-                    <p className="text-lg text-muted-foreground">{asset.assetDescription}</p>
+                    <h1 className="text-2xl font-bold">{asset.asset_number}</h1>
+                    <p className="text-lg text-muted-foreground">{asset.asset_description}</p>
                     <div className="flex items-center space-x-4 mt-2">
-                        <Badge variant={getStatusBadgeVariant(asset.currentStatus)}>
-                            {asset.currentStatus}
+                        <Badge variant={getStatusBadgeVariant(asset.asset_status_name)}>
+                            {asset.asset_status_name}
                         </Badge>
-                        <Badge variant={getVerificationBadgeVariant(asset.verificationStatus)}>
-                            {asset.verificationStatus}
+                        <Badge variant={getVerificationBadgeVariant(asset.verification_status || '')}>
+                            {asset.verification_status}
                         </Badge>
                     </div>
                 </div>
@@ -287,27 +288,27 @@ export function AssetDetails({
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="text-sm font-medium text-muted-foreground">Asset Number</label>
-                                        <p className="font-medium">{asset.assetNumber}</p>
+                                        <p className="font-medium">{asset.asset_number}</p>
                                     </div>
                                     <div>
                                         <label className="text-sm font-medium text-muted-foreground">Classification</label>
-                                        <p>{asset.assetClassification}</p>
+                                        <p>{asset.asset_classification_name}</p>
                                     </div>
                                     <div>
                                         <label className="text-sm font-medium text-muted-foreground">Grouping</label>
-                                        <p>{asset.assetGrouping || '-'}</p>
+                                        <p>{asset.asset_grouping_name || '-'}</p>
                                     </div>
                                     <div>
                                         <label className="text-sm font-medium text-muted-foreground">Status</label>
-                                        <Badge variant={getStatusBadgeVariant(asset.currentStatus)}>
-                                            {asset.currentStatus}
+                                        <Badge variant={getStatusBadgeVariant(asset.asset_status_name)}>
+                                            {asset.asset_status_name}
                                         </Badge>
                                     </div>
                                 </div>
                                 <Separator />
                                 <div>
                                     <label className="text-sm font-medium text-muted-foreground">Description</label>
-                                    <p>{asset.assetDescription}</p>
+                                    <p>{asset.asset_description}</p>
                                 </div>
                             </CardContent>
                         </Card>
@@ -324,20 +325,16 @@ export function AssetDetails({
                                 <div className="grid grid-cols-1 gap-4">
                                     <div>
                                         <label className="text-sm font-medium text-muted-foreground">Department</label>
-                                        <p className="font-medium">{asset.department}</p>
+                                        <p className="font-medium">{asset.department_name}</p>
                                     </div>
                                     <div>
                                         <label className="text-sm font-medium text-muted-foreground">Location</label>
-                                        <p>{asset.location}</p>
+                                        <p>{asset.location_name}</p>
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
                                             <label className="text-sm font-medium text-muted-foreground">Ledger Qty</label>
-                                            <p>{asset.ledgerQty}</p>
-                                        </div>
-                                        <div>
-                                            <label className="text-sm font-medium text-muted-foreground">Physical Qty</label>
-                                            <p>{asset.physicalQty || '-'}</p>
+                                            <p>{asset.ledger_qty}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -356,15 +353,15 @@ export function AssetDetails({
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="text-sm font-medium text-muted-foreground">Brand</label>
-                                        <p>{asset.brandName || '-'}</p>
+                                        <p>{asset.brand_name || '-'}</p>
                                     </div>
                                     <div>
                                         <label className="text-sm font-medium text-muted-foreground">Model</label>
-                                        <p>{asset.modelNo || '-'}</p>
+                                        <p>{asset.model_no || '-'}</p>
                                     </div>
                                     <div className="col-span-2">
                                         <label className="text-sm font-medium text-muted-foreground">Serial Number</label>
-                                        <p>{asset.productSerialNo || '-'}</p>
+                                        <p>{asset.product_serial_no || '-'}</p>
                                     </div>
                                 </div>
                             </CardContent>
@@ -382,11 +379,11 @@ export function AssetDetails({
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="text-sm font-medium text-muted-foreground">Purchase Value</label>
-                                        <p className="font-medium">{formatCurrency(asset.purchaseValue)}</p>
+                                        <p className="font-medium">{formatCurrency(asset.purchase_value)}</p>
                                     </div>
                                     <div>
                                         <label className="text-sm font-medium text-muted-foreground">Lifecycle Years</label>
-                                        <p>{asset.lifecycleYears || '-'}</p>
+                                        <p>{asset.lifecycle_years || '-'}</p>
                                     </div>
                                 </div>
                             </CardContent>
@@ -404,19 +401,15 @@ export function AssetDetails({
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                     <div>
                                         <label className="text-sm font-medium text-muted-foreground">Capitalization Date</label>
-                                        <p>{formatDate(asset.capitalizationDate)}</p>
-                                    </div>
-                                    <div>
-                                        <label className="text-sm font-medium text-muted-foreground">Warranty Expiry</label>
-                                        <p>{formatDate(asset.warrantyExpiryDate)}</p>
+                                        <p>{formatDate(asset.capitalization_date)}</p>
                                     </div>
                                     <div>
                                         <label className="text-sm font-medium text-muted-foreground">Last Verification</label>
-                                        <p>{formatDate(asset.lastVerificationDate)}</p>
+                                        <p>{formatDate(asset.verified_on)}</p>
                                     </div>
                                     <div>
                                         <label className="text-sm font-medium text-muted-foreground">Created Date</label>
-                                        <p>{formatDate(asset.createdAt)}</p>
+                                        <p>{formatDate(asset.created_at)}</p>
                                     </div>
                                 </div>
                             </CardContent>
@@ -434,24 +427,15 @@ export function AssetDetails({
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <p className="font-medium">Current Status</p>
-                                        <Badge variant={getVerificationBadgeVariant(asset.verificationStatus)}>
-                                            {asset.verificationStatus}
+                                        <Badge variant={getVerificationBadgeVariant(asset.verification_status || '')}>
+                                            {asset.verification_status}
                                         </Badge>
                                     </div>
                                     <div className="text-right">
                                         <p className="text-sm text-muted-foreground">Last Verified</p>
-                                        <p className="font-medium">{formatDate(asset.lastVerificationDate)}</p>
-                                        {asset.verifiedBy && (
-                                            <p className="text-sm text-muted-foreground">by {asset.verifiedBy}</p>
-                                        )}
+                                        <p className="font-medium">{formatDate(asset.verified_on)}</p>
                                     </div>
                                 </div>
-                                {asset.verificationNotes && (
-                                    <div>
-                                        <label className="text-sm font-medium text-muted-foreground">Notes</label>
-                                        <p className="text-sm">{asset.verificationNotes}</p>
-                                    </div>
-                                )}
                             </CardContent>
                         </Card>
                     </div>

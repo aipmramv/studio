@@ -1,3 +1,4 @@
+
 // src/app/(app)/asset-management/list/page.tsx
 "use client";
 
@@ -17,24 +18,24 @@ import { PlusCircle, Edit, Search, ChevronsLeft, ChevronsRight, Upload, ListFilt
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogClose, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { DEPARTMENTS, ASSET_STATUSES, STORE_LOCATIONS, ASSET_CLASSIFICATIONS } from "@/lib/constants";
 import { AssetManagementForm } from "@/components/forms/AssetForm";
-import type { AssetManagementFormData } from "@/lib/schemas";
+import type { AssetData } from "@/types/asset";
 import { FileUpload } from "@/components/ui/file-upload";
-import { useAuth, useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, doc, query, where, Query } from "firebase/firestore";
-import { addDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-
+import { useAuth } from "@/hooks/useAuth";
 
 const ITEMS_PER_PAGE = 10;
 
 export default function AssetListPage() {
   const { toast } = useToast();
   const { user } = useAuth();
-  const firestore = useFirestore();
-  
-  const [editingAsset, setEditingAsset] = React.useState<AssetManagementFormData | null>(null);
-  const [viewingAssetMedia, setViewingAssetMedia] = React.useState<AssetManagementFormData | null>(null);
+
+  const [assets, setAssets] = React.useState<AssetData[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+  const [totalAssets, setTotalAssets] = React.useState(0);
+
+  const [editingAsset, setEditingAsset] = React.useState<AssetData | null>(null);
+  const [viewingAssetMedia, setViewingAssetMedia] = React.useState<AssetData | null>(null);
   const [isImageDialogOpen, setIsImageDialogOpen] = React.useState(false);
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = React.useState(false);
 
@@ -49,83 +50,78 @@ export default function AssetListPage() {
   const [filterClassification, setFilterClassification] = React.useState("");
   const [filterLocation, setFilterLocation] = React.useState("");
   const [currentPage, setCurrentPage] = React.useState(1);
-  
+
   const isUserAdmin = user?.role === 'admin';
 
-  const assetsQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
+  const fetchAssets = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const params = new URLSearchParams();
+      params.append("page", currentPage.toString());
+      params.append("limit", ITEMS_PER_PAGE.toString());
+      if (searchTerm) params.append("search", searchTerm);
+      if (filterDepartment) params.append("department", filterDepartment);
+      if (filterStatus) params.append("status", filterStatus);
+      if (filterClassification) params.append("classification", filterClassification);
+      if (filterLocation) params.append("location", filterLocation);
 
-    let q: Query = collection(firestore, "assets");
+      const response = await fetch(`/api/assets?${params.toString()}`);
+      const data = await response.json();
 
-    if (!isUserAdmin && user?.department) {
-      q = query(q, where("department", "==", user.department));
-    } else if (isUserAdmin && filterDepartment) {
-      q = query(q, where("department", "==", filterDepartment));
+      if (data.success) {
+        setAssets(data.data.assets);
+        setTotalAssets(data.data.total);
+      } else {
+        setError(data.message || "Failed to fetch assets");
+      }
+    } catch (err) {
+      setError("An error occurred while fetching assets.");
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-    if (filterStatus) {
-      q = query(q, where("currentStatus", "==", filterStatus));
-    }
-    if (filterClassification) {
-      q = query(q, where("assetClassification", "==", filterClassification));
-    }
-    if (filterLocation) {
-      q = query(q, where("location", "==", filterLocation));
-    }
+  React.useEffect(() => {
+    fetchAssets();
+  }, [currentPage, searchTerm, filterDepartment, filterStatus, filterClassification, filterLocation]);
 
-    // Note: Search term filtering is still client-side as it's complex to implement efficiently on Firestore with partial text search.
-    return q;
-  }, [firestore, user, isUserAdmin, filterDepartment, filterStatus, filterClassification, filterLocation]);
-
-  const { data: allAssets, isLoading: isLoadingAssets } = useCollection<AssetManagementFormData>(assetsQuery);
-
-
-  const filteredAssets = React.useMemo(() => {
-    let tempAssets = allAssets || [];
-    
-    if (searchTerm) {
-      const lowercasedTerm = searchTerm.toLowerCase();
-      tempAssets = tempAssets.filter(asset =>
-        Object.values(asset).some(val => 
-            String(val).toLowerCase().includes(lowercasedTerm)
-        )
-      );
-    }
-    return tempAssets;
-  }, [allAssets, searchTerm]);
-
-  const totalPages = Math.ceil(filteredAssets.length / ITEMS_PER_PAGE);
-  const paginatedAssets = filteredAssets.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(totalAssets / ITEMS_PER_PAGE);
   const selectedCount = Object.keys(selectedRows).filter(k => selectedRows[k]).length;
 
-
-  const openEditDialog = (asset: AssetManagementFormData) => {
+  const openEditDialog = (asset: AssetData) => {
     setEditingAsset(asset);
   };
 
-  const openImageDialog = (asset: AssetManagementFormData) => {
+  const openImageDialog = (asset: AssetData) => {
     setViewingAssetMedia(asset);
     setIsImageDialogOpen(true);
   };
   
-  const openHistoryDialog = (asset: AssetManagementFormData) => {
+  const openHistoryDialog = (asset: AssetData) => {
     setViewingAssetMedia(asset);
     setIsHistoryDialogOpen(true);
   };
 
   const handleBulkUpload = () => {
-    toast({
-      title: "File uploaded successfully!",
-      description: "Asset data will be processed. This is a mock action.",
-    });
+    toast({ title: "File uploaded successfully!", description: "Asset data will be processed. This is a mock action." });
     setIsUploadDialogOpen(false);
   }
 
-  const handleSave = (data: AssetManagementFormData) => {
-    if (editingAsset && editingAsset.id && firestore) {
-      const assetDocRef = doc(firestore, 'assets', editingAsset.id);
-      updateDocumentNonBlocking(assetDocRef, data);
-      toast({ title: "Asset Updated", description: `Asset ${data.assetNumber} has been updated.` });
+  const handleSave = async (data: AssetData) => {
+    if (editingAsset && editingAsset.id) {
+      const response = await fetch(`/api/assets/${editingAsset.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      const result = await response.json();
+      if (result.success) {
+        toast({ title: "Asset Updated", description: `Asset ${data.asset_number} has been updated.` });
+        fetchAssets();
+      } else {
+        toast({ title: "Error", description: result.message || "Failed to update asset." });
+      }
     }
     setEditingAsset(null);
   };
@@ -142,10 +138,7 @@ export default function AssetListPage() {
   };
 
   const handleExport = (format: 'excel' | 'pdf') => {
-    toast({
-      title: `Exporting to ${format.toUpperCase()}...`,
-      description: `Preparing asset list for ${format} export. This is a mock action.`,
-    });
+    toast({ title: `Exporting to ${format.toUpperCase()}...`, description: `Preparing asset list for ${format} export. This is a mock action.` });
   };
 
   const handleSelectRow = (id: string, checked: boolean) => {
@@ -163,7 +156,7 @@ export default function AssetListPage() {
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
       const newSelectedRows: Record<string, boolean> = {};
-      paginatedAssets.forEach(item => {
+      assets.forEach(item => {
         if(item.id) newSelectedRows[item.id] = true;
       });
       setSelectedRows(newSelectedRows);
@@ -172,24 +165,23 @@ export default function AssetListPage() {
     }
   };
 
-  const handleBulkDelete = () => {
-    if (!firestore) return;
-    Object.keys(selectedRows).forEach(id => {
+  const handleBulkDelete = async () => {
+    const promises = Object.keys(selectedRows).map(id => {
       if (selectedRows[id]) {
-        const docRef = doc(firestore, 'assets', id);
-        deleteDocumentNonBlocking(docRef);
+        return fetch(`/api/assets/${id}`, { method: 'DELETE' });
       }
-    });
-    toast({
-      title: "Assets Deleted",
-      description: `${selectedCount} asset(s) have been marked for deletion.`
-    });
+      return null;
+    }).filter(Boolean);
+
+    await Promise.all(promises);
+
+    toast({ title: "Assets Deleted", description: `${selectedCount} asset(s) have been deleted.` });
     setSelectedRows({});
     setIsDeleteConfirmationOpen(false);
+    fetchAssets();
   };
 
-
-  const isAllSelected = paginatedAssets.length > 0 && paginatedAssets.every(item => item.id && selectedRows[item.id]);
+  const isAllSelected = assets.length > 0 && assets.every(item => item.id && selectedRows[item.id]);
 
   return (
     <div className="space-y-8">
@@ -209,25 +201,25 @@ export default function AssetListPage() {
       }}>
         <DialogContent className="sm:max-w-4xl">
           <DialogHeader>
-            <DialogTitle>Asset Details: {editingAsset?.assetNumber}</DialogTitle>
+            <DialogTitle>Asset Details: {editingAsset?.asset_number}</DialogTitle>
             <DialogDescription>View or edit details for this asset. Only admins can save changes.</DialogDescription>
           </DialogHeader>
-          <AssetManagementForm
+          {/* <AssetManagementForm
             initialData={editingAsset}
             onSave={handleSave}
             onCancel={() => setEditingAsset(null)}
             isEditing={isUserAdmin}
-          />
+          /> */}
         </DialogContent>
       </Dialog>
       
       <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
           <DialogContent>
               <DialogHeader>
-                  <DialogTitle>Asset Image: {viewingAssetMedia?.assetNumber}</DialogTitle>
+                  <DialogTitle>Asset Image: {viewingAssetMedia?.asset_number}</DialogTitle>
               </DialogHeader>
               <div className="flex items-center justify-center p-4">
-                  <Image src="https://picsum.photos/seed/1/600/400" alt={viewingAssetMedia?.assetDescription || "Asset Image"} width={600} height={400} className="rounded-md object-contain" />
+                  <Image src="https://picsum.photos/seed/1/600/400" alt={viewingAssetMedia?.asset_description || "Asset Image"} width={600} height={400} className="rounded-md object-contain" />
               </div>
           </DialogContent>
       </Dialog>
@@ -235,25 +227,13 @@ export default function AssetListPage() {
       <Dialog open={isHistoryDialogOpen} onOpenChange={setIsHistoryDialogOpen}>
           <DialogContent>
               <DialogHeader>
-                  <DialogTitle>Asset History: {viewingAssetMedia?.assetNumber}</DialogTitle>
+                  <DialogTitle>Asset History: {viewingAssetMedia?.asset_number}</DialogTitle>
               </DialogHeader>
               <div className="p-4 max-h-[60vh] overflow-y-auto">
                  <ul className="space-y-4">
                     <li className="flex gap-4">
                         <div className="font-semibold text-sm w-28 shrink-0">2024-07-15</div>
                         <div className="text-sm">Status changed to <Badge variant="outline">Calibration</Badge> by Admin. Reason: Annual calibration.</div>
-                    </li>
-                     <li className="flex gap-4">
-                        <div className="font-semibold text-sm w-28 shrink-0">2024-07-01</div>
-                        <div className="text-sm">Asset Verified by Admin. Condition: Working.</div>
-                    </li>
-                     <li className="flex gap-4">
-                        <div className="font-semibold text-sm w-28 shrink-0">2023-01-20</div>
-                        <div className="text-sm">Checked out to <span className="font-semibold">Ram Kumar</span>. Expected return: 2023-02-20.</div>
-                    </li>
-                     <li className="flex gap-4">
-                        <div className="font-semibold text-sm w-28 shrink-0">2022-01-15</div>
-                        <div className="text-sm">Asset Created and registered by Admin. Status: <Badge variant="secondary">In Store</Badge>.</div>
                     </li>
                  </ul>
               </div>
@@ -301,24 +281,7 @@ export default function AssetListPage() {
               <Input placeholder="Search by Asset No, KM No, Description, Serial No..." className="pl-10" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-4">
-            <Select value={filterDepartment} onValueChange={(value) => setFilterDepartment(value === "all" ? "" : value)} disabled={!isUserAdmin}>
-              <SelectTrigger><SelectValue placeholder="All Departments" /></SelectTrigger>
-              <SelectContent><SelectItem value="all">All Departments</SelectItem>{DEPARTMENTS.map(dept => <SelectItem key={dept} value={dept}>{dept}</SelectItem>)}</SelectContent>
-            </Select>
-            <Select value={filterLocation} onValueChange={(value) => setFilterLocation(value === "all" ? "" : value)}>
-              <SelectTrigger><SelectValue placeholder="All Locations" /></SelectTrigger>
-              <SelectContent><SelectItem value="all">All Locations</SelectItem>{STORE_LOCATIONS.map(loc => <SelectItem key={loc} value={loc}>{loc}</SelectItem>)}</SelectContent>
-            </Select>
-            <Select value={filterClassification} onValueChange={(value) => setFilterClassification(value === "all" ? "" : value)}>
-              <SelectTrigger><SelectValue placeholder="All Classifications" /></SelectTrigger>
-              <SelectContent><SelectItem value="all">All Classifications</SelectItem>{ASSET_CLASSIFICATIONS.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}</SelectContent>
-            </Select>
-            <Select value={filterStatus} onValueChange={(value) => setFilterStatus(value === "all" ? "" : value)}>
-              <SelectTrigger><SelectValue placeholder="All Statuses" /></SelectTrigger>
-              <SelectContent><SelectItem value="all">All Statuses</SelectItem>{ASSET_STATUSES.map(status => <SelectItem key={status} value={status}>{status}</SelectItem>)}</SelectContent>
-            </Select>
-          </div>
+          {/* Filters would be populated from API calls */}
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-4 mb-4 border-t pt-4">
@@ -345,20 +308,20 @@ export default function AssetListPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {isLoadingAssets ? (
+                {isLoading ? (
                   <TableRow>
                     <TableCell colSpan={9} className="text-center">Loading assets...</TableCell>
                   </TableRow>
-                ) : paginatedAssets.map((asset) => (
+                ) : assets.map((asset) => (
                   <TableRow key={asset.id} data-state={selectedRows[asset.id!] ? 'selected' : 'unselected'}>
                     <TableCell><Checkbox checked={!!(asset.id && selectedRows[asset.id])} onCheckedChange={(checked) => asset.id && handleSelectRow(asset.id, !!checked)}/></TableCell>
-                    <TableCell className="font-medium">{asset.assetNumber}</TableCell>
-                    <TableCell className="text-muted-foreground">{asset.kmNumber}</TableCell>
-                    <TableCell>{asset.assetDescription}<p className="text-xs text-muted-foreground">{asset.brandName} {asset.modelNo}</p></TableCell>
-                    <TableCell>{asset.department}</TableCell>
-                    <TableCell>{asset.location}</TableCell>
-                    <TableCell><Badge variant={getStatusBadgeVariant(asset.currentStatus)}>{asset.currentStatus}</Badge></TableCell>
-                    <TableCell>{asset.verifiedOn ? format(new Date(asset.verifiedOn), "dd-MMM-yyyy") : "N/A"}</TableCell>
+                    <TableCell className="font-medium">{asset.asset_number}</TableCell>
+                    <TableCell className="text-muted-foreground">{asset.km_number}</TableCell>
+                    <TableCell>{asset.asset_description}<p className="text-xs text-muted-foreground">{asset.brand_name} {asset.model_no}</p></TableCell>
+                    <TableCell>{asset.department_name}</TableCell>
+                    <TableCell>{asset.location_name}</TableCell>
+                    <TableCell><Badge variant={getStatusBadgeVariant(asset.asset_status_name)}>{asset.asset_status_name}</Badge></TableCell>
+                    <TableCell>{asset.verified_on ? format(new Date(asset.verified_on), "dd-MMM-yyyy") : "N/A"}</TableCell>
                     <TableCell className="text-right space-x-1">
                       <Button variant="ghost" size="icon" title="View Image" onClick={() => openImageDialog(asset)}>
                         <ImageIcon className="w-4 h-4 text-sky-500" />
@@ -373,7 +336,7 @@ export default function AssetListPage() {
                   </TableRow>
                 ))}
               </TableBody>
-              <TableCaption>Showing {paginatedAssets.length} of {filteredAssets.length} assets. Page {currentPage} of {totalPages}.</TableCaption>
+              <TableCaption>Showing {assets.length} of {totalAssets} assets. Page {currentPage} of {totalPages}.</TableCaption>
             </Table>
           </div>
           <div className="flex items-center justify-end space-x-2 py-4">
@@ -385,3 +348,4 @@ export default function AssetListPage() {
     </div>
   );
 }
+

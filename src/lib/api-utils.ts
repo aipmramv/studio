@@ -1,8 +1,7 @@
+
 import 'server-only'
 
 import { NextResponse } from 'next/server'
-import { Document, ClientSession } from 'mongodb'
-import { MongoDBConnection } from './mongodb-service'
 
 // Custom API Error class
 export class ApiError extends Error {
@@ -120,18 +119,6 @@ export function createSuccessResponse<T>(
   return NextResponse.json(response, { status })
 }
 
-// Get database collection with error handling
-export async function getCollection<T extends Document = Document>(collectionName: string) {
-  try {
-    const connection = MongoDBConnection.getInstance()
-    const db = await connection.connect()
-    return db.collection<T>(collectionName)
-  } catch (error) {
-    console.error(`Failed to get collection ${collectionName}:`, error)
-    throw new ApiError(500, 'Database connection failed', 'DB_CONNECTION_ERROR')
-  }
-}
-
 // Validate required fields
 export function validateRequiredFields(
   data: Record<string, any>,
@@ -150,15 +137,15 @@ export function validateRequiredFields(
   }
 }
 
-// Validate ObjectId format
-export function validateObjectId(id: string): boolean {
-  const objectIdRegex = /^[0-9a-fA-F]{24}$/
-  return objectIdRegex.test(id)
+// Validate ID format
+export function validateId(id: string): boolean {
+  // Basic validation for non-empty string. Can be replaced with more specific validation if needed.
+  return typeof id === 'string' && id.length > 0;
 }
 
-// Validate ObjectId format and throw error if invalid
-export function validateObjectIdOrThrow(id: string): void {
-  if (!validateObjectId(id)) {
+// Validate ID format and throw error if invalid
+export function validateIdOrThrow(id: string): void {
+  if (!validateId(id)) {
     throw new ApiError(400, 'Invalid ID format', 'INVALID_ID')
   }
 }
@@ -199,41 +186,6 @@ export function parseFilterParams(searchParams: URLSearchParams): Record<string,
   })
 
   return filters
-}
-
-// Validate user permissions
-export function validateUserPermissions(
-  userRole: string,
-  requiredRoles: string[]
-): void {
-  if (!requiredRoles.includes(userRole)) {
-    throw new ApiError(
-      403,
-      'Insufficient permissions to perform this action',
-      'INSUFFICIENT_PERMISSIONS'
-    )
-  }
-}
-
-// Validate department access for SPOCs and Users
-export function validateDepartmentAccess(
-  userRole: string,
-  userDepartment: string | undefined,
-  resourceDepartment: string
-): void {
-  if (userRole === 'admin') {
-    return // Admins have access to all departments
-  }
-
-  if (userRole === 'spoc' || userRole === 'user') {
-    if (!userDepartment || userDepartment !== resourceDepartment) {
-      throw new ApiError(
-        403,
-        'Access denied: You can only access resources from your department',
-        'DEPARTMENT_ACCESS_DENIED'
-      )
-    }
-  }
 }
 
 // Sanitize input data
@@ -311,14 +263,4 @@ export function withErrorHandling(
       return handleApiError(error)
     }
   }
-}
-
-// Database transaction wrapper
-export async function withTransaction<T>(
-  operation: (session: ClientSession) => Promise<T>
-): Promise<T> {
-  const connection = MongoDBConnection.getInstance()
-
-  // Use the MongoDB service's built-in transaction support
-  return await connection.withTransaction(operation)
 }

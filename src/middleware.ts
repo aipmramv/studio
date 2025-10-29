@@ -80,15 +80,16 @@ export async function middleware(request: NextRequest) {
 
   try {
     const { payload } = await jwtVerify(authToken, SECRET_KEY)
-    const user = payload as JWTPayload
+    const user = payload as unknown as JWTPayload
     
     // Check route-specific permissions for API routes
     if (request.nextUrl.pathname.startsWith('/api/')) {
       const routePermission = getRoutePermission(request.nextUrl.pathname)
       
       if (routePermission) {
+        const roleId = typeof user.role === 'string' ? Number(user.role) : user.role
         const hasPermission = RBACService.hasPermission(
-          user.role,
+          roleId,
           routePermission.resource,
           routePermission.action
         )

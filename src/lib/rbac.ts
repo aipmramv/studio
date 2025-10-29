@@ -1,65 +1,31 @@
+
 import { NextRequest } from 'next/server'
 import { JWTPayload } from '@/types/auth'
+import { query } from './db'
 
 // Role definitions and permissions
 export type UserRole = 'admin' | 'spoc' | 'user'
-
-export interface Permission {
-  resource: string
-  actions: string[]
-}
-
-export interface RolePermissions {
-  admin: Permission[]
-  spoc: Permission[]
-  user: Permission[]
-}
-
-// Define role-based permissions
-export const ROLE_PERMISSIONS: RolePermissions = {
-  admin: [
-    { resource: 'assets', actions: ['create', 'read', 'update', 'delete'] },
-    { resource: 'workflows', actions: ['create', 'read', 'update', 'delete', 'approve'] },
-    { resource: 'reports', actions: ['read', 'export'] },
-    { resource: 'masters', actions: ['create', 'read', 'update', 'delete'] },
-    { resource: 'users', actions: ['create', 'read', 'update', 'delete'] },
-    { resource: 'departments', actions: ['read'] }, // Can access all departments
-    { resource: 'dashboard', actions: ['read', 'export'] }, // Dashboard access
-  ],
-  spoc: [
-    { resource: 'assets', actions: ['read', 'update'] }, // Only department assets
-    { resource: 'workflows', actions: ['create', 'read', 'approve'] }, // Department workflows
-    { resource: 'reports', actions: ['read'] }, // Department reports
-    { resource: 'departments', actions: ['read'] }, // Only assigned department
-    { resource: 'dashboard', actions: ['read'] }, // Dashboard access
-  ],
-  user: [
-    { resource: 'assets', actions: ['read'] }, // Only department assets
-    { resource: 'workflows', actions: ['read'] }, // Own workflows
-    { resource: 'reports', actions: ['read'] }, // Department reports
-    { resource: 'departments', actions: ['read'] }, // Only assigned department
-    { resource: 'dashboard', actions: ['read'] }, // Dashboard access
-  ],
-}
 
 // Permission checking utilities
 export class RBACService {
   /**
    * Check if a user has permission to perform an action on a resource
    */
-  static hasPermission(
-    userRole: UserRole,
+  static async hasPermission(
+    userRoleId: number,
     resource: string,
     action: string
-  ): boolean {
-    const rolePermissions = ROLE_PERMISSIONS[userRole]
-    const resourcePermission = rolePermissions.find(p => p.resource === resource)
-    
-    if (!resourcePermission) {
-      return false
-    }
-    
-    return resourcePermission.actions.includes(action)
+  ): Promise<boolean> {
+    const sql = `
+      SELECT COUNT(*)
+      FROM role_permissions rp
+      JOIN permissions p ON rp.permission_id = p.id
+      WHERE rp.role_id =  AND p.name = $2;
+    `;
+    // This is a simplified check. A real implementation would check for action as well.
+    // For example, p.name could be 'assets:read', 'assets:write', etc.
+    const { rows } = await query(sql, [userRoleId, `${resource}:${action}`]);
+    return parseInt(rows[0].count, 10) > 0;
   }
 
   /**
@@ -67,8 +33,8 @@ export class RBACService {
    */
   static canAccessDepartment(
     userRole: UserRole,
-    userDepartment: string | undefined,
-    targetDepartment: string
+    userDepartmentId: number | undefined,
+    targetDepartmentId: number
   ): boolean {
     // Admins can access all departments
     if (userRole === 'admin') {
@@ -76,7 +42,7 @@ export class RBACService {
     }
     
     // SPOCs and Users can only access their assigned department
-    return userDepartment === targetDepartment
+    return userDepartmentId === targetDepartmentId
   }
 
   /**
@@ -84,33 +50,33 @@ export class RBACService {
    */
   static getDepartmentFilter(
     userRole: UserRole,
-    userDepartment: string | undefined
-  ): Record<string, any> | null {
+    userDepartmentId: number | undefined
+  ): string | null {
     // Admins see all data
     if (userRole === 'admin') {
       return null
     }
     
     // SPOCs and Users see only their department data
-    if (userDepartment) {
-      return { department: userDepartment }
+    if (userDepartmentId) {
+      return `department_id = ${userDepartmentId}`
     }
     
-    // If no department assigned, return empty filter (no access)
-    return { department: null }
+    // If no department assigned, return a condition that will not match any row
+    return 'department_id IS NULL'
   }
 
   /**
    * Validate API access based on user permissions
    */
-  static validateApiAccess(
+  static async validateApiAccess(
     user: JWTPayload,
     resource: string,
     action: string,
-    targetDepartment?: string
-  ): { allowed: boolean; reason?: string } {
+    targetDepartmentId?: number
+  ): Promise<{ allowed: boolean; reason?: string }> {
     // Check basic permission
-    if (!this.hasPermission(user.role, resource, action)) {
+    if (!user.role_id || !await this.hasPermission(user.role_id, resource, action)) {
       return {
         allowed: false,
         reason: `Insufficient permissions for ${action} on ${resource}`
@@ -118,10 +84,10 @@ export class RBACService {
     }
 
     // Check department access if specified
-    if (targetDepartment && !this.canAccessDepartment(user.role, user.department, targetDepartment)) {
+    if (targetDepartmentId && !this.canAccessDepartment(user.role, user.department_id, targetDepartmentId)) {
       return {
         allowed: false,
-        reason: `Access denied to department: ${targetDepartment}`
+        reason: `Access denied to department: ${targetDepartmentId}`
       }
     }
 
@@ -131,24 +97,24 @@ export class RBACService {
   /**
    * Get user permissions for UI rendering
    */
-  static getUserPermissions(userRole: UserRole): Record<string, string[]> {
-    const permissions: Record<string, string[]> = {}
-    const rolePermissions = ROLE_PERMISSIONS[userRole]
-    
-    rolePermissions.forEach(permission => {
-      permissions[permission.resource] = permission.actions
-    })
-    
-    return permissions
+  static async getUserPermissions(userRoleId: number): Promise<string[]> {
+    const sql = `
+        SELECT p.name
+        FROM permissions p
+        JOIN role_permissions rp ON p.id = rp.permission_id
+        WHERE rp.role_id = ;
+    `;
+    const { rows } = await query(sql, [userRoleId]);
+    return rows.map(row => row.name);
   }
 }
 
 // Middleware helper functions
 export interface AuthContext {
   user: JWTPayload
-  hasPermission: (resource: string, action: string) => boolean
-  canAccessDepartment: (department: string) => boolean
-  getDepartmentFilter: () => Record<string, any> | null
+  hasPermission: (resource: string, action: string) => Promise<boolean>
+  canAccessDepartment: (departmentId: number) => boolean
+  getDepartmentFilter: () => string | null
 }
 
 /**
@@ -158,11 +124,11 @@ export function createAuthContext(user: JWTPayload): AuthContext {
   return {
     user,
     hasPermission: (resource: string, action: string) => 
-      RBACService.hasPermission(user.role, resource, action),
-    canAccessDepartment: (department: string) => 
-      RBACService.canAccessDepartment(user.role, user.department, department),
+      RBACService.hasPermission(user.role_id, resource, action),
+    canAccessDepartment: (departmentId: number) => 
+      RBACService.canAccessDepartment(user.role, user.department_id, departmentId),
     getDepartmentFilter: () => 
-      RBACService.getDepartmentFilter(user.role, user.department)
+      RBACService.getDepartmentFilter(user.role, user.department_id)
   }
 }
 
@@ -176,11 +142,11 @@ export interface ProtectedRouteOptions {
 /**
  * Validate route access
  */
-export function validateRouteAccess(
+export async function validateRouteAccess(
   user: JWTPayload,
   options: ProtectedRouteOptions
-): { allowed: boolean; reason?: string } {
-  const validation = RBACService.validateApiAccess(
+): Promise<{ allowed: boolean; reason?: string }> {
+  const validation = await RBACService.validateApiAccess(
     user,
     options.resource,
     options.action
@@ -191,7 +157,7 @@ export function validateRouteAccess(
   }
 
   // Check if department is required but not assigned
-  if (options.requireDepartment && user.role !== 'admin' && !user.department) {
+  if (options.requireDepartment && user.role !== 'admin' && !user.department_id) {
     return {
       allowed: false,
       reason: 'Department assignment required for this operation'

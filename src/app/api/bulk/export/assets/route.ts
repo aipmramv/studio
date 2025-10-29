@@ -1,9 +1,10 @@
+
 import { NextRequest, NextResponse } from 'next/server'
 import { withReportAccess } from '@/lib/auth-middleware'
 import { bulkOperationsService } from '@/lib/bulk-operations-service'
 import { parseFilterParams } from '@/lib/api-utils'
-import { DepartmentFilterService } from '@/lib/department-filter'
 import { JWTPayload } from '@/types/auth'
+import { query } from '@/lib/db'
 
 async function bulkExportAssetsHandler(request: NextRequest, user: JWTPayload) {
   try {
@@ -21,16 +22,31 @@ async function bulkExportAssetsHandler(request: NextRequest, user: JWTPayload) {
     // Apply department filtering based on user role
     let exportFilters: any = {}
     
-    if (user.role === 'admin' && filters.department) {
-      exportFilters.department = filters.department
-    } else if (user.role !== 'admin' && user.department) {
-      exportFilters.department = user.department
+    let departmentId = null;
+    if (filters.department) {
+        const { rows } = await query('SELECT id FROM departments WHERE name = ', [filters.department]);
+        if (rows.length > 0) departmentId = rows[0].id;
+    }
+
+    if (user.role === 'admin' && departmentId) {
+      exportFilters.department_id = departmentId;
+    } else if (user.role !== 'admin' && user.department_id) {
+      exportFilters.department_id = user.department_id;
     }
 
     // Apply additional filters
-    if (filters.location) exportFilters.location = filters.location
-    if (filters.status) exportFilters.currentStatus = filters.status
-    if (filters.classification) exportFilters.assetClassification = filters.classification
+    if (filters.location) {
+        const { rows } = await query('SELECT id FROM locations WHERE name = ', [filters.location]);
+        if (rows.length > 0) exportFilters.location_id = rows[0].id;
+    }
+    if (filters.status) {
+        const { rows } = await query('SELECT id FROM asset_statuses WHERE name = ', [filters.status]);
+        if (rows.length > 0) exportFilters.current_status_id = rows[0].id;
+    }
+    if (filters.classification) {
+        const { rows } = await query('SELECT id FROM asset_classifications WHERE name = ', [filters.classification]);
+        if (rows.length > 0) exportFilters.asset_classification_id = rows[0].id;
+    }
 
     const exportOptions = {
       format: format as 'json' | 'csv' | 'excel',
@@ -70,7 +86,7 @@ async function bulkExportAssetsHandler(request: NextRequest, user: JWTPayload) {
     return new NextResponse(buffer, {
       headers: {
         'Content-Type': contentType,
-        'Content-Disposition': `attachment; filename="${filename}"`,
+        'Content-Disposition': `attachment; filename="${filename}" নীতিমালা`,
         'Content-Length': buffer.length.toString(),
       },
     })

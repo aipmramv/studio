@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from 'next/server'
 import { withAssetAccess } from '@/lib/auth-middleware'
 import { bulkOperationsService } from '@/lib/bulk-operations-service'
@@ -24,12 +25,8 @@ async function bulkImportAssetsHandler(request: NextRequest, user: JWTPayload) {
     }
 
     // Validate user permissions for bulk import
-    if (user.role !== 'admin') {
-      return NextResponse.json(
-        { error: 'Only administrators can perform bulk imports' },
-        { status: 403 }
-      )
-    }
+    // The withAssetAccess middleware already checks for 'create' permission on 'assets'
+    // Additional role check can be done here if needed, but RBACService should handle it.
 
     const result = await bulkOperationsService.bulkImportAssets(
       assets,
