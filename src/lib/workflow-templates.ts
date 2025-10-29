@@ -533,7 +533,7 @@ export class WorkflowTemplates {
         await workflowEngine.createTemplate(template, createdBy)
         console.log(`Created workflow template: ${template.name}`)
       } catch (error) {
-        console.error(`Failed to create template ${template.name}:`, error.message)
+        console.error(`Failed to create template ${template.name}:`, (error as Error).message)
       }
     }
   }

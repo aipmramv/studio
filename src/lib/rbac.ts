@@ -24,18 +24,21 @@ export const ROLE_PERMISSIONS: RolePermissions = {
     { resource: 'masters', actions: ['create', 'read', 'update', 'delete'] },
     { resource: 'users', actions: ['create', 'read', 'update', 'delete'] },
     { resource: 'departments', actions: ['read'] }, // Can access all departments
+    { resource: 'dashboard', actions: ['read', 'export'] }, // Dashboard access
   ],
   spoc: [
     { resource: 'assets', actions: ['read', 'update'] }, // Only department assets
     { resource: 'workflows', actions: ['create', 'read', 'approve'] }, // Department workflows
     { resource: 'reports', actions: ['read'] }, // Department reports
     { resource: 'departments', actions: ['read'] }, // Only assigned department
+    { resource: 'dashboard', actions: ['read'] }, // Dashboard access
   ],
   user: [
     { resource: 'assets', actions: ['read'] }, // Only department assets
     { resource: 'workflows', actions: ['read'] }, // Own workflows
     { resource: 'reports', actions: ['read'] }, // Department reports
     { resource: 'departments', actions: ['read'] }, // Only assigned department
+    { resource: 'dashboard', actions: ['read'] }, // Dashboard access
   ],
 }
 

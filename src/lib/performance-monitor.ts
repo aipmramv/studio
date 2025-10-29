@@ -94,7 +94,7 @@ class ApplicationPerformanceMonitor {
       this.collectSystemMetrics();
       this.checkThresholds();
       this.cleanupOldMetrics();
-    }, intervalMs);
+    }, intervalMs) as any;
 
     console.log(`Application performance monitoring started (interval: ${intervalMs}ms)`);
   }
@@ -159,7 +159,7 @@ class ApplicationPerformanceMonitor {
       unit: 'ms',
       timestamp: new Date(),
       category: 'database',
-      tags: { collection, operation, recordCount: recordCount?.toString() }
+      tags: { collection, operation, recordCount: recordCount?.toString() || '' }
     });
 
     if (duration > 1000) { // Queries over 1 second

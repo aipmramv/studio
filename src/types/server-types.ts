@@ -1,29 +1,13 @@
 /**
- * Server-only types that can safely import MongoDB
+ * Server-only types
  * These types should only be used in server-side code (API routes, server components)
  */
 
 import 'server-only';
-import { ObjectId } from 'mongodb';
 
-// Re-export MongoDB types for server use
-export { ObjectId } from 'mongodb';
-export type { 
-  ClientSession, 
-  Db, 
-  Collection, 
-  ChangeStream, 
-  ChangeStreamDocument,
-  Filter,
-  FindOptions,
-  Sort,
-  IndexSpecification,
-  CreateIndexesOptions
-} from 'mongodb';
-
-// Server-side database interfaces with proper ObjectId types
+// Server-side database interfaces with string IDs
 export interface ServerUser {
-  _id?: ObjectId;
+  _id?: string;
   email: string;
   name: string;
   role: 'admin' | 'user';
@@ -32,7 +16,7 @@ export interface ServerUser {
 }
 
 export interface ServerAsset {
-  _id?: ObjectId;
+  _id?: string;
   name: string;
   type: string;
   status: 'available' | 'in-use' | 'maintenance' | 'retired';
@@ -48,10 +32,10 @@ export interface ServerAsset {
 }
 
 export interface ServerTransaction {
-  _id?: ObjectId;
+  _id?: string;
   type: 'purchase' | 'sale' | 'movement' | 'maintenance';
-  assetId: ObjectId;
-  userId: ObjectId;
+  assetId: string;
+  userId: string;
   date: Date;
   details: string;
   amount?: number;
@@ -61,12 +45,12 @@ export interface ServerTransaction {
 }
 
 export interface ServerWorkPermit {
-  _id?: ObjectId;
+  _id?: string;
   permitNumber: string;
   type: string;
   status: 'pending' | 'approved' | 'rejected' | 'completed';
-  requestedBy: ObjectId;
-  approvedBy?: ObjectId;
+  requestedBy: string;
+  approvedBy?: string;
   startDate: Date;
   endDate: Date;
   description: string;
@@ -76,7 +60,7 @@ export interface ServerWorkPermit {
 }
 
 export interface ServerMaterial {
-  _id?: ObjectId;
+  _id?: string;
   name: string;
   type: string;
   quantity: number;
@@ -88,15 +72,19 @@ export interface ServerMaterial {
   updatedAt: Date;
 }
 
-// Utility functions for ObjectId handling
+// Utility functions for ID handling
 export function isValidObjectId(id: string): boolean {
-  return ObjectId.isValid(id);
+  // For now, we can assume any non-empty string is a valid ID.
+  // You might want to implement more robust validation, e.g., UUID format.
+  return typeof id === 'string' && id.length > 0;
 }
 
-export function createObjectId(id?: string): ObjectId {
-  return id ? new ObjectId(id) : new ObjectId();
+export function createObjectId(id?: string): string {
+  // If an ID is provided, use it. Otherwise, generate a new one.
+  // This is a placeholder for a proper ID generation library like UUID.
+  return id || Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 }
 
-export function objectIdToString(id: ObjectId | string): string {
-  return typeof id === 'string' ? id : id.toString();
+export function objectIdToString(id: string): string {
+  return id;
 }

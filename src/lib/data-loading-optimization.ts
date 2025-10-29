@@ -173,7 +173,7 @@ export class OptimizedDataLoader {
     const skip = (page - 1) * limit;
     let cacheHit = false;
     let data: T[];
-    let total: number;
+    let total: number = 0;
 
     // Generate cache keys
     const dataCacheKey = cacheKey ? `${cacheKey}:data:${page}:${limit}:${JSON.stringify(filters)}` : undefined;
@@ -249,7 +249,7 @@ export class OptimizedDataLoader {
     if (limit < 1 || limit > 1000) throw new Error('Limit must be between 1 and 1000');
 
     let cacheHit = false;
-    let result: { data: T[]; nextCursor?: string; prevCursor?: string };
+    let result: { data: T[]; nextCursor?: string; prevCursor?: string } = { data: [] };
 
     // Generate cache key
     const dataCacheKey = cacheKey ? `${cacheKey}:cursor:${cursor || 'start'}:${limit}:${JSON.stringify(filters)}` : undefined;

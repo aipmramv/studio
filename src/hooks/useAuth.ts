@@ -44,15 +44,47 @@ export function useAuth() {
       setLoading(true);
       setError(null);
       
-      const response = await fetch('/api/auth/me', {
-        method: 'GET',
-        credentials: 'include',
-      });
+      // Check if we're in the browser (not SSR)
+      if (typeof window !== 'undefined') {
+        // Check localStorage for simple auth session
+        const storedUser = localStorage.getItem('user');
+        const storedToken = localStorage.getItem('token');
+        
+        if (storedUser && storedToken) {
+          try {
+            const userData = JSON.parse(storedUser);
+            setUser({
+              id: userData.id,
+              email: userData.email,
+              name: userData.displayName || userData.email,
+              role: userData.role,
+              department: userData.department,
+              isActive: true
+            });
+            return;
+          } catch (parseError) {
+            console.error('Error parsing stored user data:', parseError);
+            localStorage.removeItem('user');
+            localStorage.removeItem('token');
+          }
+        }
+      }
+      
+      // Fallback to API check
+      try {
+        const response = await fetch('/api/auth/me', {
+          method: 'GET',
+          credentials: 'include',
+        });
 
-      if (response.ok) {
-        const data = await response.json();
-        setUser(data.data);
-      } else {
+        if (response.ok) {
+          const data = await response.json();
+          setUser(data.data);
+        } else {
+          setUser(null);
+        }
+      } catch (apiError) {
+        console.warn('API auth check failed, using localStorage only:', apiError);
         setUser(null);
       }
     } catch (error) {
@@ -163,10 +195,21 @@ export function useAuth() {
     try {
       setLoading(true);
       
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
-      });
+      // Clear localStorage if available
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+      }
+      
+      // Try to call API logout (optional)
+      try {
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          credentials: 'include',
+        });
+      } catch (apiError) {
+        console.warn('API logout failed, but local logout successful:', apiError);
+      }
 
       setUser(null);
       
@@ -180,6 +223,10 @@ export function useAuth() {
     } catch (error) {
       console.error('Logout error:', error);
       // Force logout on client side even if API call fails
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+      }
       setUser(null);
       toast({
         title: "Logout Error",

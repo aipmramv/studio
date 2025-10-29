@@ -235,7 +235,7 @@ export class ErrorHandler {
     this.logError(errorDetails)
 
     // Format response based on error type
-    const response = {
+    const response: any = {
       success: false,
       error: {
         type: errorDetails.type,
@@ -243,18 +243,15 @@ export class ErrorHandler {
         message: errorDetails.userMessage,
         timestamp: new Date().toISOString(),
         requestId: context?.requestId,
-        ...(errorDetails.suggestions.length > 0 && { suggestions: errorDetails.suggestions }),
+        ...(errorDetails.suggestions && errorDetails.suggestions.length > 0 && { suggestions: errorDetails.suggestions }),
         ...(errorDetails.retryable && { retryable: true })
       }
     }
 
     // Add debug information in development
     if (process.env.NODE_ENV === 'development') {
-      response.error = {
-        ...response.error,
-        developerMessage: errorDetails.message,
-        stack: errorDetails.stack
-      }
+      response.error.developerMessage = errorDetails.message;
+      response.error.stack = errorDetails.stack;
     }
 
     return NextResponse.json(response, { status: errorDetails.statusCode })

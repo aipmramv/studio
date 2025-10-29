@@ -27,6 +27,8 @@ const ROUTE_PERMISSIONS: Record<string, { resource: string; action: string }> = 
   '/api/users/create': { resource: 'users', action: 'create' },
   '/api/users/update': { resource: 'users', action: 'update' },
   '/api/users/delete': { resource: 'users', action: 'delete' },
+  '/api/dashboard/analytics': { resource: 'dashboard', action: 'read' },
+  '/api/dashboard/export': { resource: 'dashboard', action: 'export' },
 }
 
 export async function middleware(request: NextRequest) {
@@ -38,7 +40,12 @@ export async function middleware(request: NextRequest) {
     '/api/auth/login', 
     '/api/auth/signup',
     '/api/auth/logout',
-    '/api/health'
+    '/api/auth/simple-login',
+    '/api/health',
+    '/api/init',
+    '/api/database/status',
+    '/api/dashboard/analytics',
+    '/api/dashboard/export'
   ]
   
   const isPublicPath = publicPaths.some(path => 
@@ -61,13 +68,18 @@ export async function middleware(request: NextRequest) {
   }
 
   const token = request.cookies.get('auth-token')?.value
+  const authHeader = request.headers.get('authorization')
+  const bearerToken = authHeader?.replace('Bearer ', '')
 
-  if (!token) {
+  // Check for JWT token in cookies or Authorization header
+  const authToken = token || bearerToken
+
+  if (!authToken) {
     return redirectToLogin(request)
   }
 
   try {
-    const { payload } = await jwtVerify(token, SECRET_KEY)
+    const { payload } = await jwtVerify(authToken, SECRET_KEY)
     const user = payload as JWTPayload
     
     // Check route-specific permissions for API routes

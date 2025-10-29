@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  serverExternalPackages: ['mongodb', 'bson', 'bcryptjs'],
+  serverExternalPackages: ['bcryptjs'],
   // Production optimizations
   compress: true,
   poweredByHeader: false,
@@ -55,7 +55,7 @@ const nextConfig: NextConfig = {
       const shim = path.resolve(__dirname, 'src/shims/empty.js')
       config.resolve.alias = config.resolve.alias || {}
       ;[
-        'mongodb', 'bson', 'bcryptjs', 'dns', 'fs', 'net', 'tls', 'child_process',
+        'bcryptjs', 'dns', 'fs', 'net', 'tls', 'child_process',
         'socks', 'saslprep'
       ].forEach((m) => {
         config.resolve.alias[m] = shim
