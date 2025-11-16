@@ -19,8 +19,6 @@ import { cn } from "@/lib/utils";
 import { Card, CardContent, CardFooter } from "../ui/card";
 import { ScrollArea } from "../ui/scroll-area";
 import { FileUpload } from "../ui/file-upload";
-import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, query } from "firebase/firestore";
 
 interface AssetFormProps {
   initialData?: AssetManagementFormData | null;
@@ -29,16 +27,18 @@ interface AssetFormProps {
   isEditing?: boolean;
 }
 
-interface UserProfile {
-  id: string;
-  displayName: string;
-  email: string;
-}
+const mockUsers = [
+    { id: 'user-1', displayName: 'Ram Kumar' },
+    { id: 'user-2', displayName: 'Prem Kumar' },
+    { id: 'user-3', displayName: 'Praveen S.' },
+    { id: 'user-4', displayName: 'Chandrasekar R.' },
+    { id: 'user-5', displayName: 'Nagaraj V.' },
+    { id: 'user-6', displayName: 'Admin Ram' },
+];
 
 export function AssetManagementForm({ initialData, onSave, onCancel, isEditing = true }: AssetFormProps) {
-  const firestore = useFirestore();
-  const usersQuery = useMemoFirebase(() => firestore ? query(collection(firestore, "users")) : null, [firestore]);
-  const { data: users, isLoading: isLoadingUsers } = useCollection<UserProfile>(usersQuery);
+  const users = mockUsers;
+  const isLoadingUsers = false;
 
   const form = useForm<AssetManagementFormData>({
     resolver: zodResolver(AssetManagementSchema),

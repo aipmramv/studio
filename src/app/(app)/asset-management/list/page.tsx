@@ -21,9 +21,8 @@ import { DEPARTMENTS, ASSET_STATUSES, STORE_LOCATIONS, ASSET_CLASSIFICATIONS } f
 import { AssetManagementForm } from "@/components/forms/AssetForm";
 import type { AssetManagementFormData } from "@/lib/schemas";
 import { FileUpload } from "@/components/ui/file-upload";
-import { useAuth, useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, doc, query, where, Query } from "firebase/firestore";
-import { addDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { useAuth } from "@/hooks/useAuth";
+import { mockAssetData } from "@/lib/mock-asset-data";
 
 
 const ITEMS_PER_PAGE = 10;
@@ -31,8 +30,8 @@ const ITEMS_PER_PAGE = 10;
 export default function AssetListPage() {
   const { toast } = useToast();
   const { user } = useAuth();
-  const firestore = useFirestore();
   
+  const [allAssets, setAllAssets] = React.useState(mockAssetData);
   const [editingAsset, setEditingAsset] = React.useState<AssetManagementFormData | null>(null);
   const [viewingAssetMedia, setViewingAssetMedia] = React.useState<AssetManagementFormData | null>(null);
   const [isImageDialogOpen, setIsImageDialogOpen] = React.useState(false);
@@ -52,36 +51,24 @@ export default function AssetListPage() {
   
   const isUserAdmin = user?.role === 'admin';
 
-  const assetsQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-
-    let q: Query = collection(firestore, "assets");
-
-    if (!isUserAdmin && user?.department) {
-      q = query(q, where("department", "==", user.department));
-    } else if (isUserAdmin && filterDepartment) {
-      q = query(q, where("department", "==", filterDepartment));
-    }
-
-    if (filterStatus) {
-      q = query(q, where("currentStatus", "==", filterStatus));
-    }
-    if (filterClassification) {
-      q = query(q, where("assetClassification", "==", filterClassification));
-    }
-    if (filterLocation) {
-      q = query(q, where("location", "==", filterLocation));
-    }
-
-    // Note: Search term filtering is still client-side as it's complex to implement efficiently on Firestore with partial text search.
-    return q;
-  }, [firestore, user, isUserAdmin, filterDepartment, filterStatus, filterClassification, filterLocation]);
-
-  const { data: allAssets, isLoading: isLoadingAssets } = useCollection<AssetManagementFormData>(assetsQuery);
-
-
   const filteredAssets = React.useMemo(() => {
     let tempAssets = allAssets || [];
+
+    if (isUserAdmin && filterDepartment) {
+        tempAssets = tempAssets.filter(asset => asset.department === filterDepartment);
+    } else if (!isUserAdmin && user?.department) {
+        tempAssets = tempAssets.filter(asset => asset.department === user.department);
+    }
+    
+    if (filterStatus) {
+      tempAssets = tempAssets.filter(asset => asset.currentStatus === filterStatus);
+    }
+    if (filterClassification) {
+      tempAssets = tempAssets.filter(asset => asset.assetClassification === filterClassification);
+    }
+    if (filterLocation) {
+      tempAssets = tempAssets.filter(asset => asset.location === filterLocation);
+    }
     
     if (searchTerm) {
       const lowercasedTerm = searchTerm.toLowerCase();
@@ -92,7 +79,7 @@ export default function AssetListPage() {
       );
     }
     return tempAssets;
-  }, [allAssets, searchTerm]);
+  }, [allAssets, searchTerm, isUserAdmin, user, filterDepartment, filterStatus, filterClassification, filterLocation]);
 
   const totalPages = Math.ceil(filteredAssets.length / ITEMS_PER_PAGE);
   const paginatedAssets = filteredAssets.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
@@ -122,10 +109,10 @@ export default function AssetListPage() {
   }
 
   const handleSave = (data: AssetManagementFormData) => {
-    if (editingAsset && editingAsset.id && firestore) {
-      const assetDocRef = doc(firestore, 'assets', editingAsset.id);
-      updateDocumentNonBlocking(assetDocRef, data);
-      toast({ title: "Asset Updated", description: `Asset ${data.assetNumber} has been updated.` });
+    if (editingAsset && editingAsset.id) {
+        const updatedAssets = allAssets.map(asset => asset.id === editingAsset.id ? { ...asset, ...data } : asset);
+        setAllAssets(updatedAssets);
+        toast({ title: "Asset Updated", description: `Asset ${data.assetNumber} has been updated.` });
     }
     setEditingAsset(null);
   };
@@ -173,13 +160,10 @@ export default function AssetListPage() {
   };
 
   const handleBulkDelete = () => {
-    if (!firestore) return;
-    Object.keys(selectedRows).forEach(id => {
-      if (selectedRows[id]) {
-        const docRef = doc(firestore, 'assets', id);
-        deleteDocumentNonBlocking(docRef);
-      }
-    });
+    const selectedIds = Object.keys(selectedRows).filter(id => selectedRows[id]);
+    const updatedAssets = allAssets.filter(asset => !selectedIds.includes(asset.id!));
+    setAllAssets(updatedAssets);
+
     toast({
       title: "Assets Deleted",
       description: `${selectedCount} asset(s) have been marked for deletion.`
@@ -345,12 +329,12 @@ export default function AssetListPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {isLoadingAssets ? (
+                {paginatedAssets.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center">Loading assets...</TableCell>
+                    <TableCell colSpan={9} className="text-center">No assets found.</TableCell>
                   </TableRow>
                 ) : paginatedAssets.map((asset) => (
-                  <TableRow key={asset.id} data-state={selectedRows[asset.id!] ? 'selected' : 'unselected'}>
+                  <TableRow key={asset.id} data-state={asset.id && selectedRows[asset.id] ? 'selected' : 'unselected'}>
                     <TableCell><Checkbox checked={!!(asset.id && selectedRows[asset.id])} onCheckedChange={(checked) => asset.id && handleSelectRow(asset.id, !!checked)}/></TableCell>
                     <TableCell className="font-medium">{asset.assetNumber}</TableCell>
                     <TableCell className="text-muted-foreground">{asset.kmNumber}</TableCell>

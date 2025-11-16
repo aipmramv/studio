@@ -1,4 +1,3 @@
-
 // src/app/(app)/asset-management/new/page.tsx
 "use client";
 
@@ -7,41 +6,27 @@ import { AssetManagementForm } from "@/components/forms/AssetForm";
 import { type AssetManagementFormData } from "@/lib/schemas";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import { useFirestore, addDocumentNonBlocking } from "@/firebase";
-import { collection } from "firebase/firestore";
+import { mockAssetData } from "@/lib/mock-asset-data";
 
 export default function NewAssetPage() {
     const { toast } = useToast();
     const router = useRouter();
-    const firestore = useFirestore();
 
     const handleSave = (data: AssetManagementFormData) => {
-        if (!firestore) {
-            toast({ title: "Firestore not available", variant: "destructive" });
-            return;
-        }
-
-        const dataToClean: Partial<AssetManagementFormData> = { ...data };
-
-        // Firestore does not allow `undefined` values.
-        if (dataToClean.attachments && Object.values(dataToClean.attachments).every(v => v === undefined || v === null || v === '')) {
-            delete dataToClean.attachments;
-        }
-        
-        const dataToSave = {
-            ...dataToClean,
-            capitalizationDate: data.capitalizationDate ? new Date(data.capitalizationDate).toISOString() : null,
-            eolDate: data.eolDate ? new Date(data.eolDate).toISOString() : null,
-            verifiedOn: data.verifiedOn ? new Date(data.verifiedOn).toISOString() : null,
-            statusChangedOn: new Date().toISOString(),
+        const newAsset = {
+            ...data,
+            id: `ASSET-${Date.now()}`,
+            capitalizationDate: data.capitalizationDate ? new Date(data.capitalizationDate) : new Date(),
+            eolDate: data.eolDate ? new Date(data.eolDate) : undefined,
+            verifiedOn: data.verifiedOn ? new Date(data.verifiedOn) : undefined,
+            statusChangedOn: new Date(),
         };
-        
-        const assetsCollection = collection(firestore, "assets");
-        addDocumentNonBlocking(assetsCollection, dataToSave);
+
+        mockAssetData.unshift(newAsset as AssetManagementFormData);
 
         toast({
             title: "Asset Added Successfully",
-            description: `Asset ${dataToSave.assetNumber} has been added to the register.`,
+            description: `Asset ${data.assetNumber} has been added to the local mock data.`,
         });
         router.push('/asset-management/list');
     };
@@ -64,5 +49,3 @@ export default function NewAssetPage() {
         </div>
     );
 }
-
-    
